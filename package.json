@@ -1,7 +1,7 @@
 {
 	"name": "com.aggrobird.gamerenderpipeline",
 	"displayName":"Game Render Pipeline",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"unity": "2021.3",
 	"keywords": ["Render", "Pipeline"],
 	"category": "Generation",
