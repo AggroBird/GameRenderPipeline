@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7115cf1af3a1dd49b5a846f7c2491f8, type: 3}
   m_Name: GRPAsset
   m_EditorClassIdentifier: 
-  defaults:
+  resources:
     defaultLit: {fileID: 2100000, guid: f6da622e780bb5f41bec2984ce868103, type: 2}
     defaultTerrainLit: {fileID: 2100000, guid: 1742a5ed6da3ce2469681350b56d26e9, type: 2}
     terrainDetailLit: {fileID: 4800000, guid: f5ccd101b40ae334d9f6abd564ea6fdf, type: 3}
@@ -26,5 +26,5 @@ MonoBehaviour:
       type: 3}
     postProcessShader: {fileID: 4800000, guid: 9f7cf035f7369774cacfdbc662af1587, type: 3}
     smaaShader: {fileID: 4800000, guid: e107454670320ef4c97871571f39e401, type: 3}
-    smaaAreaTex: {fileID: 2800000, guid: 73ec4ae984a0a0f44a2be737e41a6f2f, type: 3}
-    smaaSearchTex: {fileID: 2800000, guid: d99701099481a2f489610e977df6dcbc, type: 3}
+    smaaAreaTexture: {fileID: 2800000, guid: 73ec4ae984a0a0f44a2be737e41a6f2f, type: 3}
+    smaaSearchTexture: {fileID: 2800000, guid: d99701099481a2f489610e977df6dcbc, type: 3}

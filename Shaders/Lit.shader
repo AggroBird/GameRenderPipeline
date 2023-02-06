@@ -12,7 +12,7 @@
 		_NormalScale("Normal Scale", Range(0, 1)) = 1
 		[Space]
 		_Metallic("Metallic", Range(0, 1)) = 0
-		_Smoothness("Smoothness", Range(0, 1)) = 0.5
+		_Smoothness("Smoothness", Range(0, 1)) = 0.2
 		_Fresnel("Fresnel", Range(0, 1)) = 1
 		[Space]
 		[Toggle(_ALPHATEST_ON)] _Clipping("Alpha Clipping", Float) = 0

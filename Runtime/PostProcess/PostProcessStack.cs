@@ -273,7 +273,7 @@ namespace AggroBird.GRP
             // Ensure there is a post process material
             if (!postProcessMaterial)
             {
-                postProcessMaterial = new Material(GameRenderPipelineAsset.main.postProcessShader);
+                postProcessMaterial = new Material(GameRenderPipelineAsset.Instance.Resources.postProcessShader);
                 postProcessMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
         }
@@ -609,15 +609,15 @@ namespace AggroBird.GRP
 
             if (!smaaMaterial)
             {
-                smaaMaterial = new Material(GameRenderPipelineAsset.main.smaaShader);
+                smaaMaterial = new Material(GameRenderPipelineAsset.Instance.Resources.smaaShader);
                 smaaMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
 
             buffer.GetTemporaryRT(flipId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);//, RenderTextureReadWrite.Linear, 1, false, RenderTextureMemoryless.None, camera.allowDynamicResolution);
             buffer.GetTemporaryRT(flopId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);//, RenderTextureReadWrite.Linear, 1, false, RenderTextureMemoryless.None, camera.allowDynamicResolution);
 
-            buffer.SetGlobalTexture(areaTexId, GameRenderPipelineAsset.main.smaaAreaTexture);
-            buffer.SetGlobalTexture(searchTexId, GameRenderPipelineAsset.main.smaaSearchTexture);
+            buffer.SetGlobalTexture(areaTexId, GameRenderPipelineAsset.Instance.Resources.smaaAreaTexture);
+            buffer.SetGlobalTexture(searchTexId, GameRenderPipelineAsset.Instance.Resources.smaaSearchTexture);
             buffer.SetGlobalVector(rtMetrics, new Vector4(1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
 
             buffer.BlitFrameBuffer(src, flipId, smaaMaterial, (int)SMAAPass.EdgeDetection + (int)settings.smaa.quality, true);

@@ -114,7 +114,7 @@ namespace AggroBird.GRP
         private int skyboxEditorForceUpdate = Application.isEditor ? 8 : 0;
 
 
-        private EnvironmentSettings defaultEnvironmentSettings = new EnvironmentSettings();
+        private readonly EnvironmentSettings defaultEnvironmentSettings = new EnvironmentSettings();
 
 
         public void Render(ScriptableRenderContext context, Camera camera, int cameraIndex, GameRenderPipelineAsset pipelineAsset)
@@ -157,7 +157,7 @@ namespace AggroBird.GRP
                 else
                 {
                     environmentSettings = defaultEnvironmentSettings;
-                    SetupEnvironment(defaultEnvironmentSettings, false);
+                    SetupEnvironment(environmentSettings, false);
                 }
 
                 buffer.SetKeywords(outputNormalsKeywords, postProcessStack.ssaoEnabled ? 1 : 0);
@@ -334,7 +334,7 @@ namespace AggroBird.GRP
 
             if (!skyboxCubemapRenderMaterial)
             {
-                skyboxCubemapRenderMaterial = new Material(pipelineAsset.skyboxRenderShader);
+                skyboxCubemapRenderMaterial = new Material(pipelineAsset.Resources.skyboxRenderShader);
                 skyboxCubemapRenderMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
 

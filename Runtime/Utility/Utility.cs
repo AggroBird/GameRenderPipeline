@@ -20,7 +20,7 @@ namespace AggroBird.GRP
             {
                 if (!blitDepthMaterialInstance)
                 {
-                    blitDepthMaterialInstance = new Material(GameRenderPipelineAsset.main.blitRenderTargetShader);
+                    blitDepthMaterialInstance = new Material(GameRenderPipelineAsset.Instance.Resources.blitRenderTargetShader);
                     blitDepthMaterialInstance.hideFlags = HideFlags.HideAndDontSave;
                 }
                 return blitDepthMaterialInstance;

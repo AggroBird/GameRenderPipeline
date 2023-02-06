@@ -109,7 +109,7 @@ namespace AggroBird.GRP
 
 
     [System.Serializable]
-    internal sealed class DefaultResources
+    internal sealed class PipelineResources
     {
         public Material defaultLit = default;
         public Material defaultTerrainLit = default;
@@ -120,14 +120,14 @@ namespace AggroBird.GRP
         public Shader blitRenderTargetShader = default;
         public Shader postProcessShader = default;
         public Shader smaaShader = default;
-        public Texture2D smaaAreaTex = default;
-        public Texture2D smaaSearchTex = default;
+        public Texture2D smaaAreaTexture = default;
+        public Texture2D smaaSearchTexture = default;
     }
 
     [CreateAssetMenu(menuName = "Rendering/GRP/Pipeline Asset", order = 998)]
     public sealed partial class GameRenderPipelineAsset : RenderPipelineAsset
     {
-        internal static GameRenderPipelineAsset main { get; private set; }
+        internal static GameRenderPipelineAsset Instance { get; private set; }
 
         internal const string SettingsPath = "ProjectSettings/GRP.json";
         internal const string SettingsFileName = "GRP_SETTINGS";
@@ -170,32 +170,25 @@ namespace AggroBird.GRP
         }
 
         [SerializeField, Space]
-        private DefaultResources defaults = default;
+        private PipelineResources resources = default;
+        internal PipelineResources Resources => resources;
 
         protected override RenderPipeline CreatePipeline()
         {
-            main = this;
+            Instance = this;
 
             return new GameRenderPipeline(this);
         }
 
 
         public override Shader defaultShader => defaultMaterial.shader;
-        public override Material defaultMaterial => defaults.defaultLit;
-        public override Material defaultTerrainMaterial => defaults.defaultTerrainLit;
-
-        internal Shader skyboxRenderShader => defaults.skyboxRenderShader;
-        internal Shader blitRenderTargetShader => defaults.blitRenderTargetShader;
-
-        internal Texture2D smaaAreaTexture => defaults.smaaAreaTex;
-        internal Texture2D smaaSearchTexture => defaults.smaaSearchTex;
-        internal Shader postProcessShader => defaults.postProcessShader;
-        internal Shader smaaShader => defaults.smaaShader;
+        public override Material defaultMaterial => resources.defaultLit;
+        public override Material defaultTerrainMaterial => resources.defaultTerrainLit;
 
 #if UNITY_EDITOR
-        public override Shader terrainDetailLitShader => defaults.terrainDetailLit;
-        public override Shader terrainDetailGrassShader => defaults.terrainDetailGrass;
-        public override Shader terrainDetailGrassBillboardShader => defaults.detailGrassBillboardShader;
+        public override Shader terrainDetailLitShader => resources.terrainDetailLit;
+        public override Shader terrainDetailGrassShader => resources.terrainDetailGrass;
+        public override Shader terrainDetailGrassBillboardShader => resources.detailGrassBillboardShader;
 #endif
     }
 }

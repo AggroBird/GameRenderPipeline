@@ -41,7 +41,7 @@ namespace AggroBird.GRP.Editor
 
         private void OnGUI()
         {
-            if (GameRenderPipelineAsset.main)
+            if (GameRenderPipelineAsset.Instance)
             {
                 try
                 {
@@ -72,7 +72,7 @@ namespace AggroBird.GRP.Editor
 
                     if (settingsObject.ApplyModifiedProperties())
                     {
-                        GameRenderPipelineAsset.main.settings = settings;
+                        GameRenderPipelineAsset.Instance.settings = settings;
                         File.WriteAllText(SettingsPath, JsonUtility.ToJson(settings));
                     }
                 }
