@@ -73,7 +73,7 @@ struct InputConfig
 	float splatMetallic;
 };
 
-InputConfig GetInputConfig(float2 texcoord, float4 texSplat01, float4 texSplat23)
+InputConfig GetTerrainInputConfig(float2 texcoord, float4 texSplat01, float4 texSplat23)
 {
 	InputConfig config;
 	config.texcoord = texcoord;
@@ -92,7 +92,7 @@ InputConfig GetInputConfig(float2 texcoord, float4 texSplat01, float4 texSplat23
 }
 InputConfig GetInputConfig(float2 texcoord)
 {
-	return GetInputConfig(texcoord, float4(0, 0, 0, 0), float4(0, 0, 0, 0));
+	return GetTerrainInputConfig(texcoord, float4(0, 0, 0, 0), float4(0, 0, 0, 0));
 }
 
 void SplatmapMix(inout InputConfig config)

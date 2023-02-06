@@ -75,7 +75,7 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 {
 	ClipHoles(input.texcoord);
 
-	InputConfig config = GetInputConfig(input.texcoord, input.texSplat01, input.texSplat23);
+	InputConfig config = GetTerrainInputConfig(input.texcoord, input.texSplat01, input.texSplat23);
 
 	SplatmapMix(config);
 
