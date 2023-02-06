@@ -21,7 +21,7 @@ struct Varyings
 	float3 normalWS : NORMAL;
 	float2 texcoord : TEXCOORD1;
 	float4 color : COLOR;
-#if defined(_HAS_NORMAL)
+#if defined(_HAS_NORMAL_TEXTURE)
 	float4 tangentWS : TANGENT;
 #endif
 	FOG_ATTRIBUTE(2)
@@ -44,7 +44,7 @@ Varyings LitPassVertex(Attributes input)
 	output.positionCS = vertexPositions.positionCS;
 
 	output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-#if defined(_HAS_NORMAL)
+#if defined(_HAS_NORMAL_TEXTURE)
 	output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
@@ -77,13 +77,13 @@ FragmentOutput LitPassFragment(Varyings input)
 	float fresnel = GetFresnel(config);
 	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, metallic, smoothness, fresnel, input.positionCS.xy);
 
-#if defined(_HAS_NORMAL)
+#if defined(_HAS_NORMAL_TEXTURE)
 	surface.normal = NormalTangentToWorld(GetNormal(config), input.normalWS, input.tangentWS);
 #endif
 
 	BRDF brdf = GetBRDF(surface);
 	GlobalIllumination gi = GetGlobalIllumination(surface, brdf);
-	float3 lit = GetLighting(surface, brdf, gi) + GetEmission(config);
+	float3 lit = GetTotalLighting(surface, brdf, gi) + GetEmission(config);
 	
 	APPLY_FOG(input, lit);
 

@@ -19,7 +19,7 @@ float3 GetLighting(Surface surface, BRDF brdf, Light light)
 	return DirectBRDF(surface, brdf, light) * IncomingLight(surface, light);
 }
 
-float3 GetLighting(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
+float3 GetTotalLighting(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
 {
 	ShadowData shadowData = GetShadowData(surface);
 

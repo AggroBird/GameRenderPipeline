@@ -45,8 +45,8 @@ namespace AggroBird.GRP.Editor
                 }
             }
 
-            EnableTextureToggle("_EmissionTex", "_HAS_EMISSION");
-            EnableTextureToggle("_NormalTex", "_HAS_NORMAL");
+            EnableTextureToggle("_EmissionTex", "_HAS_EMISSION_TEXTURE");
+            EnableTextureToggle("_NormalTex", "_HAS_NORMAL_TEXTURE");
         }
 
         private void EnableTextureToggle(string textureName, string featureName)

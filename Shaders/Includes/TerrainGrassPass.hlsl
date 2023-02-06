@@ -86,7 +86,7 @@ FragmentOutput GrassFragment(Varyings input)
 
 	BRDF brdf = GetBRDF(surface);
 	GlobalIllumination gi = GetGlobalIllumination(surface, brdf);
-	float3 lit = GetLighting(surface, brdf, gi);
+	float3 lit = GetTotalLighting(surface, brdf, gi);
 
 	APPLY_FOG(input, lit);
 

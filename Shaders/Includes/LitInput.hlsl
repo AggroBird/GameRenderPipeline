@@ -43,7 +43,7 @@ float4 GetDiffuse(InputConfig config)
 float3 GetEmission(InputConfig config)
 {
 	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
-#if defined(_HAS_EMISSION)
+#if defined(_HAS_EMISSION_TEXTURE)
 	color *= SAMPLE_TEXTURE2D(_EmissionTex, sampler_MainTex, config.texcoord);
 #endif
 	return color.rgb;

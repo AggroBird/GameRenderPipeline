@@ -60,8 +60,8 @@
 			#pragma shader_feature _ALPHATEST_ON
 			#pragma shader_feature _RECEIVE_SHADOWS
 			#pragma shader_feature _TREE_MATERIAL
-			#pragma shader_feature _HAS_EMISSION
-			#pragma shader_feature _HAS_NORMAL
+			#pragma shader_feature _HAS_EMISSION_TEXTURE
+			#pragma shader_feature _HAS_NORMAL_TEXTURE
 			#pragma multi_compile _ _OUTPUT_NORMALS_ON
 			#pragma multi_compile _ _FOG_LINEAR _FOG_EXP _FOG_EXP2
 			#pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7

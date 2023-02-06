@@ -38,7 +38,7 @@
 			HLSLPROGRAM
 			#pragma target 3.5
 			#pragma shader_feature _ALPHATEST_ON
-			#pragma shader_feature _HAS_EMISSION
+			#pragma shader_feature _HAS_EMISSION_TEXTURE
 			#pragma vertex UnlitPassVertex
 			#pragma fragment UnlitPassFragment
 			#include "Includes/UnlitPass.hlsl"
