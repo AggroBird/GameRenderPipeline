@@ -137,7 +137,7 @@ namespace AggroBird.GRP
             buffer.BeginSample(bufferName);
             ExecuteBuffer();
             lighting.Setup(context, cullingResults, pipelineAsset.settings.shadows, pipelineAsset.settings.general.useLightsPerObject);
-            postProcessStack.Setup(context, camera, useHDR);
+            postProcessStack.Setup(context, camera, useHDR, showPostProcess);
             buffer.EndSample(bufferName);
 
             buffer.SetKeywords(colorSpaceKeywords, GameRenderPipeline.linearColorSpace ? 1 : 0);
@@ -459,7 +459,7 @@ namespace AggroBird.GRP
         private void Setup()
         {
             context.SetupCameraProperties(camera);
-            CameraClearFlags clearFlags = camera.clearFlags;
+            CameraClearFlags clearFlags = (camera.cameraType == CameraType.Preview) ? CameraClearFlags.SolidColor : camera.clearFlags;
             bool clearDepth = clearFlags <= CameraClearFlags.Depth;
             bool clearColor = clearFlags == CameraClearFlags.Color;
             Color backgroundColor = clearFlags == CameraClearFlags.Color ?

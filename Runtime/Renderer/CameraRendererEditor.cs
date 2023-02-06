@@ -15,6 +15,7 @@ namespace AggroBird.GRP
 
         private bool showFog = true;
         private bool showSkybox = true;
+        private bool showPostProcess = true;
 
         partial void PrepareSceneWindow();
 
@@ -73,13 +74,13 @@ namespace AggroBird.GRP
 
                 showFog = SceneView.currentDrawingSceneView.sceneViewState.showFog;
                 showSkybox = SceneView.currentDrawingSceneView.sceneViewState.showSkybox;
+                showPostProcess = SceneView.currentDrawingSceneView.sceneViewState.showImageEffects;
             }
         }
 
 #else
 
         private const string bufferName = "GRP Render Camera";
-        private const bool hideEnvironment = false;
 
 #endif
     }

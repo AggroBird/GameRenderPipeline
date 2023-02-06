@@ -16,15 +16,15 @@ namespace AggroBird.GRP
         private Camera camera;
 
         private PostProcessSettings settings = default;
-        private static readonly PostProcessSettings defaultSettings = new PostProcessSettings();
         private BlendMode srcBlendMode, dstBlendMode;
 
-        private bool postProcessEnabled => !ReferenceEquals(settings, defaultSettings);
+        private bool postProcessEnabled;
 
         public bool ssaoEnabled
         {
             get
             {
+                if (!postProcessEnabled) return false;
                 return settings.ambientOcclusion.enabled;
             }
         }
@@ -32,6 +32,8 @@ namespace AggroBird.GRP
         {
             get
             {
+                if (!postProcessEnabled) return false;
+
                 PostProcessSettings.DepthOfField dof = settings.depthOfField;
                 if (!dof.enabled) return false;
 
@@ -42,6 +44,8 @@ namespace AggroBird.GRP
         {
             get
             {
+                if (!postProcessEnabled) return false;
+
                 PostProcessSettings.Bloom bloom = settings.bloom;
                 if (!bloom.enabled) return false;
 
@@ -60,6 +64,7 @@ namespace AggroBird.GRP
         {
             get
             {
+                if (!postProcessEnabled) return false;
                 return settings.smaa.enabled;
             }
         }
@@ -220,7 +225,7 @@ namespace AggroBird.GRP
         }
 
 
-        public void Setup(ScriptableRenderContext context, Camera camera, bool useHDR)
+        public void Setup(ScriptableRenderContext context, Camera camera, bool useHDR, bool postProcessEnabled)
         {
             this.context = context;
             this.camera = camera;
@@ -231,8 +236,19 @@ namespace AggroBird.GRP
                 srcBlendMode = postProcessCamera.finalBlendMode.source;
                 dstBlendMode = postProcessCamera.finalBlendMode.destination;
                 settings = postProcessCamera.postProcessSettingsAsset ? postProcessCamera.postProcessSettingsAsset.settings : null;
-                if (settings == null) settings = new PostProcessSettings();
+                if (settings == null) postProcessEnabled = false;
+            }
+            else
+            {
+                srcBlendMode = BlendMode.One;
+                dstBlendMode = BlendMode.Zero;
+                postProcessEnabled = false;
+            }
 
+            this.postProcessEnabled = postProcessEnabled;
+
+            if (postProcessEnabled)
+            {
                 // Get custom effects
                 postProcessCamera.GetComponents(effectComponentBuffer);
                 if (effectComponentBuffer.Count > 0)
@@ -263,12 +279,6 @@ namespace AggroBird.GRP
                     }
                 }
             }
-            else
-            {
-                srcBlendMode = BlendMode.One;
-                dstBlendMode = BlendMode.Zero;
-                settings = defaultSettings;
-            }
 
             // Ensure there is a post process material
             if (!postProcessMaterial)
@@ -294,6 +304,8 @@ namespace AggroBird.GRP
             {
                 ExecuteBuffer();
             }
+
+            ClearCustomEffectsList();
         }
 
         public void ApplyPreTransparency(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dst)
@@ -365,8 +377,6 @@ namespace AggroBird.GRP
             }
 
             ExecuteBuffer();
-
-            ClearCustomEffectsList();
         }
 
         private void ExecuteBuffer()
@@ -644,7 +654,7 @@ namespace AggroBird.GRP
             buffer.BeginSample("Final Blit");
 
             // Vignette
-            buffer.SetGlobalVector(vignetteParamId, new Vector4(settings.vignette.enabled ? 1f : 0f, camera.aspect, settings.vignette.falloff));
+            buffer.SetGlobalVector(vignetteParamId, new Vector4(postProcessEnabled && settings.vignette.enabled ? 1f : 0f, camera.aspect, postProcessEnabled ? settings.vignette.falloff : 0));
 
             buffer.SetGlobalFloat(finalSrcBlendId, (float)srcBlendMode);
             buffer.SetGlobalFloat(finalDstBlendId, (float)dstBlendMode);
