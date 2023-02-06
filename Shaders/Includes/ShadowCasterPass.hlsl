@@ -1,9 +1,11 @@
 #ifndef _GRP_SHADOW_CASTER_PASS
 #define _GRP_SHADOW_CASTER_PASS
 
+#include "Tree.hlsl"
+
 struct Attributes
 {
-	float3 positionOS : POSITION;
+	float4 positionOS : POSITION;
 	float2 texcoord : TEXCOORD0;
 	float4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -26,8 +28,8 @@ Varyings ShadowCasterPassVertex(Attributes input)
 	UNITY_SETUP_INSTANCE_ID(input);
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-#if defined(IS_TREE_MATERIAL)
-	input.positionOS.xyz *= UNITY_ACCESS_INSTANCED_PROP(UnityTerrain, _TreeInstanceScale).xyz;
+#if defined(_TREE_MATERIAL)
+	ApplyTreeProperties(input.positionOS);
 #endif
 
 	VertexPositions vertexPositions = GetVertexPositions(input.positionOS);

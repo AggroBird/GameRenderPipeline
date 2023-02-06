@@ -3,7 +3,7 @@
 
 struct Attributes
 {
-	float3 positionOS : POSITION;
+	float4 positionOS : POSITION;
 	float2 texcoord : TEXCOORD0;
 	float4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID

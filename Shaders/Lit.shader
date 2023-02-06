@@ -26,6 +26,12 @@
 		[Enum(Off, 0, On, 1)] _ZWrite("Z Write", Float) = 1
 		[Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("Z Test", Float) = 4
 		[Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull Mode", Float) = 2
+		[Space]
+		[Toggle(_TREE_MATERIAL)] _TreeMaterial("Tree Material", Float) = 0
+
+		[HideInInspector] _TreeInstanceColor("TreeInstanceColor", Vector) = (1,1,1,1)
+		[HideInInspector] _TreeInstanceScale("TreeInstanceScale", Vector) = (1,1,1,1)
+		[HideInInspector] _SquashAmount("Squash", Float) = 1
 	}
 	Subshader
 	{
@@ -53,6 +59,7 @@
 			#pragma target 3.5
 			#pragma shader_feature _ALPHATEST_ON
 			#pragma shader_feature _RECEIVE_SHADOWS
+			#pragma shader_feature _TREE_MATERIAL
 			#pragma shader_feature _HAS_EMISSION
 			#pragma shader_feature _HAS_NORMAL
 			#pragma multi_compile _ _OUTPUT_NORMALS_ON
@@ -81,6 +88,7 @@
 			HLSLPROGRAM
 			#pragma target 3.5
 			#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
+			#pragma shader_feature _TREE_MATERIAL
 			#pragma vertex ShadowCasterPassVertex
 			#pragma fragment ShadowCasterPassFragment
 			#include "Includes/ShadowCasterPass.hlsl"

@@ -67,10 +67,10 @@ float4 GetPositionNDC(float4 positionCS)
 	return ndc;
 }
 
-VertexPositions GetVertexPositions(float3 positionOS)
+VertexPositions GetVertexPositions(float4 positionOS)
 {
     VertexPositions result;
-    result.positionWS = TransformObjectToWorld(positionOS);
+    result.positionWS = TransformObjectToWorld(positionOS.xyz);
     result.positionVS = TransformWorldToView(result.positionWS);
     result.positionCS = TransformWorldToHClip(result.positionWS);
 	result.positionNDC = GetPositionNDC(result.positionCS);

@@ -11,7 +11,7 @@
 
 struct Attributes
 {
-	float3 positionOS : POSITION;
+	float4 positionOS : POSITION;
 	float2 texcoord : TEXCOORD0;
 	float3 normalOS : NORMAL;
 	float4 tangentOS : TANGENT;
@@ -47,7 +47,7 @@ Varyings GrassVertex(Attributes input)
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 #if defined(GRASS_BILLBOARD)
-	TerrainBillboardGrass(input.positionOS, input.tangentOS.xy);
+	TerrainBillboardGrass(input.positionOS.xyz, input.tangentOS.xy);
 #endif
 
 	VertexPositions vertexPositions = GetVertexPositions(input.positionOS);

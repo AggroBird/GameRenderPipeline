@@ -20,16 +20,6 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
-#if defined(IS_TREE_MATERIAL)
-UNITY_INSTANCING_BUFFER_START(UnityTerrain)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _TreeInstanceColor)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _TreeInstanceScale)
-	UNITY_DEFINE_INSTANCED_PROP(float4x4, _TerrainEngineBendTree)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _SquashPlaneNormal)
-	UNITY_DEFINE_INSTANCED_PROP(float, _SquashAmount)
-UNITY_INSTANCING_BUFFER_END(UnityTerrain)
-#endif
-
 
 struct InputConfig
 {
