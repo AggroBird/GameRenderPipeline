@@ -5,7 +5,11 @@ namespace AggroBird.GRP.Editor
 {
     internal sealed class CustomShaderGUI : ShaderGUI
     {
-        private MaterialEditor editor;
+        private enum ShadowMode
+        {
+            On, Clip, Dither, Off
+        }
+
         private Object[] materials;
         private MaterialProperty[] properties;
 
@@ -15,7 +19,6 @@ namespace AggroBird.GRP.Editor
 
             base.OnGUI(materialEditor, properties);
 
-            editor = materialEditor;
             materials = materialEditor.targets;
             this.properties = properties;
 
@@ -25,23 +28,14 @@ namespace AggroBird.GRP.Editor
             }
         }
 
-        enum ShadowMode
-        {
-            On, Clip, Dither, Off
-        }
-
         private void UpdateProperties()
         {
-            MaterialProperty shadows = FindProperty("_Shadows", properties, false);
-            if (shadows != null && !shadows.hasMixedValue)
+            if (TryFindProperty("_Shadows", out MaterialProperty shadows) && !shadows.hasMixedValue)
             {
                 bool enabled = shadows.floatValue < (float)ShadowMode.Off;
                 foreach (Material m in materials)
                 {
-                    if (m.IsGRPMaterial())
-                    {
-                        m.SetShaderPassEnabled("ShadowCaster", enabled);
-                    }
+                    m.SetShaderPassEnabled("ShadowCaster", enabled);
                 }
             }
 
@@ -51,17 +45,19 @@ namespace AggroBird.GRP.Editor
 
         private void EnableTextureToggle(string textureName, string featureName)
         {
-            MaterialProperty diffuse = FindProperty(textureName, properties, false);
-            if (diffuse != null && !diffuse.hasMixedValue)
+            if (TryFindProperty(textureName, out MaterialProperty diffuse) && !diffuse.hasMixedValue)
             {
-                foreach (Material m in materials)
+                foreach (Material material in materials)
                 {
-                    if (m.IsGRPMaterial())
-                    {
-                        m.SetKeywordEnabled(featureName, diffuse.textureValue != null);
-                    }
+                    material.SetKeywordEnabled(featureName, diffuse.textureValue != null);
                 }
             }
+        }
+
+        private bool TryFindProperty(string name, out MaterialProperty property)
+        {
+            property = FindProperty(name, properties, false);
+            return property != null;
         }
     }
 
@@ -77,10 +73,6 @@ namespace AggroBird.GRP.Editor
             {
                 material.DisableKeyword(name);
             }
-        }
-        public static bool IsGRPMaterial(this Material material)
-        {
-            return material.shader && material.shader.name.StartsWith("GRP/");
         }
     }
 }
