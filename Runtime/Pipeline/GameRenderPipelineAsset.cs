@@ -141,14 +141,17 @@ namespace AggroBird.GRP
                 {
                     try
                     {
-#if UNITY_EDITOR
-                        if (File.Exists(SettingsPath))
+                        if (Application.isEditor)
                         {
-                            settingsInstance = JsonUtility.FromJson<Settings>(File.ReadAllText(SettingsPath));
+                            if (File.Exists(SettingsPath))
+                            {
+                                settingsInstance = JsonUtility.FromJson<Settings>(File.ReadAllText(SettingsPath));
+                            }
                         }
-#else
-                        settingsInstance = JsonUtility.FromJson<Settings>(Resources.Load<TextAsset>(SettingsFileName).text);
-#endif
+                        else
+                        {
+                            settingsInstance = JsonUtility.FromJson<Settings>(UnityEngine.Resources.Load<TextAsset>(SettingsFileName).text);
+                        }
                     }
                     catch (System.Exception)
                     {
