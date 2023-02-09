@@ -137,7 +137,7 @@ namespace AggroBird.GRP
             buffer.BeginSample(bufferName);
             ExecuteBuffer();
             lighting.Setup(context, cullingResults, pipelineAsset.settings.shadows, pipelineAsset.settings.general.useLightsPerObject);
-            postProcessStack.Setup(context, camera, useHDR, showPostProcess);
+            postProcessStack.Setup(context, camera, useHDR, ShowPostProcess);
             buffer.EndSample(bufferName);
 
             buffer.SetKeywords(colorSpaceKeywords, GameRenderPipeline.linearColorSpace ? 1 : 0);
@@ -255,7 +255,7 @@ namespace AggroBird.GRP
 
             // Fog
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
-            bool fogEnabled = fogSettings.enabled && showFog;
+            bool fogEnabled = fogSettings.enabled && ShowFog;
             int setFogKeyword = fogEnabled ? (int)fogSettings.fogMode : 0;
             buffer.SetKeywords(fogModeKeywords, setFogKeyword);
             if (fogEnabled)
@@ -289,7 +289,7 @@ namespace AggroBird.GRP
 
             // Clouds
             EnvironmentSettings.CloudSettings cloudSettings = settings.cloudSettings;
-            bool cloudsEnabled = cloudSettings.enabled && showSkybox;
+            bool cloudsEnabled = cloudSettings.enabled && ShowSkybox;
             buffer.SetKeywords(skyboxCloudsKeywords, cloudsEnabled ? 1 : 0);
             if (cloudsEnabled)
             {

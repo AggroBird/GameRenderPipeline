@@ -13,9 +13,20 @@ namespace AggroBird.GRP
 
         partial void DrawUnsupportedShaders();
 
-        private bool showFog = true;
-        private bool showSkybox = true;
-        private bool showPostProcess = true;
+        [System.Flags]
+        private enum ShowFlags
+        {
+            None = 0,
+            Fog = 1,
+            Skybox = 2,
+            PostProcess = 4,
+            All = Fog | Skybox | PostProcess,
+        }
+        private ShowFlags showFlags = ShowFlags.All;
+
+        private bool ShowFog => (showFlags & ShowFlags.Fog) != ShowFlags.None;
+        private bool ShowSkybox => (showFlags & ShowFlags.Skybox) != ShowFlags.None;
+        private bool ShowPostProcess => (showFlags & ShowFlags.PostProcess) != ShowFlags.None;
 
         partial void PrepareSceneWindow();
 
@@ -72,9 +83,15 @@ namespace AggroBird.GRP
             {
                 ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 
-                showFog = SceneView.currentDrawingSceneView.sceneViewState.showFog;
-                showSkybox = SceneView.currentDrawingSceneView.sceneViewState.showSkybox;
-                showPostProcess = SceneView.currentDrawingSceneView.sceneViewState.showImageEffects;
+                SceneView.SceneViewState viewState = SceneView.currentDrawingSceneView.sceneViewState;
+                showFlags = ShowFlags.None;
+                if (viewState.showFog) showFlags |= ShowFlags.Fog;
+                if (viewState.showSkybox) showFlags |= ShowFlags.Skybox;
+                if (viewState.imageEffectsEnabled) showFlags |= ShowFlags.PostProcess;
+            }
+            else
+            {
+                showFlags = ShowFlags.All;
             }
         }
 
