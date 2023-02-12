@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GRP
@@ -19,12 +20,39 @@ namespace AggroBird.GRP
             GraphicsSettings.lightsUseLinearIntensity = linearColorSpace;
         }
 
+        private void RenderCamera(ScriptableRenderContext context, Camera camera, int cameraIndex)
+        {
+            BeginCameraRendering(context, camera);
+
+            if (!camera.name.StartsWith("SceneCamera"))
+            {
+                Debug.Log(camera, camera);
+            }
+            cameraRenderer.Render(context, camera, cameraIndex, pipelineAsset);
+
+            EndCameraRendering(context, camera);
+        }
+        protected override void Render(ScriptableRenderContext context, List<Camera> cameras)
+        {
+            BeginContextRendering(context, cameras);
+
+            for (int i = 0; i < cameras.Count; i++)
+            {
+                RenderCamera(context, cameras[i], i);
+            }
+
+            EndContextRendering(context, cameras);
+        }
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
+            BeginFrameRendering(context, cameras);
+
             for (int i = 0; i < cameras.Length; i++)
             {
-                cameraRenderer.Render(context, cameras[i], i, pipelineAsset);
+                RenderCamera(context, cameras[i], i);
             }
+
+            EndFrameRendering(context, cameras);
         }
     }
 }
