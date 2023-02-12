@@ -24,10 +24,6 @@ namespace AggroBird.GRP
         {
             BeginCameraRendering(context, camera);
 
-            if (!camera.name.StartsWith("SceneCamera"))
-            {
-                Debug.Log(camera, camera);
-            }
             cameraRenderer.Render(context, camera, cameraIndex, pipelineAsset);
 
             EndCameraRendering(context, camera);

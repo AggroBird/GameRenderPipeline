@@ -463,7 +463,7 @@ namespace AggroBird.GRP
             bool clearDepth = clearFlags <= CameraClearFlags.Depth;
             bool clearColor = clearFlags == CameraClearFlags.Color;
             Color backgroundColor = clearFlags == CameraClearFlags.Color ?
-                (GameRenderPipeline.linearColorSpace ? camera.backgroundColor.linear : camera.backgroundColor) : Color.clear;
+                camera.backgroundColor : Color.clear;
 
             // Opaque render targets
             buffer.GetTemporaryRT(opaqueColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, renderTextureFormat);
