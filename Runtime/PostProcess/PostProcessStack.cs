@@ -53,13 +53,6 @@ namespace AggroBird.GRP
                 return bloom.intensity > 0 && width >= bloom.downscaleLimit * 2 && height >= bloom.downscaleLimit * 2;
             }
         }
-        public bool colorGradingEnabled
-        {
-            get
-            {
-                return postProcessEnabled;
-            }
-        }
         public bool smaaEnabled
         {
             get
@@ -157,9 +150,10 @@ namespace AggroBird.GRP
 
 
         private RenderTargetIdentifier currentSourceBuffer;
+        private int currentBufferIndex = 0;
         private RenderTargetIdentifier GetNextBuffer()
         {
-            int next = currentSourceBuffer == postProcessRenderTargetIds[0] ? 1 : 0;
+            int next = (currentBufferIndex + 1) & 1;
 
             if (!buffersAllocated[next])
             {
@@ -171,9 +165,8 @@ namespace AggroBird.GRP
         }
         private void SwapBuffers()
         {
-            int next = currentSourceBuffer == postProcessRenderTargetIds[0] ? 1 : 0;
-
-            currentSourceBuffer = postProcessRenderTargetIds[next];
+            currentBufferIndex = (currentBufferIndex + 1) & 1;
+            currentSourceBuffer = postProcessRenderTargetIds[currentBufferIndex];
         }
 
 
@@ -204,7 +197,7 @@ namespace AggroBird.GRP
                     }
                     catch (System.Exception e)
                     {
-                        Debug.LogError($"Error while executing '{name}' effect: {e.Message}");
+                        Debug.LogException(e);
                     }
                     buffer.Clear();
                     buffer.EndSample(name);
@@ -286,6 +279,8 @@ namespace AggroBird.GRP
                 postProcessMaterial = new Material(GameRenderPipelineAsset.Instance.Resources.postProcessShader);
                 postProcessMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
+
+            currentBufferIndex = 0;
         }
 
         public void Cleanup()
@@ -349,13 +344,9 @@ namespace AggroBird.GRP
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeColorGrading);
 
                 // Color grading
-                bool doColorGrading = colorGradingEnabled;
-                buffer.SetGlobalBool(colorGradingEnabledId, doColorGrading);
-                if (doColorGrading)
-                {
-                    ApplyColorGrading(currentSourceBuffer, GetNextBuffer());
-                    SwapBuffers();
-                }
+                buffer.SetGlobalBool(colorGradingEnabledId, true);
+                ApplyColorGrading(currentSourceBuffer, GetNextBuffer());
+                SwapBuffers();
 
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeAntiAlias);
 
@@ -593,6 +584,9 @@ namespace AggroBird.GRP
                 buffer.SetGlobalColor(smhHighlightsId, smh.highlights.linear);
                 buffer.SetGlobalVector(smhRangeId, new Vector4(smh.shadowsStart, smh.shadowsEnd, smh.highlightsStart, smh.highLightsEnd));
 
+                // Vignette
+                buffer.SetGlobalVector(vignetteParamId, new Vector4(settings.vignette.enabled ? 1f : 0f, camera.aspect, settings.vignette.falloff));
+
                 buffer.GetTemporaryRT(colorGradingLUTId, lutWidth, lutHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
                 buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)));
                 PostProcessSettings.ToneMapping.Mode mode = settings.toneMapping.mode;
@@ -652,9 +646,6 @@ namespace AggroBird.GRP
         private void DrawFinal(RenderTargetIdentifier src, RenderTargetIdentifier dst)
         {
             buffer.BeginSample("Final Blit");
-
-            // Vignette
-            buffer.SetGlobalVector(vignetteParamId, new Vector4(postProcessEnabled && settings.vignette.enabled ? 1f : 0f, camera.aspect, postProcessEnabled ? settings.vignette.falloff : 0));
 
             buffer.SetGlobalFloat(finalSrcBlendId, (float)srcBlendMode);
             buffer.SetGlobalFloat(finalDstBlendId, (float)dstBlendMode);
