@@ -28,6 +28,14 @@ namespace AggroBird.GRP
                 return settings.ambientOcclusion.enabled;
             }
         }
+        public bool outlineEnabled
+        {
+            get
+            {
+                if (!postProcessEnabled) return false;
+                return settings.outline.enabled;
+            }
+        }
         public bool dofEnabled
         {
             get
@@ -82,6 +90,7 @@ namespace AggroBird.GRP
             DOFPreFilter,
             DOFPostFilter,
             DOFCombine,
+            Outline,
             ColorGradingNone,
             ColorGradingACES,
             ColorGradingNeutral,
@@ -106,6 +115,8 @@ namespace AggroBird.GRP
             dofFocusRangeId = Shader.PropertyToID("_DOFFocusRange"),
             dofBokehRadiusId = Shader.PropertyToID("_DOFBokehRadius"),
             dofConstantScaleId = Shader.PropertyToID("_DOFConstantScale"),
+            outlineColorId = Shader.PropertyToID("_OutlineColor"),
+            outlineParamId = Shader.PropertyToID("_OutlineParam"),
             colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
             whiteBalanceId = Shader.PropertyToID("_WhiteBalance"),
             splitToningShadowsId = Shader.PropertyToID("_SplitToningShadows"),
@@ -307,12 +318,21 @@ namespace AggroBird.GRP
         {
             if (postProcessEnabled)
             {
-                if (ssaoEnabled)
+                if (ssaoEnabled || outlineEnabled)
                 {
                     currentSourceBuffer = srcColor;
 
-                    ApplySSAO(srcColor, srcNormal, srcDepth, GetNextBuffer());
-                    SwapBuffers();
+                    if (ssaoEnabled)
+                    {
+                        ApplySSAO(currentSourceBuffer, srcNormal, srcDepth, GetNextBuffer());
+                        SwapBuffers();
+                    }
+
+                    if (outlineEnabled)
+                    {
+                        ApplyOutline(currentSourceBuffer, srcNormal, srcDepth, GetNextBuffer());
+                        SwapBuffers();
+                    }
 
                     Draw(currentSourceBuffer, dst, Pass.Copy);
                     ExecuteBuffer();
@@ -328,7 +348,7 @@ namespace AggroBird.GRP
                 // Depth of field
                 if (dofEnabled)
                 {
-                    ApplyDOF(src, GetNextBuffer());
+                    ApplyDOF(currentSourceBuffer, GetNextBuffer());
                     SwapBuffers();
                 }
 
@@ -374,6 +394,22 @@ namespace AggroBird.GRP
         {
             context.ExecuteCommandBuffer(buffer);
             buffer.Clear();
+        }
+
+        private void ApplyOutline(RenderTargetIdentifier src, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dst)
+        {
+            buffer.BeginSample("Outline");
+
+            buffer.SetGlobalColor(outlineColorId, settings.outline.color);
+            buffer.SetGlobalVector(outlineParamId, new Vector4(settings.outline.normalIntensity, settings.outline.normalBias, settings.outline.depthIntensity, settings.outline.depthBias));
+            buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
+            buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
+
+            Draw(src, dst, Pass.Outline);
+
+            buffer.EndSample("Outline");
+
+            ExecuteBuffer();
         }
 
         private void ApplyDOF(RenderTargetIdentifier src, RenderTargetIdentifier dst)

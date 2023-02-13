@@ -171,6 +171,17 @@
 
 		Pass
 		{
+			Name "Outline"
+
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma vertex BlitVertex
+			#pragma fragment OutlinePass
+			ENDHLSL
+		}
+
+		Pass
+		{
 			Name "Color Grading None"
 
 			HLSLPROGRAM

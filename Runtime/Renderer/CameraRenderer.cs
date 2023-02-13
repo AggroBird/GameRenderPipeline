@@ -113,6 +113,8 @@ namespace AggroBird.GRP
         // so for the first 8 frames, force render
         private int skyboxEditorForceUpdate = Application.isEditor ? 8 : 0;
 
+        private bool outputNormals = false;
+
 
         private readonly EnvironmentSettings defaultEnvironmentSettings = new EnvironmentSettings();
 
@@ -138,6 +140,7 @@ namespace AggroBird.GRP
             ExecuteBuffer();
             lighting.Setup(context, cullingResults, pipelineAsset.Settings);
             postProcessStack.Setup(context, camera, useHDR, ShowPostProcess);
+            outputNormals = postProcessStack.ssaoEnabled || postProcessStack.outlineEnabled;
             buffer.EndSample(bufferName);
 
             buffer.SetKeywords(colorSpaceKeywords, GameRenderPipeline.linearColorSpace ? 1 : 0);
@@ -160,8 +163,8 @@ namespace AggroBird.GRP
                     SetupEnvironment(environmentSettings, false);
                 }
 
-                buffer.SetKeywords(outputNormalsKeywords, postProcessStack.ssaoEnabled ? 1 : 0);
-                if (postProcessStack.ssaoEnabled)
+                buffer.SetKeywords(outputNormalsKeywords, outputNormals ? 1 : 0);
+                if (outputNormals)
                 {
                     buffer.SetRenderTarget(new RenderTargetIdentifier[] { opaqueColorBufferId, opaqueNormalBufferId }, opaqueDepthBufferId);
                 }
@@ -473,7 +476,7 @@ namespace AggroBird.GRP
                 opaqueDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
-            if (postProcessStack.ssaoEnabled)
+            if (outputNormals)
             {
                 // Normal buffer
                 buffer.GetTemporaryRT(opaqueNormalBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.RGHalf);
@@ -502,7 +505,7 @@ namespace AggroBird.GRP
 
             buffer.ReleaseTemporaryRT(opaqueColorBufferId);
             buffer.ReleaseTemporaryRT(opaqueDepthBufferId);
-            if (postProcessStack.ssaoEnabled)
+            if (outputNormals)
             {
                 buffer.ReleaseTemporaryRT(opaqueNormalBufferId);
             }

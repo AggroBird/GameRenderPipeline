@@ -41,12 +41,24 @@ float SampleDepthTex(float2 texcoord)
 {
 	return SAMPLE_DEPTH_TEXTURE(_PostProcessDepthTex, sampler_PostProcessDepthTex, texcoord).r;
 }
+float SampleDepthTexLinear(float2 texcoord)
+{
+	return Linear01Depth(SampleDepthTex(texcoord));
+}
+float SampleDepthTexWorld(float2 texcoord)
+{
+	return SampleDepthTexLinear(texcoord) * _ProjectionParams.z;
+}
 
 float4 SampleCombineTex(float2 texcoord)
 {
 	return SAMPLE_TEXTURE2D(_PostProcessCombineTex, sampler_linear_clamp, texcoord);
 }
 
+float3 ReconstructWorldFromDepth(float2 texcoord)
+{
+	return _WorldSpaceCameraPos + CameraTraceDirection(texcoord) * SampleDepthTexWorld(texcoord);
+}
 
 ////////////////////////////////
 // COPY
@@ -582,6 +594,53 @@ float4 DOFCombinePass(BlitVaryings input) : SV_TARGET
 	float3 color = lerp(src.rgb, dof.rgb, dofStrength + dof.a - dofStrength * dof.a);
 
 	return float4(color, src.a);
+}
+
+////////////////////////////////
+// Outline
+////////////////////////////////
+
+float4 _OutlineColor;
+// normal intensity, normal bias, depth intensity, depth bias
+float4 _OutlineParam;
+
+void Compare(inout float depthOutline, inout float normalOutline, float baseDepth, float3 baseNormal, float2 uv, float2 offset)
+{
+	float3 neighborNormal = SampleNormalTex(uv + InputTexelSize().xy * offset);
+	float neighborDepth = SampleDepthTexWorld(uv + InputTexelSize().xy * offset);
+
+	float depthDifference = baseDepth - neighborDepth;
+	depthOutline = depthOutline + depthDifference;
+
+	float3 normalDifference = baseNormal - neighborNormal;
+	normalDifference = normalDifference.r + normalDifference.g + normalDifference.b;
+	normalOutline = normalOutline + normalDifference;
+}
+
+float4 OutlinePass(BlitVaryings input) : SV_TARGET
+{
+	float3 normal = SampleNormalTex(input.texcoord);
+	float depth = SampleDepthTexWorld(input.texcoord);
+
+	float depthDifference = 0;
+	float normalDifference = 0;
+
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(1, 0));
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, 1));
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, -1));
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-1, 0));
+
+	depthDifference = depthDifference * _OutlineParam.z;
+	depthDifference = saturate(depthDifference);
+	depthDifference = pow(depthDifference, _OutlineParam.w);
+
+	normalDifference = normalDifference * _OutlineParam.x;
+	normalDifference = saturate(normalDifference);
+	normalDifference = pow(normalDifference, _OutlineParam.y);
+
+	float outline = normalDifference + depthDifference;
+	float4 sourceColor = SampleInputTex(input.texcoord);
+	return float4(lerp(sourceColor.rgb, _OutlineColor.rgb, outline), sourceColor.a);
 }
 
 ////////////////////////////////

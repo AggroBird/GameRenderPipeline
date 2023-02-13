@@ -111,6 +111,35 @@ namespace AggroBird.GRP
         };
 
         [System.Serializable]
+        public struct Outline
+        {
+            public bool enabled;
+
+            [ColorUsage(false)]
+            public Color color;
+
+            [Min(0)]
+            public float normalIntensity;
+
+            [Min(0)]
+            public float normalBias;
+
+            [Min(0)]
+            public float depthIntensity;
+
+            [Min(0)]
+            public float depthBias;
+        }
+
+        public Outline outline = new Outline
+        {
+            normalIntensity = 1,
+            normalBias = 1,
+            depthIntensity = 1,
+            depthBias = 1,
+        };
+
+        [System.Serializable]
         public struct AmbientOcclusion
         {
             public bool enabled;
