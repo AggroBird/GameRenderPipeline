@@ -600,44 +600,96 @@ float4 DOFCombinePass(BlitVaryings input) : SV_TARGET
 // Outline
 ////////////////////////////////
 
+// https://github.com/IronWarrior/UnityOutlineShader
+
 float4 _OutlineColor;
-// x = normal intensity, y = normal bias, z = depth intensity, w = depth bias
-float4 _OutlineParam;
+// x = scale, y = depth threshold, z = depth normal threshold, w = depth normal threshold scale
+float4 _OutlineParam0;
+// x = normal threshold
+float4 _OutlineParam1;
 
-void Compare(inout float depthOutline, inout float normalOutline, float baseDepth, float3 baseNormal, float2 uv, float2 offset)
+// Combines the top and bottom colors using normal blending.
+// https://en.wikipedia.org/wiki/Blend_modes#Normal_blend_mode
+// This performs the same operation as Blend SrcAlpha OneMinusSrcAlpha.
+float4 alphaBlend(float4 top, float4 bottom)
 {
-	float3 neighborNormal = SampleNormalTex(uv + InputTexelSize().xy * offset);
-	float neighborDepth = SampleDepthTexWorld(uv + InputTexelSize().xy * offset);
-
-	depthOutline += baseDepth - neighborDepth;
-
-	float3 normalDifference = baseNormal - neighborNormal;
-	normalOutline += (normalDifference.r + normalDifference.g + normalDifference.b);
+	float3 color = (top.rgb * top.a) + (bottom.rgb * (1 - top.a));
+	float alpha = top.a + bottom.a * (1 - top.a);
+	return float4(color, alpha);
 }
 
 float4 OutlinePass(BlitVaryings input) : SV_TARGET
 {
-	float3 normal = SampleNormalTex(input.texcoord);
-	float depth = SampleDepthTexWorld(input.texcoord);
+	float4 _Color = float4(0, 0, 0, 1);
 
-	float depthDifference = 0;
-	float normalDifference = 0;
+	float _Scale = _OutlineParam0.x;
+	float _DepthThreshold = _OutlineParam0.y;
+	float _DepthNormalThreshold = _OutlineParam0.z;
+	float _DepthNormalThresholdScale = _OutlineParam0.w;
+	float _NormalThreshold = _OutlineParam1.x;
 
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(1, 0));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, 1));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, -1));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-1, 0));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0.707, 0.707));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-0.707, 0.707));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0.707, -0.707));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-0.707, -0.707));
 
-	depthDifference = pow(saturate(depthDifference * _OutlineParam.z), _OutlineParam.w);
-	normalDifference = pow(saturate(normalDifference * _OutlineParam.x), _OutlineParam.y);
+	float2 texelSize = InputTexelSize().xy;
 
-	float outline = saturate(normalDifference + depthDifference);
-	float4 sourceColor = SampleInputTex(input.texcoord);
-	return float4(lerp(sourceColor.rgb, _OutlineColor.rgb, outline), sourceColor.a);
+	float halfScaleFloor = floor(_Scale * 0.5);
+	float halfScaleCeil = ceil(_Scale * 0.5);
+
+	// Sample the pixels in an X shape, roughly centered around input.texcoord.
+	// As the depth texture and normal texture default samplers
+	// use point filtering, we use the above variables to ensure we offset
+	// exactly one pixel at a time.
+	float2 bottomLeftUV = input.texcoord - float2(texelSize.x, texelSize.y) * halfScaleFloor;
+	float2 topRightUV = input.texcoord + float2(texelSize.x, texelSize.y) * halfScaleCeil;
+	float2 bottomRightUV = input.texcoord + float2(texelSize.x * halfScaleCeil, -texelSize.y * halfScaleFloor);
+	float2 topLeftUV = input.texcoord + float2(-texelSize.x * halfScaleFloor, texelSize.y * halfScaleCeil);
+
+	float3 normal0 = SampleNormalTex(bottomLeftUV);
+	float3 normal1 = SampleNormalTex(topRightUV);
+	float3 normal2 = SampleNormalTex(bottomRightUV);
+	float3 normal3 = SampleNormalTex(topLeftUV);
+
+	float depth0 = SampleDepthTexWorld(bottomLeftUV);
+	float depth1 = SampleDepthTexWorld(topRightUV);
+	float depth2 = SampleDepthTexWorld(bottomRightUV);
+	float depth3 = SampleDepthTexWorld(topLeftUV);
+
+	// Transform the view normal from the 0...1 range to the -1...1 range.
+	float3 viewNormal = normal0 * 2 - 1;
+	float NdotV = 1 - dot(viewNormal, -input.viewSpaceDir);
+
+	// Return a value in the 0...1 range depending on where NdotV lies 
+	// between _DepthNormalThreshold and 1.
+	float normalThreshold01 = saturate((NdotV - _DepthNormalThreshold) / (1 - _DepthNormalThreshold));
+	// Scale the threshold, and add 1 so that it is in the range of 1..._NormalThresholdScale + 1.
+	float normalThreshold = normalThreshold01 * _DepthNormalThresholdScale + 1;
+
+	// Modulate the threshold by the existing depth value;
+	// pixels further from the screen will require smaller differences
+	// to draw an edge.
+	float depthThreshold = _DepthThreshold * depth0 * normalThreshold;
+
+	float depthFiniteDifference0 = depth1 - depth0;
+	float depthFiniteDifference1 = depth3 - depth2;
+	// edgeDepth is calculated using the Roberts cross operator.
+	// The same operation is applied to the normal below.
+	// https://en.wikipedia.org/wiki/Roberts_cross
+	float edgeDepth = sqrt(pow(depthFiniteDifference0, 2) + pow(depthFiniteDifference1, 2)) * 100;
+	edgeDepth = edgeDepth > depthThreshold ? 1 : 0;
+
+	float3 normalFiniteDifference0 = normal1 - normal0;
+	float3 normalFiniteDifference1 = normal3 - normal2;
+	// Dot the finite differences with themselves to transform the 
+	// three-dimensional values to scalars.
+	float edgeNormal = sqrt(dot(normalFiniteDifference0, normalFiniteDifference0) + dot(normalFiniteDifference1, normalFiniteDifference1));
+	edgeNormal = edgeNormal > _NormalThreshold ? 1 : 0;
+
+	float edge = max(edgeDepth, edgeNormal);
+
+	float4 edgeColor = float4(_Color.rgb, _Color.a * edge);
+
+	float4 color = SampleInputTex(input.texcoord);
+
+	return alphaBlend(edgeColor, color);
 }
 
 ////////////////////////////////

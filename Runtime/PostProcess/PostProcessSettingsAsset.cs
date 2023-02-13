@@ -115,28 +115,32 @@ namespace AggroBird.GRP
         {
             public bool enabled;
 
-            [ColorUsage(false)]
             public Color color;
 
             [Min(0)]
-            public float normalIntensity;
+            public float scale;
 
             [Min(0)]
-            public float normalBias;
+            public float depthThreshold;
 
             [Min(0)]
-            public float depthIntensity;
+            public float depthNormalThreshold;
 
             [Min(0)]
-            public float depthBias;
+            public float depthNormalThresholdScale;
+
+            [Min(0)]
+            public float normalThreshold;
         }
 
         public Outline outline = new Outline
         {
-            normalIntensity = 2.78f,
-            normalBias = 3.4f,
-            depthIntensity = 2.86f,
-            depthBias = 2.03f,
+            color = new Color(0, 0, 0, 1),
+            scale = 1,
+            depthThreshold = 1.5f,
+            depthNormalThreshold = 0.5f,
+            depthNormalThresholdScale = 7f,
+            normalThreshold = 0.4f,
         };
 
         [System.Serializable]
