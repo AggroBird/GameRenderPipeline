@@ -116,8 +116,7 @@ namespace AggroBird.GRP
             dofBokehRadiusId = Shader.PropertyToID("_DOFBokehRadius"),
             dofConstantScaleId = Shader.PropertyToID("_DOFConstantScale"),
             outlineColorId = Shader.PropertyToID("_OutlineColor"),
-            outlineParam0Id = Shader.PropertyToID("_OutlineParam0"),
-            outlineParam1Id = Shader.PropertyToID("_OutlineParam1"),
+            outlineParamId = Shader.PropertyToID("_OutlineParam"),
             colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
             whiteBalanceId = Shader.PropertyToID("_WhiteBalance"),
             splitToningShadowsId = Shader.PropertyToID("_SplitToningShadows"),
@@ -402,8 +401,7 @@ namespace AggroBird.GRP
             buffer.BeginSample("Outline");
 
             buffer.SetGlobalColor(outlineColorId, settings.outline.color);
-            buffer.SetGlobalVector(outlineParam0Id, new Vector4(settings.outline.scale, settings.outline.depthThreshold, settings.outline.depthNormalThreshold, settings.outline.depthNormalThresholdScale));
-            buffer.SetGlobalVector(outlineParam1Id, new Vector4(settings.outline.normalThreshold, 0, 0, 0));
+            buffer.SetGlobalVector(outlineParamId, new Vector4(settings.outline.normalIntensity, settings.outline.normalBias, settings.outline.depthIntensity, settings.outline.depthBias));
             buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
             buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
 
