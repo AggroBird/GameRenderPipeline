@@ -24,11 +24,13 @@ namespace AggroBird.GRP.Editor
         private readonly ShaderKeyword[] otherFilterKeywords;
         private readonly ShaderKeyword[] cascadeBlendKeywords;
         private readonly ShaderKeyword lightsPerObjectKeyword;
+        private readonly ShaderKeyword hatchingEnabledKeyword;
 
         private readonly int directionalFilterIndex;
         private readonly int otherFilterIndex;
         private readonly int cascadeBlendIndex;
         private readonly bool lightsPerObjectEnabled;
+        private readonly bool hatchingEnabled;
 
         private readonly GameRenderPipelineAsset renderPipeline;
 
@@ -42,12 +44,14 @@ namespace AggroBird.GRP.Editor
                 otherFilterKeywords = MakeKeywords(Shadows.otherFilterKeywords);
                 cascadeBlendKeywords = MakeKeywords(Shadows.cascadeBlendKeywords);
                 lightsPerObjectKeyword = new ShaderKeyword(Lighting.LightsPerObjectKeyword);
+                hatchingEnabledKeyword = new ShaderKeyword(Lighting.HatchingKeyword);
 
                 GameRenderPipelineSettings settings = renderPipeline.Settings;
                 directionalFilterIndex = (int)settings.shadows.directional.filter;
                 otherFilterIndex = (int)settings.shadows.other.filter;
                 cascadeBlendIndex = (int)settings.shadows.directional.cascadeBlend;
                 lightsPerObjectEnabled = settings.general.useLightsPerObject;
+                hatchingEnabled = settings.experimental.hatching.enabled;
             }
         }
 
@@ -96,6 +100,11 @@ namespace AggroBird.GRP.Editor
                         continue;
                     }
                     if (CheckSkip(shader, data[i], lightsPerObjectKeyword, lightsPerObjectEnabled))
+                    {
+                        data.RemoveAt(i);
+                        continue;
+                    }
+                    if (CheckSkip(shader, data[i], hatchingEnabledKeyword, hatchingEnabled))
                     {
                         data.RemoveAt(i);
                         continue;
