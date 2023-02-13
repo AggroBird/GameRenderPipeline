@@ -111,8 +111,8 @@ namespace AggroBird.GRP
         public struct Hatching
         {
             public bool enabled;
-            public Texture2D bright;
             public Texture2D dark;
+            public Texture2D bright;
             public float scale;
             public float intensity;
         }

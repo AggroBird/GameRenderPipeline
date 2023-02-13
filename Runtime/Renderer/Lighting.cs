@@ -43,6 +43,12 @@ namespace AggroBird.GRP
 
         internal const string HatchingKeyword = "_HATCHING_ENABLED";
 
+        private static readonly int
+            hatchingDarkId = Shader.PropertyToID("_Hatching_Dark"),
+            hatchingBrightId = Shader.PropertyToID("_Hatching_Bright"),
+            hatchingScaleId = Shader.PropertyToID("_Hatching_Scale"),
+            hatchingIntensityId = Shader.PropertyToID("_Hatching_Intensity");
+
 
         private CullingResults cullingResults;
 
@@ -151,10 +157,10 @@ namespace AggroBird.GRP
             if (settings.enabled)
             {
                 Shader.EnableKeyword(HatchingKeyword);
-                buffer.SetGlobalTexture("_Hatch0", settings.dark);
-                buffer.SetGlobalTexture("_Hatch1", settings.bright);
-                buffer.SetGlobalFloat("_HatchScale", settings.scale);
-                buffer.SetGlobalFloat("_HatchIntensity", settings.intensity);
+                buffer.SetGlobalTexture(hatchingDarkId, settings.dark);
+                buffer.SetGlobalTexture(hatchingBrightId, settings.bright);
+                buffer.SetGlobalFloat(hatchingScaleId, settings.scale);
+                buffer.SetGlobalFloat(hatchingIntensityId, settings.intensity);
             }
             else
             {
