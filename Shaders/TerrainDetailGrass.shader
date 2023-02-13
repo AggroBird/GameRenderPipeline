@@ -26,7 +26,7 @@
 			#pragma multi_compile _ _COLOR_SPACE_LINEAR
 			#pragma multi_compile _ _OUTPUT_NORMALS_ON
 			#pragma multi_compile _ _FOG_LINEAR _FOG_EXP _FOG_EXP2
-			#define _ALPHATEST_ON
+			#define _ALPHATEST_ENABLED
 			#define _RECEIVE_SHADOWS
 			#pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
 			#pragma multi_compile _ _OTHER_PCF3 _OTHER_PCF5 _OTHER_PCF7

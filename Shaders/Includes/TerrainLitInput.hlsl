@@ -14,14 +14,14 @@ SAMPLER(sampler_Splat0);
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
 
-#if defined(_ALPHATEST_ON)
+#if defined(_ALPHATEST_ENABLED)
 TEXTURE2D(_TerrainHolesTexture);
 SAMPLER(sampler_TerrainHolesTexture);
 #endif
 
 void ClipHoles(float2 texcoord)
 {
-#if defined(_ALPHATEST_ON)
+#if defined(_ALPHATEST_ENABLED)
 	float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, texcoord).r;
 	clip(hole == 0.0f ? -1 : 1);
 #endif

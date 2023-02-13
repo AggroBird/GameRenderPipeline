@@ -27,7 +27,7 @@
 		HLSLINCLUDE
 		#pragma multi_compile_instancing
 		#pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
-		#pragma multi_compile __ _ALPHATEST_ON
+		#pragma multi_compile __ _ALPHATEST_ENABLED
 		ENDHLSL
 
 		Tags
