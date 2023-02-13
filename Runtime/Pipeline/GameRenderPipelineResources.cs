@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace AggroBird.GRP
 {
-    internal sealed class GameRenderPipelineResources : ScriptableObject
+    [CreateAssetMenu(menuName = "Rendering/GRP/Pipeline Resources", order = 998)]
+    public sealed class GameRenderPipelineResources : ScriptableObject
     {
         public Material defaultLit = default;
         public Material defaultTerrainLit = default;

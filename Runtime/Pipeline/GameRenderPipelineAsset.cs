@@ -106,7 +106,7 @@ namespace AggroBird.GRP
         };
     }
 
-    [CreateAssetMenu(menuName = "Rendering/GRP/Pipeline Asset", order = 998)]
+    [CreateAssetMenu(menuName = "Rendering/GRP/Pipeline Asset", order = 997)]
     public sealed partial class GameRenderPipelineAsset : RenderPipelineAsset
     {
         internal static GameRenderPipelineAsset Instance { get; private set; }
