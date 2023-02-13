@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -8,7 +7,7 @@ using UnityEngine.Rendering;
 namespace AggroBird.GRP
 {
     [System.Serializable]
-    internal sealed class Settings
+    internal sealed class GameRenderPipelineSettings
     {
         public GeneralSettings general = new GeneralSettings();
 
@@ -107,23 +106,6 @@ namespace AggroBird.GRP
         };
     }
 
-
-    [System.Serializable]
-    internal sealed class PipelineResources
-    {
-        public Material defaultLit = default;
-        public Material defaultTerrainLit = default;
-        public Shader terrainDetailLit = default;
-        public Shader terrainDetailGrass = default;
-        public Shader detailGrassBillboardShader = default;
-        public Shader skyboxRenderShader = default;
-        public Shader blitRenderTargetShader = default;
-        public Shader postProcessShader = default;
-        public Shader smaaShader = default;
-        public Texture2D smaaAreaTexture = default;
-        public Texture2D smaaSearchTexture = default;
-    }
-
     [CreateAssetMenu(menuName = "Rendering/GRP/Pipeline Asset", order = 998)]
     public sealed partial class GameRenderPipelineAsset : RenderPipelineAsset
     {
@@ -132,49 +114,30 @@ namespace AggroBird.GRP
         internal const string SettingsPath = "ProjectSettings/GRP.json";
         internal const string SettingsFileName = "GRP_SETTINGS";
 
-        private Settings settingsInstance = null;
-        internal Settings settings
+        [SerializeField] private GameRenderPipelineResources resources;
+        internal GameRenderPipelineResources Resources
         {
             get
             {
-                if (settingsInstance == null)
+#if UNITY_EDITOR
+                if (!resources)
                 {
-                    try
+                    string defaultResourcesPath = UnityEditor.AssetDatabase.GUIDToAssetPath("6c8f33e377b09f947a424de9ba1acb6f");
+                    if (!string.IsNullOrEmpty(defaultResourcesPath))
                     {
-                        if (Application.isEditor)
-                        {
-                            if (File.Exists(SettingsPath))
-                            {
-                                settingsInstance = JsonUtility.FromJson<Settings>(File.ReadAllText(SettingsPath));
-                            }
-                        }
-                        else
-                        {
-                            settingsInstance = JsonUtility.FromJson<Settings>(UnityEngine.Resources.Load<TextAsset>(SettingsFileName).text);
-                        }
-                    }
-                    catch (System.Exception)
-                    {
-
-                    }
-
-                    if (settingsInstance == null)
-                    {
-                        settingsInstance = new Settings();
+                        resources = UnityEditor.AssetDatabase.LoadAssetAtPath<GameRenderPipelineResources>(defaultResourcesPath);
+                        UnityEditor.EditorUtility.SetDirty(this);
                     }
                 }
-
-                return settingsInstance;
-            }
-            set
-            {
-                settingsInstance = value;
+#endif
+                return resources;
             }
         }
 
-        [SerializeField, Space]
-        private PipelineResources resources = default;
-        internal PipelineResources Resources => resources;
+        [Space]
+        [SerializeField] private GameRenderPipelineSettings settings = null;
+        internal GameRenderPipelineSettings Settings => settings;
+
 
         protected override RenderPipeline CreatePipeline()
         {
@@ -182,7 +145,6 @@ namespace AggroBird.GRP
 
             return new GameRenderPipeline(this);
         }
-
 
         public override Shader defaultShader => defaultMaterial.shader;
         public override Material defaultMaterial => resources.defaultLit;

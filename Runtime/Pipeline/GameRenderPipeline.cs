@@ -15,8 +15,8 @@ namespace AggroBird.GRP
         {
             this.pipelineAsset = pipelineAsset;
 
-            LODGroup.crossFadeAnimationDuration = pipelineAsset.settings.general.crossFadeAnimationDuration;
-            GraphicsSettings.useScriptableRenderPipelineBatching = pipelineAsset.settings.general.useSRPBatcher;
+            LODGroup.crossFadeAnimationDuration = pipelineAsset.Settings.general.crossFadeAnimationDuration;
+            GraphicsSettings.useScriptableRenderPipelineBatching = pipelineAsset.Settings.general.useSRPBatcher;
             GraphicsSettings.lightsUseLinearIntensity = linearColorSpace;
         }
 

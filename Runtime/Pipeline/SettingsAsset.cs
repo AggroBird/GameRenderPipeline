@@ -5,6 +5,6 @@ namespace AggroBird.GRP
     [System.Serializable]
     internal class SettingsAsset : ScriptableObject
     {
-        [SerializeField] public Settings settings;
+        [SerializeField] public GameRenderPipelineSettings settings;
     }
 }

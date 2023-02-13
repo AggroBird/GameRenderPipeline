@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5adee26ee792ec6449be76d2daddc097, type: 3}
+  m_Name: GRPDefaultAssets
+  m_EditorClassIdentifier: 
+  defaultLit: {fileID: 2100000, guid: f6da622e780bb5f41bec2984ce868103, type: 2}
+  defaultTerrainLit: {fileID: 2100000, guid: 1742a5ed6da3ce2469681350b56d26e9, type: 2}
+  terrainDetailLit: {fileID: 4800000, guid: f5ccd101b40ae334d9f6abd564ea6fdf, type: 3}
+  terrainDetailGrass: {fileID: 4800000, guid: 8fa474e325c17a042a3bbc29f0a63cfb, type: 3}
+  detailGrassBillboardShader: {fileID: 4800000, guid: c99bff43c10fa3c45a5e3845eecdce41, type: 3}
+  skyboxRenderShader: {fileID: 4800000, guid: e93d06d8622d72b419ff242847cae8d9, type: 3}
+  blitRenderTargetShader: {fileID: 4800000, guid: 9d916d10a45965f4098de43bffac5fe3, type: 3}
+  postProcessShader: {fileID: 4800000, guid: 9f7cf035f7369774cacfdbc662af1587, type: 3}
+  smaaShader: {fileID: 4800000, guid: e107454670320ef4c97871571f39e401, type: 3}
+  smaaAreaTexture: {fileID: 2800000, guid: 73ec4ae984a0a0f44a2be737e41a6f2f, type: 3}
+  smaaSearchTexture: {fileID: 2800000, guid: d99701099481a2f489610e977df6dcbc, type: 3}

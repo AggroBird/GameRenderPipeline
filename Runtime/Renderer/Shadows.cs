@@ -57,21 +57,21 @@ namespace AggroBird.GRP
             shadowedDirectionalLightCount,
             shadowedOtherLightCount;
 
-        private static readonly string[] directionalFilterKeywords =
+        internal static readonly string[] directionalFilterKeywords =
         {
             "_DIRECTIONAL_PCF3",
             "_DIRECTIONAL_PCF5",
             "_DIRECTIONAL_PCF7",
         };
 
-        private static readonly string[] otherFilterKeywords =
+        internal static readonly string[] otherFilterKeywords =
         {
             "_OTHER_PCF3",
             "_OTHER_PCF5",
             "_OTHER_PCF7",
         };
 
-        private static readonly string[] cascadeBlendKeywords =
+        internal static readonly string[] cascadeBlendKeywords =
         {
             "_CASCADE_BLEND_SOFT",
             "_CASCADE_BLEND_DITHER"

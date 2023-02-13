@@ -39,7 +39,7 @@ namespace AggroBird.GRP
             otherLightSpotAngles = new Vector4[MaxOtherLightCount],
             otherLightShadowData = new Vector4[MaxOtherLightCount];
 
-        private const string LightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
+        internal const string LightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
 
 
         private CullingResults cullingResults;

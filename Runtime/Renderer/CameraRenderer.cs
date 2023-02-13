@@ -124,11 +124,11 @@ namespace AggroBird.GRP
             this.camera = camera;
             this.cameraIndex = cameraIndex;
 
-            useHDR = pipelineAsset.settings.general.allowHDR && camera.allowHDR;
+            useHDR = pipelineAsset.Settings.general.allowHDR && camera.allowHDR;
 
             PrepareBuffer();
             PrepareSceneWindow();
-            if (!Cull(pipelineAsset.settings.shadows.maxDistance))
+            if (!Cull(pipelineAsset.Settings.shadows.maxDistance))
             {
                 return;
             }
@@ -136,7 +136,7 @@ namespace AggroBird.GRP
             // Light and shadows
             buffer.BeginSample(bufferName);
             ExecuteBuffer();
-            lighting.Setup(context, cullingResults, pipelineAsset.settings.shadows, pipelineAsset.settings.general.useLightsPerObject);
+            lighting.Setup(context, cullingResults, pipelineAsset.Settings.shadows, pipelineAsset.Settings.general.useLightsPerObject);
             postProcessStack.Setup(context, camera, useHDR, ShowPostProcess);
             buffer.EndSample(bufferName);
 
@@ -174,7 +174,7 @@ namespace AggroBird.GRP
                 ExecuteBuffer();
 
                 // Opaque
-                DrawVisibleGeometry(pipelineAsset.settings.general, defaultShaderTags, SortingCriteria.CommonOpaque, RenderQueueRange.opaque);
+                DrawVisibleGeometry(pipelineAsset.Settings.general, defaultShaderTags, SortingCriteria.CommonOpaque, RenderQueueRange.opaque);
                 DrawUnsupportedShaders();
                 DrawEditorGizmos(GizmoSubset.PreImageEffects);
 
@@ -225,7 +225,7 @@ namespace AggroBird.GRP
                 }
 
                 // Transparent
-                DrawVisibleGeometry(pipelineAsset.settings.general, defaultShaderTags, SortingCriteria.CommonTransparent, RenderQueueRange.transparent);
+                DrawVisibleGeometry(pipelineAsset.Settings.general, defaultShaderTags, SortingCriteria.CommonTransparent, RenderQueueRange.transparent);
 
                 // Post process
                 postProcessStack.ApplyPostTransparency(transparentColorBufferId, BuiltinRenderTextureType.CameraTarget);
