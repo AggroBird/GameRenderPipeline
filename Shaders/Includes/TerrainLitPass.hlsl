@@ -89,6 +89,10 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 	GlobalIllumination gi = GetGlobalIllumination(surface, brdf);
 	float3 lit = GetTotalLighting(surface, brdf, gi);
 
+#if defined(_HATCHING_ENABLED)
+	ApplyHatching(lit, diffuse.rgb, input.positionWS, input.positionWS.xz);
+#endif
+
 	// Terrain additive
 	lit *= diffuse.a;
 

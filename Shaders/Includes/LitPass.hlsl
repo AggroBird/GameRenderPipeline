@@ -84,7 +84,11 @@ FragmentOutput LitPassFragment(Varyings input)
 	BRDF brdf = GetBRDF(surface);
 	GlobalIllumination gi = GetGlobalIllumination(surface, brdf);
 	float3 lit = GetTotalLighting(surface, brdf, gi) + GetEmission(config);
-	
+
+#if defined(_HATCHING_ENABLED)
+	ApplyHatching(lit, diffuse.rgb, input.positionWS, input.texcoord);
+#endif
+
 	APPLY_FOG(input, lit);
 
 	float4 result = float4(lit, GetFinalAlpha(surface.alpha));

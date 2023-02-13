@@ -41,6 +41,8 @@ namespace AggroBird.GRP
 
         internal const string LightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
 
+        internal const string HatchingKeyword = "_HATCHING_ENABLED";
+
 
         private CullingResults cullingResults;
 
@@ -50,13 +52,14 @@ namespace AggroBird.GRP
         public Color primaryLightColor { get; private set; }
 
 
-        public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings, bool useLightsPerObject)
+        public void Setup(ScriptableRenderContext context, CullingResults cullingResults, GameRenderPipelineSettings settings)
         {
             this.cullingResults = cullingResults;
 
             buffer.BeginSample(bufferName);
-            shadows.Setup(context, cullingResults, shadowSettings);
-            SetupLights(useLightsPerObject);
+            shadows.Setup(context, cullingResults, settings.shadows);
+            SetupLights(settings.general.useLightsPerObject);
+            SetupHatching(settings.experimental.hatching);
             shadows.Render();
             buffer.EndSample(bufferName);
             context.ExecuteCommandBuffer(buffer);
@@ -123,6 +126,8 @@ namespace AggroBird.GRP
                 Shader.DisableKeyword(LightsPerObjectKeyword);
             }
 
+
+
             buffer.SetGlobalInt(directionalLightCountId, directionalLightCount);
             if (directionalLightCount > 0)
             {
@@ -139,6 +144,21 @@ namespace AggroBird.GRP
                 buffer.SetGlobalVectorArray(otherLightDirectionsId, otherLightDirections);
                 buffer.SetGlobalVectorArray(otherLightSpotAnglesId, otherLightSpotAngles);
                 buffer.SetGlobalVectorArray(otherLightShadowDataId, otherLightShadowData);
+            }
+        }
+        private void SetupHatching(ExperimentalSettings.Hatching settings)
+        {
+            if (settings.enabled)
+            {
+                Shader.EnableKeyword(HatchingKeyword);
+                buffer.SetGlobalTexture("_Hatch0", settings.dark);
+                buffer.SetGlobalTexture("_Hatch1", settings.bright);
+                buffer.SetGlobalFloat("_HatchScale", settings.scale);
+                buffer.SetGlobalFloat("_HatchIntensity", settings.intensity);
+            }
+            else
+            {
+                Shader.DisableKeyword(HatchingKeyword);
             }
         }
 

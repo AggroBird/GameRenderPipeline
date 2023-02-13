@@ -136,7 +136,7 @@ namespace AggroBird.GRP
             // Light and shadows
             buffer.BeginSample(bufferName);
             ExecuteBuffer();
-            lighting.Setup(context, cullingResults, pipelineAsset.Settings.shadows, pipelineAsset.Settings.general.useLightsPerObject);
+            lighting.Setup(context, cullingResults, pipelineAsset.Settings);
             postProcessStack.Setup(context, camera, useHDR, ShowPostProcess);
             buffer.EndSample(bufferName);
 
