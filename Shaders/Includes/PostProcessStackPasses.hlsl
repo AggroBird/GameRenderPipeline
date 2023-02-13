@@ -627,10 +627,6 @@ float4 OutlinePass(BlitVaryings input) : SV_TARGET
 	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, 1));
 	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, -1));
 	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-1, 0));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0.707, 0.707));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-0.707, 0.707));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0.707, -0.707));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-0.707, -0.707));
 
 	depthDifference = pow(saturate(depthDifference * _OutlineParam.z), _OutlineParam.w);
 	normalDifference = pow(saturate(normalDifference * _OutlineParam.x), _OutlineParam.y);
