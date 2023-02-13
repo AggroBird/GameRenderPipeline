@@ -115,24 +115,7 @@ namespace AggroBird.GRP
         internal const string SettingsFileName = "GRP_SETTINGS";
 
         [SerializeField] private GameRenderPipelineResources resources;
-        internal GameRenderPipelineResources Resources
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (!resources)
-                {
-                    string defaultResourcesPath = UnityEditor.AssetDatabase.GUIDToAssetPath("6c8f33e377b09f947a424de9ba1acb6f");
-                    if (!string.IsNullOrEmpty(defaultResourcesPath))
-                    {
-                        resources = UnityEditor.AssetDatabase.LoadAssetAtPath<GameRenderPipelineResources>(defaultResourcesPath);
-                        UnityEditor.EditorUtility.SetDirty(this);
-                    }
-                }
-#endif
-                return resources;
-            }
-        }
+        internal GameRenderPipelineResources Resources => resources;
 
         [Space]
         [SerializeField] private GameRenderPipelineSettings settings = null;
