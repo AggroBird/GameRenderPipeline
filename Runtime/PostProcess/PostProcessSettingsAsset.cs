@@ -133,10 +133,10 @@ namespace AggroBird.GRP
 
         public Outline outline = new Outline
         {
-            normalIntensity = 1,
-            normalBias = 1,
-            depthIntensity = 1,
-            depthBias = 1,
+            normalIntensity = 2.78f,
+            normalBias = 3.4f,
+            depthIntensity = 2.86f,
+            depthBias = 2.03f,
         };
 
         [System.Serializable]

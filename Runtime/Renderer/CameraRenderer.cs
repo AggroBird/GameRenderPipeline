@@ -143,8 +143,8 @@ namespace AggroBird.GRP
             outputNormals = postProcessStack.ssaoEnabled || postProcessStack.outlineEnabled;
             buffer.EndSample(bufferName);
 
-            buffer.SetKeywords(colorSpaceKeywords, GameRenderPipeline.linearColorSpace ? 1 : 0);
-            buffer.SetKeywords(projectionKeywords, camera.orthographic ? 1 : 0);
+            CommandBufferUtility.SetKeywords(colorSpaceKeywords, GameRenderPipeline.linearColorSpace ? 1 : 0);
+            CommandBufferUtility.SetKeywords(projectionKeywords, camera.orthographic ? 1 : 0);
 
             // Render
             Setup();
@@ -163,7 +163,7 @@ namespace AggroBird.GRP
                     SetupEnvironment(environmentSettings, false);
                 }
 
-                buffer.SetKeywords(outputNormalsKeywords, outputNormals ? 1 : 0);
+                CommandBufferUtility.SetKeywords(outputNormalsKeywords, outputNormals ? 1 : 0);
                 if (outputNormals)
                 {
                     buffer.SetRenderTarget(new RenderTargetIdentifier[] { opaqueColorBufferId, opaqueNormalBufferId }, opaqueDepthBufferId);
@@ -260,7 +260,7 @@ namespace AggroBird.GRP
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
             bool fogEnabled = fogSettings.enabled && ShowFog;
             int setFogKeyword = fogEnabled ? (int)fogSettings.fogMode : 0;
-            buffer.SetKeywords(fogModeKeywords, setFogKeyword);
+            CommandBufferUtility.SetKeywords(fogModeKeywords, setFogKeyword);
             if (fogEnabled)
             {
                 Color ambientColor = fogSettings.ambientColor.AdjustedColor();
@@ -293,7 +293,7 @@ namespace AggroBird.GRP
             // Clouds
             EnvironmentSettings.CloudSettings cloudSettings = settings.cloudSettings;
             bool cloudsEnabled = cloudSettings.enabled && ShowSkybox;
-            buffer.SetKeywords(skyboxCloudsKeywords, cloudsEnabled ? 1 : 0);
+            CommandBufferUtility.SetKeywords(skyboxCloudsKeywords, cloudsEnabled ? 1 : 0);
             if (cloudsEnabled)
             {
                 buffer.SetGlobalVector(cloudColorTopId, cloudSettings.colorTop.AdjustedColor());

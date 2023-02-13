@@ -601,7 +601,7 @@ float4 DOFCombinePass(BlitVaryings input) : SV_TARGET
 ////////////////////////////////
 
 float4 _OutlineColor;
-// normal intensity, normal bias, depth intensity, depth bias
+// x = normal intensity, y = normal bias, z = depth intensity, w = depth bias
 float4 _OutlineParam;
 
 void Compare(inout float depthOutline, inout float normalOutline, float baseDepth, float3 baseNormal, float2 uv, float2 offset)
@@ -609,12 +609,10 @@ void Compare(inout float depthOutline, inout float normalOutline, float baseDept
 	float3 neighborNormal = SampleNormalTex(uv + InputTexelSize().xy * offset);
 	float neighborDepth = SampleDepthTexWorld(uv + InputTexelSize().xy * offset);
 
-	float depthDifference = baseDepth - neighborDepth;
-	depthOutline = depthOutline + depthDifference;
+	depthOutline += baseDepth - neighborDepth;
 
 	float3 normalDifference = baseNormal - neighborNormal;
-	normalDifference = normalDifference.r + normalDifference.g + normalDifference.b;
-	normalOutline = normalOutline + normalDifference;
+	normalOutline += (normalDifference.r + normalDifference.g + normalDifference.b);
 }
 
 float4 OutlinePass(BlitVaryings input) : SV_TARGET
@@ -629,16 +627,15 @@ float4 OutlinePass(BlitVaryings input) : SV_TARGET
 	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, 1));
 	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, -1));
 	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-1, 0));
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0.707, 0.707));
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-0.707, 0.707));
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0.707, -0.707));
+	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-0.707, -0.707));
 
-	depthDifference = depthDifference * _OutlineParam.z;
-	depthDifference = saturate(depthDifference);
-	depthDifference = pow(depthDifference, _OutlineParam.w);
+	depthDifference = pow(saturate(depthDifference * _OutlineParam.z), _OutlineParam.w);
+	normalDifference = pow(saturate(normalDifference * _OutlineParam.x), _OutlineParam.y);
 
-	normalDifference = normalDifference * _OutlineParam.x;
-	normalDifference = saturate(normalDifference);
-	normalDifference = pow(normalDifference, _OutlineParam.y);
-
-	float outline = normalDifference + depthDifference;
+	float outline = saturate(normalDifference + depthDifference);
 	float4 sourceColor = SampleInputTex(input.texcoord);
 	return float4(lerp(sourceColor.rgb, _OutlineColor.rgb, outline), sourceColor.a);
 }

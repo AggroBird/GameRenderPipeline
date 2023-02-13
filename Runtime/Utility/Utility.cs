@@ -87,17 +87,17 @@ namespace AggroBird.GRP
             commandBuffer.SetGlobalFloat(nameID, value ? 1f : 0f);
         }
 
-        public static void SetKeywords(this CommandBuffer buffer, string[] keywords, int enabledIndex)
+        public static void SetKeywords(string[] keywords, int enabledIndex)
         {
             for (int i = 0; i < keywords.Length; i++)
             {
                 if (i == enabledIndex)
                 {
-                    buffer.EnableShaderKeyword(keywords[i]);
+                    Shader.EnableKeyword(keywords[i]);
                 }
                 else
                 {
-                    buffer.DisableShaderKeyword(keywords[i]);
+                    Shader.DisableKeyword(keywords[i]);
                 }
             }
         }

@@ -204,8 +204,8 @@ namespace AggroBird.GRP
             buffer.SetGlobalVectorArray(cascadeDataId, cascadeData);
             buffer.SetGlobalMatrixArray(directionalShadowMatricesId, directionalShadowMatrices);
 
-            buffer.SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
-            buffer.SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
+            CommandBufferUtility.SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
+            CommandBufferUtility.SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
 
             buffer.EndSample(bufferName);
             ExecuteBuffer();
@@ -284,7 +284,7 @@ namespace AggroBird.GRP
             buffer.SetGlobalMatrixArray(otherShadowMatricesId, otherShadowMatrices);
             buffer.SetGlobalVectorArray(otherShadowTilesId, otherShadowTiles);
 
-            buffer.SetKeywords(otherFilterKeywords, (int)settings.other.filter - 1);
+            CommandBufferUtility.SetKeywords(otherFilterKeywords, (int)settings.other.filter - 1);
 
             buffer.EndSample(bufferName);
             ExecuteBuffer();

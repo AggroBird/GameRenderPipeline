@@ -133,7 +133,6 @@ namespace AggroBird.GRP
             }
 
 
-
             buffer.SetGlobalInt(directionalLightCountId, directionalLightCount);
             if (directionalLightCount > 0)
             {
