@@ -49,6 +49,11 @@ namespace AggroBird.GRP
             hatchingScaleId = Shader.PropertyToID("_Hatching_Scale"),
             hatchingIntensityId = Shader.PropertyToID("_Hatching_Intensity");
 
+        internal static readonly ShaderKeyword cellShadingKeyword = new("_CELL_SHADING_ENABLED");
+
+        private static readonly int
+            cellShadingStepsId = Shader.PropertyToID("_CellShading_Steps"),
+            cellShadingFalloffId = Shader.PropertyToID("_CellShading_Falloff");
 
         private CullingResults cullingResults;
 
@@ -66,6 +71,7 @@ namespace AggroBird.GRP
             shadows.Setup(context, cullingResults, settings.shadows);
             SetupLights(settings.general.useLightsPerObject);
             SetupHatching(settings.experimental.hatching);
+            SetupCellShading(settings.experimental.cellShading);
             shadows.Render();
             buffer.EndSample(bufferName);
             context.ExecuteCommandBuffer(buffer);
@@ -156,6 +162,21 @@ namespace AggroBird.GRP
                 buffer.SetGlobalTexture(hatchingBrightId, settings.bright);
                 buffer.SetGlobalFloat(hatchingScaleId, settings.scale);
                 buffer.SetGlobalFloat(hatchingIntensityId, settings.intensity);
+            }
+        }
+
+
+        private Texture2D cellShadingFalloffTexture = default;
+
+        private void SetupCellShading(ExperimentalSettings.CellShading settings)
+        {
+            ShaderUtility.SetKeyword(cellShadingKeyword, settings.enabled);
+            if (settings.enabled)
+            {
+                TextureUtility.RenderGradientToTexture(ref cellShadingFalloffTexture, settings.falloff, FilterMode.Point);
+
+                buffer.SetGlobalFloat(cellShadingStepsId, settings.steps);
+                buffer.SetGlobalTexture(cellShadingFalloffId, cellShadingFalloffTexture);
             }
         }
 

@@ -123,5 +123,20 @@ namespace AggroBird.GRP
             scale = 5,
             intensity = 1,
         };
+
+        [System.Serializable]
+        public struct CellShading
+        {
+            public bool enabled;
+            [Min(1)]
+            public int steps;
+            public Gradient falloff;
+        }
+
+        public CellShading cellShading = new CellShading
+        {
+            enabled = false,
+            steps = 3,
+        };
     }
 }

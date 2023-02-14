@@ -76,6 +76,11 @@ namespace AggroBird.GRP.Editor
                         data.RemoveAt(i);
                         continue;
                     }
+                    if (CheckSkip(shader, data[i], Lighting.cellShadingKeyword, settings.experimental.cellShading.enabled))
+                    {
+                        data.RemoveAt(i);
+                        continue;
+                    }
                 }
             }
         }

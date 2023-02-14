@@ -8,9 +8,18 @@
 #include "BRDF.hlsl"
 #include "GlobalIllumination.hlsl"
 
+#if defined(_CELL_SHADING_ENABLED)
+float _CellShading_Steps;
+TEXTURE2D(_CellShading_Falloff);
+SAMPLER(sampler_CellShading_Falloff);
+#endif
+
 float3 IncomingLight(Surface surface, Light light)
 {
 	float d = saturate(dot(surface.normal, light.direction) * light.attenuation);
+#if defined(_CELL_SHADING_ENABLED)
+	d = SAMPLE_TEXTURE2D(_CellShading_Falloff, sampler_CellShading_Falloff, float2(d, 0.5)).r;
+#endif
 	return light.color * d;
 }
 
@@ -23,11 +32,13 @@ float3 GetTotalLighting(Surface surface, BRDF brdf, GlobalIllumination globalIll
 {
 	ShadowData shadowData = GetShadowData(surface);
 
-	float3 color = IndirectBRDF(surface, brdf, globalIllumination.specular);
+	float3 indirect = IndirectBRDF(surface, brdf, globalIllumination.specular);
+	
+	float3 result = indirect;
 	for (int i = 0; i < GetDirectionalLightCount(); i++)
 	{
 		Light light = GetDirectionalLight(i, surface, shadowData);
-		color += GetLighting(surface, brdf, light);
+		result += GetLighting(surface, brdf, light);
 	}
 
 #if defined(_LIGHTS_PER_OBJECT)
@@ -35,20 +46,20 @@ float3 GetTotalLighting(Surface surface, BRDF brdf, GlobalIllumination globalIll
 	{
 		int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
 		Light light = GetOtherLight(lightIndex, surface, shadowData);
-		color += GetLighting(surface, brdf, light);
+		result += GetLighting(surface, brdf, light);
 	}
 #else
 	for (int j = 0; j < GetOtherLightCount(); j++)
 	{
 		Light light = GetOtherLight(j, surface, shadowData);
-		color += GetLighting(surface, brdf, light);
+		result += GetLighting(surface, brdf, light);
 	}
 #endif
 
 	// Ambient
-	color += brdf.diffuse * globalIllumination.ambient;
+	result += brdf.diffuse * globalIllumination.ambient;
 
-	return color;
+	return result;
 }
 
 float GetPrimaryDirectionalShadow(float3 positionWS)

@@ -52,6 +52,7 @@
 			#pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
 			#pragma multi_compile _ _LIGHTS_PER_OBJECT
 			#pragma multi_compile _ _HATCHING_ENABLED
+			#pragma multi_compile _ _CELL_SHADING_ENABLED
 			#pragma vertex TerrainLitPassVertex
 			#pragma fragment TerrainLitPassFragment
 			#include "Includes/TerrainLitInput.hlsl"

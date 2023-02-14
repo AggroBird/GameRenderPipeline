@@ -18,6 +18,22 @@ float OneMinusReflectivity(float metallic)
 	return range - metallic * range;
 }
 
+BRDF GetBRDF(Surface surface)
+{
+	BRDF brdf;
+
+	float oneMinusReflectivity = OneMinusReflectivity(surface.metallic);
+	brdf.diffuse = surface.color * oneMinusReflectivity;
+	brdf.specular = lerp(MIN_REFLECTIVITY, surface.color, surface.metallic);
+
+	brdf.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
+	brdf.roughness = PerceptualRoughnessToRoughness(brdf.perceptualRoughness);
+
+	brdf.fresnel = saturate(surface.smoothness + 1.0 - oneMinusReflectivity);
+
+	return brdf;
+}
+
 float SpecularStrength(Surface surface, BRDF brdf, Light light)
 {
 	float3 h = SafeNormalize(light.direction + surface.viewDirection);
@@ -40,22 +56,6 @@ float3 IndirectBRDF(Surface surface, BRDF brdf, float3 specular)
 float3 DirectBRDF(Surface surface, BRDF brdf, Light light)
 {
 	return SpecularStrength(surface, brdf, light) * brdf.specular + brdf.diffuse;
-}
-
-BRDF GetBRDF(Surface surface)
-{
-	BRDF brdf;
-
-	float oneMinusReflectivity = OneMinusReflectivity(surface.metallic);
-	brdf.diffuse = surface.color * oneMinusReflectivity;
-	brdf.specular = lerp(MIN_REFLECTIVITY, surface.color, surface.metallic);
-
-	brdf.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
-	brdf.roughness = PerceptualRoughnessToRoughness(brdf.perceptualRoughness);
-
-	brdf.fresnel = saturate(surface.smoothness + 1.0 - oneMinusReflectivity);
-
-	return brdf;
 }
 
 #endif
