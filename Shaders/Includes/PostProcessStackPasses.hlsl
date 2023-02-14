@@ -600,6 +600,8 @@ float4 DOFCombinePass(BlitVaryings input) : SV_TARGET
 // Outline
 ////////////////////////////////
 
+// https://www.ronja-tutorials.com/post/019-postprocessing-outlines/
+
 float4 _OutlineColor;
 // x = normal intensity, y = normal bias, z = depth intensity, w = depth bias
 float4 _OutlineParam;
