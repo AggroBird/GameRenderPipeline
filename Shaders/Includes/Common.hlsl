@@ -108,7 +108,7 @@ float3 NormalTangentToWorld(float3 normalTS, float3 normalWS, float4 tangentWS)
 struct FragmentOutput
 {
 	float4 color : SV_TARGET0;
-#if defined(_OUTPUT_NORMALS_ON)
+#if defined(_OUTPUT_NORMALS_ENABLED)
 	float4 normal : SV_TARGET1;
 #endif
 };
@@ -117,7 +117,7 @@ FragmentOutput MakeFragmentOutput(float4 color, float3 normal)
 {
 	FragmentOutput result;
 	result.color = color;
-#if defined(_OUTPUT_NORMALS_ON)
+#if defined(_OUTPUT_NORMALS_ENABLED)
 	result.normal = float4(PackNormalOctRectEncode(normalize(mul((float3x3)GetWorldToViewMatrix(), normal).xyz)), 0.0, 0.0);
 #endif
 	return result;

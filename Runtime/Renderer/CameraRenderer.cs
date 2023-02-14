@@ -22,25 +22,13 @@ namespace AggroBird.GRP
         internal RenderTextureFormat renderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
 
-        private static readonly ShaderTagId[] defaultShaderTags = { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("CustomLit") };
+        private static readonly ShaderTagId[] defaultShaderTags = { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("GRPLit") };
 
-        private static readonly string[] projectionKeywords =
-        {
-            "_PROJECTION_PERSPECTIVE",
-            "_PROJECTION_ORTHOGRAPHIC",
-        };
+        private static readonly ShaderKeyword orthographicKeyword = new("_PROJECTION_ORTHOGRAPHIC");
 
-        private static readonly string[] colorSpaceKeywords =
-        {
-            "_COLOR_SPACE_GAMMA",
-            "_COLOR_SPACE_LINEAR"
-        };
+        private static readonly ShaderKeyword colorSpaceLinearKeyword = new("_COLOR_SPACE_LINEAR");
 
-        private static readonly string[] outputNormalsKeywords =
-        {
-            "_OUTPUT_NORMALS_OFF",
-            "_OUTPUT_NORMALS_ON",
-        };
+        private static readonly ShaderKeyword outputNormalsKeyword = new("_OUTPUT_NORMALS_ENABLED");
 
 
         private static readonly string[] fogModeKeywords =
@@ -51,11 +39,7 @@ namespace AggroBird.GRP
             "_FOG_EXP2",
         };
 
-        private static readonly string[] skyboxCloudsKeywords =
-        {
-            "_SKYBOX_CLOUDS_OFF",
-            "_SKYBOX_CLOUDS_ON",
-        };
+        private static readonly ShaderKeyword skyboxCloudsKeyword = new("_SKYBOX_CLOUDS_ENABLED");
 
 
         private static readonly int
@@ -143,8 +127,8 @@ namespace AggroBird.GRP
             outputNormals = postProcessStack.ssaoEnabled || postProcessStack.outlineEnabled;
             buffer.EndSample(bufferName);
 
-            ShaderUtility.SetKeywords(colorSpaceKeywords, GameRenderPipeline.linearColorSpace ? 1 : 0);
-            ShaderUtility.SetKeywords(projectionKeywords, camera.orthographic ? 1 : 0);
+            ShaderUtility.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.linearColorSpace);
+            ShaderUtility.SetKeyword(orthographicKeyword, camera.orthographic);
 
             // Render
             Setup();
@@ -163,7 +147,7 @@ namespace AggroBird.GRP
                     SetupEnvironment(environmentSettings, false);
                 }
 
-                ShaderUtility.SetKeywords(outputNormalsKeywords, outputNormals ? 1 : 0);
+                ShaderUtility.SetKeyword(outputNormalsKeyword, outputNormals);
                 if (outputNormals)
                 {
                     buffer.SetRenderTarget(new RenderTargetIdentifier[] { opaqueColorBufferId, opaqueNormalBufferId }, opaqueDepthBufferId);
@@ -293,7 +277,7 @@ namespace AggroBird.GRP
             // Clouds
             EnvironmentSettings.CloudSettings cloudSettings = settings.cloudSettings;
             bool cloudsEnabled = cloudSettings.enabled && ShowSkybox;
-            ShaderUtility.SetKeywords(skyboxCloudsKeywords, cloudsEnabled ? 1 : 0);
+            ShaderUtility.SetKeyword(skyboxCloudsKeyword, cloudsEnabled);
             if (cloudsEnabled)
             {
                 buffer.SetGlobalVector(cloudColorTopId, cloudSettings.colorTop.AdjustedColor());

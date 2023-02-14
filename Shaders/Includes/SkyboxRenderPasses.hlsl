@@ -48,7 +48,7 @@ float4 RenderSkyboxCubemapDynamic(BlitVaryings input) : SV_TARGET
 
 	float3 skyboxColor = SampleSkyboxProcedural(direction, true);
 
-	#if defined(_SKYBOX_CLOUDS_ON)
+	#if defined(_SKYBOX_CLOUDS_ENABLED)
 	{
 		// Simple clouds
 		float3 origin = _WorldSpaceCameraPos;
@@ -149,7 +149,7 @@ float4 RenderSkyboxWorldDynamic(BlitVaryings input, out float outDepth : SV_Dept
 	float3 direction = normalize(traceDirection);
 	float3 skyboxColor = SampleSkyboxProcedural(direction);
 
-	#if defined(_SKYBOX_CLOUDS_ON)
+	#if defined(_SKYBOX_CLOUDS_ENABLED)
 	{
 		float traceToDir = length(traceDirection);
 		float depthWorld = (linearDepth * _ProjectionParams.z) * traceToDir;

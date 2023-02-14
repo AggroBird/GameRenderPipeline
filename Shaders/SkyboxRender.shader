@@ -15,7 +15,7 @@
 
 		HLSLINCLUDE
 		#include "Includes/SkyboxRenderPasses.hlsl"
-		#pragma multi_compile _ _SKYBOX_CLOUDS_ON
+		#pragma multi_compile _ _SKYBOX_CLOUDS_ENABLED
 		ENDHLSL
 
 		Cull Off
