@@ -173,6 +173,40 @@ namespace AggroBird.GRP
         }
     }
 
+    internal static class TextureUtility
+    {
+        private static Color32[] colorBuffer = null;
+
+        public static void RenderGradientToTexture(ref Texture2D texture, Gradient gradient, FilterMode filterMode = FilterMode.Bilinear)
+        {
+            if (!texture)
+            {
+                texture = new Texture2D(256, 1, TextureFormat.RGBA32, false);
+                texture.wrapMode = TextureWrapMode.Clamp;
+                texture.filterMode = filterMode;
+            }
+            RenderGradientToTexture(texture, gradient);
+        }
+        public static void RenderGradientToTexture(Texture2D texture, Gradient gradient)
+        {
+            int size = texture.width;
+
+            if (colorBuffer == null || colorBuffer.Length != size)
+            {
+                colorBuffer = new Color32[size];
+            }
+
+            float step = 1.0f / (size - 1);
+            float t = 0;
+            for (int i = 0; i < size; i++, t += step)
+            {
+                colorBuffer[i] = gradient.Evaluate(t);
+            }
+            texture.SetPixels32(colorBuffer);
+            texture.Apply();
+        }
+    }
+
     internal static class LinearColorUtility
     {
         public static Color AdjustedColor(this Color color)

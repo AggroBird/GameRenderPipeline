@@ -71,9 +71,7 @@ namespace AggroBird.GRP
         }
 
         private Texture2D skyboxGradientTexture = default;
-        private const int SkyboxGradientTextureBaseSize = 256;
         private const int SkyboxCubemapMipLevels = 8;
-        private Color[] skyboxGradientColors = new Color[SkyboxGradientTextureBaseSize];
         private static readonly int
             skyboxStaticCubemapId = Shader.PropertyToID("_SkyboxStaticCubemap"),
             skyboxGradientTextureId = Shader.PropertyToID("_SkyboxGradientTexture"),
@@ -296,23 +294,7 @@ namespace AggroBird.GRP
             Texture2D useGradientTexture = skyboxSettings.gradientTexture;
             if (!useGradientTexture)
             {
-                if (!skyboxGradientTexture)
-                {
-                    skyboxGradientColors = new Color[SkyboxGradientTextureBaseSize];
-                    skyboxGradientTexture = new Texture2D(SkyboxGradientTextureBaseSize, 1);
-                    skyboxGradientTexture.wrapMode = TextureWrapMode.Clamp;
-                }
-                if (skyboxSettings.gradient != null)
-                {
-                    float step = 1.0f / (SkyboxGradientTextureBaseSize - 1);
-                    float t = 0;
-                    for (int i = 0; i < SkyboxGradientTextureBaseSize; i++, t += step)
-                    {
-                        skyboxGradientColors[i] = skyboxSettings.gradient.Evaluate(t);
-                    }
-                    skyboxGradientTexture.SetPixels(skyboxGradientColors);
-                    skyboxGradientTexture.Apply();
-                }
+                TextureUtility.RenderGradientToTexture(ref skyboxGradientTexture, skyboxSettings.gradient);
                 useGradientTexture = skyboxGradientTexture;
             }
 
