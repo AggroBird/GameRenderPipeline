@@ -631,7 +631,7 @@ float4 OutlinePass(BlitVaryings input) : SV_TARGET
 	depthDifference = pow(saturate(depthDifference * _OutlineParam.z), _OutlineParam.w);
 	normalDifference = pow(saturate(normalDifference * _OutlineParam.x), _OutlineParam.y);
 
-	float outline = saturate(normalDifference + depthDifference);
+	float outline = saturate(normalDifference + depthDifference) * _OutlineColor.a;
 	float4 sourceColor = SampleInputTex(input.texcoord);
 	return float4(lerp(sourceColor.rgb, _OutlineColor.rgb, outline), sourceColor.a);
 }

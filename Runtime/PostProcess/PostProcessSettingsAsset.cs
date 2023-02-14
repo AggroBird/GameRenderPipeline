@@ -115,7 +115,6 @@ namespace AggroBird.GRP
         {
             public bool enabled;
 
-            [ColorUsage(false)]
             public Color color;
 
             [Min(0)]
@@ -133,6 +132,7 @@ namespace AggroBird.GRP
 
         public Outline outline = new Outline
         {
+            color = new Color(0, 0, 0, 1),
             normalIntensity = 2.78f,
             normalBias = 3.4f,
             depthIntensity = 2.86f,
