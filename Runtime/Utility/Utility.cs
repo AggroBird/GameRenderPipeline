@@ -86,21 +86,6 @@ namespace AggroBird.GRP
         {
             commandBuffer.SetGlobalFloat(nameID, value ? 1f : 0f);
         }
-
-        public static void SetKeywords(string[] keywords, int enabledIndex)
-        {
-            for (int i = 0; i < keywords.Length; i++)
-            {
-                if (i == enabledIndex)
-                {
-                    Shader.EnableKeyword(keywords[i]);
-                }
-                else
-                {
-                    Shader.DisableKeyword(keywords[i]);
-                }
-            }
-        }
     }
 
     internal enum ShaderPathID
@@ -133,6 +118,58 @@ namespace AggroBird.GRP
         {
             var index = Array.FindIndex(shaderPaths, m => m == path);
             return (ShaderPathID)index;
+        }
+
+        public static void SetKeywords(ShaderKeyword[] keywords, int enabled)
+        {
+            for (int i = 0; i < keywords.Length; i++)
+            {
+                if (i == enabled)
+                {
+                    Shader.EnableKeyword(keywords[i].name);
+                }
+                else
+                {
+                    Shader.DisableKeyword(keywords[i].name);
+                }
+            }
+        }
+        public static void SetKeywords(string[] keywords, int enabled)
+        {
+            for (int i = 0; i < keywords.Length; i++)
+            {
+                if (i == enabled)
+                {
+                    Shader.EnableKeyword(keywords[i]);
+                }
+                else
+                {
+                    Shader.DisableKeyword(keywords[i]);
+                }
+            }
+        }
+
+        public static void SetKeyword(ShaderKeyword keyword, bool enabled)
+        {
+            if (enabled)
+            {
+                Shader.EnableKeyword(keyword.name);
+            }
+            else
+            {
+                Shader.DisableKeyword(keyword.name);
+            }
+        }
+        public static void SetKeyword(string keyword, bool enabled)
+        {
+            if (enabled)
+            {
+                Shader.EnableKeyword(keyword);
+            }
+            else
+            {
+                Shader.DisableKeyword(keyword);
+            }
         }
     }
 

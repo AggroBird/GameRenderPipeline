@@ -57,24 +57,24 @@ namespace AggroBird.GRP
             shadowedDirectionalLightCount,
             shadowedOtherLightCount;
 
-        internal static readonly string[] directionalFilterKeywords =
+        internal static readonly ShaderKeyword[] directionalFilterKeywords =
         {
-            "_DIRECTIONAL_PCF3",
-            "_DIRECTIONAL_PCF5",
-            "_DIRECTIONAL_PCF7",
+            new ShaderKeyword("_DIRECTIONAL_PCF3"),
+            new ShaderKeyword("_DIRECTIONAL_PCF5"),
+            new ShaderKeyword("_DIRECTIONAL_PCF7"),
         };
 
-        internal static readonly string[] otherFilterKeywords =
+        internal static readonly ShaderKeyword[] otherFilterKeywords =
         {
-            "_OTHER_PCF3",
-            "_OTHER_PCF5",
-            "_OTHER_PCF7",
+            new ShaderKeyword("_OTHER_PCF3"),
+            new ShaderKeyword("_OTHER_PCF5"),
+            new ShaderKeyword("_OTHER_PCF7"),
         };
 
-        internal static readonly string[] cascadeBlendKeywords =
+        internal static readonly ShaderKeyword[] cascadeBlendKeywords =
         {
-            "_CASCADE_BLEND_SOFT",
-            "_CASCADE_BLEND_DITHER"
+            new ShaderKeyword("_CASCADE_BLEND_SOFT"),
+            new ShaderKeyword("_CASCADE_BLEND_DITHER"),
         };
 
 
@@ -204,8 +204,8 @@ namespace AggroBird.GRP
             buffer.SetGlobalVectorArray(cascadeDataId, cascadeData);
             buffer.SetGlobalMatrixArray(directionalShadowMatricesId, directionalShadowMatrices);
 
-            CommandBufferUtility.SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
-            CommandBufferUtility.SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
+            ShaderUtility.SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
+            ShaderUtility.SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
 
             buffer.EndSample(bufferName);
             ExecuteBuffer();
@@ -284,7 +284,7 @@ namespace AggroBird.GRP
             buffer.SetGlobalMatrixArray(otherShadowMatricesId, otherShadowMatrices);
             buffer.SetGlobalVectorArray(otherShadowTilesId, otherShadowTiles);
 
-            CommandBufferUtility.SetKeywords(otherFilterKeywords, (int)settings.other.filter - 1);
+            ShaderUtility.SetKeywords(otherFilterKeywords, (int)settings.other.filter - 1);
 
             buffer.EndSample(bufferName);
             ExecuteBuffer();

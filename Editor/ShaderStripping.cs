@@ -10,48 +10,15 @@ namespace AggroBird.GRP.Editor
     {
         public int callbackOrder => 0;
 
-        private static ShaderKeyword[] MakeKeywords(string[] strings)
-        {
-            ShaderKeyword[] result = new ShaderKeyword[strings.Length];
-            for (int i = 0; i < strings.Length; i++)
-            {
-                result[i] = new ShaderKeyword(strings[i]);
-            }
-            return result;
-        }
-
-        private readonly ShaderKeyword[] directionalFilterKeywords;
-        private readonly ShaderKeyword[] otherFilterKeywords;
-        private readonly ShaderKeyword[] cascadeBlendKeywords;
-        private readonly ShaderKeyword lightsPerObjectKeyword;
-        private readonly ShaderKeyword hatchingEnabledKeyword;
-
-        private readonly int directionalFilterIndex;
-        private readonly int otherFilterIndex;
-        private readonly int cascadeBlendIndex;
-        private readonly bool lightsPerObjectEnabled;
-        private readonly bool hatchingEnabled;
-
         private readonly GameRenderPipelineAsset renderPipeline;
+        private readonly GameRenderPipelineSettings settings;
 
         public ShaderStripper()
         {
             if (GraphicsSettings.defaultRenderPipeline is GameRenderPipelineAsset renderPipeline)
             {
                 this.renderPipeline = renderPipeline;
-
-                directionalFilterKeywords = MakeKeywords(Shadows.directionalFilterKeywords);
-                otherFilterKeywords = MakeKeywords(Shadows.otherFilterKeywords);
-                cascadeBlendKeywords = MakeKeywords(Shadows.cascadeBlendKeywords);
-                lightsPerObjectKeyword = new ShaderKeyword(Lighting.LightsPerObjectKeyword);
-                hatchingEnabledKeyword = new ShaderKeyword(Lighting.HatchingKeyword);
-
-                GameRenderPipelineSettings settings = renderPipeline.Settings;
-                directionalFilterIndex = (int)settings.shadows.directional.filter;
-                otherFilterIndex = (int)settings.shadows.other.filter;
-                cascadeBlendIndex = (int)settings.shadows.directional.cascadeBlend;
-                lightsPerObjectEnabled = settings.general.useLightsPerObject;
-                hatchingEnabled = settings.experimental.hatching.enabled;
+                settings = renderPipeline.Settings;
             }
         }
 
@@ -84,27 +51,27 @@ namespace AggroBird.GRP.Editor
             {
                 for (int i = data.Count - 1; i >= 0; i--)
                 {
-                    if (CheckSkip(shader, data[i], directionalFilterKeywords, directionalFilterIndex))
+                    if (CheckSkip(shader, data[i], Shadows.directionalFilterKeywords, (int)settings.shadows.directional.filter))
                     {
                         data.RemoveAt(i);
                         continue;
                     }
-                    if (CheckSkip(shader, data[i], otherFilterKeywords, otherFilterIndex))
+                    if (CheckSkip(shader, data[i], Shadows.otherFilterKeywords, (int)settings.shadows.other.filter))
                     {
                         data.RemoveAt(i);
                         continue;
                     }
-                    if (CheckSkip(shader, data[i], cascadeBlendKeywords, cascadeBlendIndex))
+                    if (CheckSkip(shader, data[i], Shadows.cascadeBlendKeywords, (int)settings.shadows.directional.cascadeBlend))
                     {
                         data.RemoveAt(i);
                         continue;
                     }
-                    if (CheckSkip(shader, data[i], lightsPerObjectKeyword, lightsPerObjectEnabled))
+                    if (CheckSkip(shader, data[i], Lighting.lightsPerObjectKeyword, settings.general.useLightsPerObject))
                     {
                         data.RemoveAt(i);
                         continue;
                     }
-                    if (CheckSkip(shader, data[i], hatchingEnabledKeyword, hatchingEnabled))
+                    if (CheckSkip(shader, data[i], Lighting.hatchingKeyword, settings.experimental.hatching.enabled))
                     {
                         data.RemoveAt(i);
                         continue;

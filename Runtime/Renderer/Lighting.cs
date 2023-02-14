@@ -39,9 +39,9 @@ namespace AggroBird.GRP
             otherLightSpotAngles = new Vector4[MaxOtherLightCount],
             otherLightShadowData = new Vector4[MaxOtherLightCount];
 
-        internal const string LightsPerObjectKeyword = "_LIGHTS_PER_OBJECT";
+        internal static readonly ShaderKeyword lightsPerObjectKeyword = new ShaderKeyword("_LIGHTS_PER_OBJECT");
 
-        internal const string HatchingKeyword = "_HATCHING_ENABLED";
+        internal static readonly ShaderKeyword hatchingKeyword = new ShaderKeyword("_HATCHING_ENABLED");
 
         private static readonly int
             hatchingDarkId = Shader.PropertyToID("_Hatching_Dark"),
@@ -117,6 +117,7 @@ namespace AggroBird.GRP
                 }
             }
 
+            ShaderUtility.SetKeyword(lightsPerObjectKeyword, useLightsPerObject);
             if (useLightsPerObject)
             {
                 for (; i < indexMap.Length; i++)
@@ -125,11 +126,6 @@ namespace AggroBird.GRP
                 }
                 cullingResults.SetLightIndexMap(indexMap);
                 indexMap.Dispose();
-                Shader.EnableKeyword(LightsPerObjectKeyword);
-            }
-            else
-            {
-                Shader.DisableKeyword(LightsPerObjectKeyword);
             }
 
 
@@ -153,17 +149,13 @@ namespace AggroBird.GRP
         }
         private void SetupHatching(ExperimentalSettings.Hatching settings)
         {
+            ShaderUtility.SetKeyword(hatchingKeyword, settings.enabled);
             if (settings.enabled)
             {
-                Shader.EnableKeyword(HatchingKeyword);
                 buffer.SetGlobalTexture(hatchingDarkId, settings.dark);
                 buffer.SetGlobalTexture(hatchingBrightId, settings.bright);
                 buffer.SetGlobalFloat(hatchingScaleId, settings.scale);
                 buffer.SetGlobalFloat(hatchingIntensityId, settings.intensity);
-            }
-            else
-            {
-                Shader.DisableKeyword(HatchingKeyword);
             }
         }
 
