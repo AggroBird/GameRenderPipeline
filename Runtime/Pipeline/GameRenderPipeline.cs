@@ -6,6 +6,8 @@ namespace AggroBird.GRP
 {
     internal sealed class GameRenderPipeline : RenderPipeline
     {
+        public const string PipelineName = "GameRenderPipeline";
+
         internal static bool linearColorSpace => QualitySettings.activeColorSpace == ColorSpace.Linear;
 
         private CameraRenderer cameraRenderer = new CameraRenderer();
@@ -13,6 +15,8 @@ namespace AggroBird.GRP
 
         public GameRenderPipeline(GameRenderPipelineAsset pipelineAsset)
         {
+            Shader.globalRenderPipeline = PipelineName;
+
             this.pipelineAsset = pipelineAsset;
 
             LODGroup.crossFadeAnimationDuration = pipelineAsset.Settings.general.crossFadeAnimationDuration;

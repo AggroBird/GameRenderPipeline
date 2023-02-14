@@ -10,6 +10,12 @@
 		#include "Includes/Common.hlsl"
 		ENDHLSL
 
+		Tags
+		{
+			"RenderPipeline" = "GameRenderPipeline"
+			"ShaderModel" = "3.5"
+		}
+
 		Pass
 		{
 			HLSLPROGRAM

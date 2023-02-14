@@ -6,17 +6,19 @@
 	}
 	Subshader
 	{
+		HLSLINCLUDE
+		#include "Includes/SkyboxRenderPasses.hlsl"
+		#pragma multi_compile _ _SKYBOX_CLOUDS_ENABLED
+		ENDHLSL
+
 		Tags
 		{
 			"Queue" = "Background"
 			"RenderType" = "Background"
 			"PreviewType" = "Skybox"
+			"RenderPipeline" = "GameRenderPipeline"
+			"ShaderModel" = "3.5"
 		}
-
-		HLSLINCLUDE
-		#include "Includes/SkyboxRenderPasses.hlsl"
-		#pragma multi_compile _ _SKYBOX_CLOUDS_ENABLED
-		ENDHLSL
 
 		Cull Off
 		ZTest Always
