@@ -22,7 +22,7 @@ namespace AggroBird.GRP
         internal RenderTextureFormat renderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
 
-        private static readonly ShaderTagId[] defaultShaderTags = { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("GRPLit") };
+        private static readonly ShaderTagId[] defaultShaderTags = { new("SRPDefaultUnlit"), new("GRPLit") };
 
         private static readonly ShaderKeyword orthographicKeyword = new("_PROJECTION_ORTHOGRAPHIC");
 
