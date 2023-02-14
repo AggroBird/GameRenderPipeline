@@ -2,7 +2,7 @@
 #define _GRP_ENVIRONMENT
 
 
-#if defined(_FOG_LINEAR) || defined(_FOG_EXP) || defined(_FOG_EXP2)
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
 #define FOG_ENABLED
 
 // rgb = Groundcolor, a = fog blend
@@ -23,10 +23,10 @@ FOG_ATTRIBUTE_TYPE ComputeFogFactor(VertexPositions vertexPositions)
 
     FOG_ATTRIBUTE_TYPE result;
 
-#if defined(_FOG_LINEAR)
+#if defined(FOG_LINEAR)
     // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
     result.x = saturate(clipZ_01 * _FogParam.x + _FogParam.y);
-#elif defined(_FOG_EXP) || defined(_FOG_EXP2)
+#elif defined(FOG_EXP) || defined(FOG_EXP2)
     // factor = exp(-(density*z)^2)
     // -density * z computed at vertex
     result.x = _FogParam.x * clipZ_01;
@@ -51,15 +51,15 @@ float ComputeFogIntensity(FOG_ATTRIBUTE_TYPE fogAttribute)
 {
     float fogIntensity = 0.0;
 
-#if defined(_FOG_EXP)
+#if defined(FOG_EXP)
     // factor = exp(-density*z)
     // fogFactor = density*z compute at vertex
     fogIntensity = 1 - saturate(exp2(-fogAttribute.x));
-#elif defined(_FOG_EXP2)
+#elif defined(FOG_EXP2)
     // factor = exp(-(density*z)^2)
     // fogFactor = density*z compute at vertex
     fogIntensity = 1 - saturate(exp2(-fogAttribute.x * fogAttribute.x));
-#elif defined(_FOG_LINEAR)
+#elif defined(FOG_LINEAR)
     fogIntensity = 1 - fogAttribute.x;
 #endif
 
