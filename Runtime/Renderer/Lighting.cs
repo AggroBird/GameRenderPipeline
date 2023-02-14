@@ -39,9 +39,9 @@ namespace AggroBird.GRP
             otherLightSpotAngles = new Vector4[MaxOtherLightCount],
             otherLightShadowData = new Vector4[MaxOtherLightCount];
 
-        internal static readonly ShaderKeyword lightsPerObjectKeyword = new ShaderKeyword("_LIGHTS_PER_OBJECT");
+        internal static readonly ShaderKeyword lightsPerObjectKeyword = new("_LIGHTS_PER_OBJECT");
 
-        internal static readonly ShaderKeyword hatchingKeyword = new ShaderKeyword("_HATCHING_ENABLED");
+        internal static readonly ShaderKeyword hatchingKeyword = new("_HATCHING_ENABLED");
 
         private static readonly int
             hatchingDarkId = Shader.PropertyToID("_Hatching_Dark"),

@@ -59,22 +59,22 @@ namespace AggroBird.GRP
 
         internal static readonly ShaderKeyword[] directionalFilterKeywords =
         {
-            new ShaderKeyword("_DIRECTIONAL_PCF3"),
-            new ShaderKeyword("_DIRECTIONAL_PCF5"),
-            new ShaderKeyword("_DIRECTIONAL_PCF7"),
+            new("_DIRECTIONAL_PCF3"),
+            new("_DIRECTIONAL_PCF5"),
+            new("_DIRECTIONAL_PCF7"),
         };
 
         internal static readonly ShaderKeyword[] otherFilterKeywords =
         {
-            new ShaderKeyword("_OTHER_PCF3"),
-            new ShaderKeyword("_OTHER_PCF5"),
-            new ShaderKeyword("_OTHER_PCF7"),
+            new("_OTHER_PCF3"),
+            new("_OTHER_PCF5"),
+            new("_OTHER_PCF7"),
         };
 
         internal static readonly ShaderKeyword[] cascadeBlendKeywords =
         {
-            new ShaderKeyword("_CASCADE_BLEND_SOFT"),
-            new ShaderKeyword("_CASCADE_BLEND_DITHER"),
+            new("_CASCADE_BLEND_SOFT"),
+            new("_CASCADE_BLEND_DITHER"),
         };
 
 

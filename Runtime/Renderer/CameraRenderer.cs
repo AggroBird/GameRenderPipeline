@@ -31,12 +31,12 @@ namespace AggroBird.GRP
         private static readonly ShaderKeyword outputNormalsKeyword = new("_OUTPUT_NORMALS_ENABLED");
 
 
-        private static readonly string[] fogModeKeywords =
+        private static readonly ShaderKeyword[] fogModeKeywords =
         {
-            "_FOG_DISABLED",
-            "_FOG_LINEAR",
-            "_FOG_EXP",
-            "_FOG_EXP2",
+            new("_FOG_DISABLED"),
+            new("_FOG_LINEAR"),
+            new("_FOG_EXP"),
+            new("_FOG_EXP2"),
         };
 
         private static readonly ShaderKeyword skyboxCloudsKeyword = new("_SKYBOX_CLOUDS_ENABLED");
