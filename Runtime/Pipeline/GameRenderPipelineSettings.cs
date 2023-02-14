@@ -127,16 +127,37 @@ namespace AggroBird.GRP
         [System.Serializable]
         public struct CellShading
         {
+            internal static Gradient CreateDefaultFalloffGradient()
+            {
+                Gradient gradient = new Gradient();
+                gradient.mode = GradientMode.Fixed;
+                GradientColorKey[] gradientColorKeys =
+                {
+                    new GradientColorKey(new Color(0, 0, 0), 0),
+                    new GradientColorKey(new Color(0.33333f, 0.33333f, 0.33333f), 0.33333f),
+                    new GradientColorKey(new Color(0.66666f, 0.66666f, 0.66666f), 0.66666f),
+                    new GradientColorKey(new Color(1, 1, 1), 1),
+                };
+                GradientAlphaKey[] gradientAlphaKeys =
+                {
+                    new GradientAlphaKey(1, 0),
+                    new GradientAlphaKey(1, 0.33333f),
+                    new GradientAlphaKey(1, 0.66666f),
+                    new GradientAlphaKey(1, 1),
+                };
+                gradient.SetKeys(gradientColorKeys, gradientAlphaKeys);
+                return gradient;
+            }
+
             public bool enabled;
             [Min(1)]
-            public int steps;
             public Gradient falloff;
         }
 
         public CellShading cellShading = new CellShading
         {
             enabled = false,
-            steps = 3,
+            falloff = CellShading.CreateDefaultFalloffGradient(),
         };
     }
 }

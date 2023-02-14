@@ -177,13 +177,13 @@ namespace AggroBird.GRP
     {
         private static Color32[] colorBuffer = null;
 
-        public static void RenderGradientToTexture(ref Texture2D texture, Gradient gradient, FilterMode filterMode = FilterMode.Bilinear)
+        public static void RenderGradientToTexture(ref Texture2D texture, Gradient gradient)
         {
             if (!texture)
             {
                 texture = new Texture2D(256, 1, TextureFormat.RGBA32, false);
                 texture.wrapMode = TextureWrapMode.Clamp;
-                texture.filterMode = filterMode;
+                texture.filterMode = gradient.mode == GradientMode.Fixed ? FilterMode.Point : FilterMode.Bilinear;
             }
             RenderGradientToTexture(texture, gradient);
         }

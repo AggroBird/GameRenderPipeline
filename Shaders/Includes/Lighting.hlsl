@@ -16,9 +16,9 @@ SAMPLER(sampler_CellShading_Falloff);
 
 float3 IncomingLight(Surface surface, Light light)
 {
-	float d = saturate(dot(surface.normal, light.direction) * light.attenuation);
+	float3 d = saturate(dot(surface.normal, light.direction) * light.attenuation);
 #if defined(_CELL_SHADING_ENABLED)
-	d = SAMPLE_TEXTURE2D(_CellShading_Falloff, sampler_CellShading_Falloff, float2(d, 0.5)).r;
+	d = SAMPLE_TEXTURE2D(_CellShading_Falloff, sampler_CellShading_Falloff, float2(d.r, 0.5));
 #endif
 	return light.color * d;
 }

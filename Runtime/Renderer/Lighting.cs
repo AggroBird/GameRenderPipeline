@@ -51,9 +51,10 @@ namespace AggroBird.GRP
 
         internal static readonly ShaderKeyword cellShadingKeyword = new("_CELL_SHADING_ENABLED");
 
-        private static readonly int
-            cellShadingStepsId = Shader.PropertyToID("_CellShading_Steps"),
-            cellShadingFalloffId = Shader.PropertyToID("_CellShading_Falloff");
+        private static readonly int cellShadingFalloffId = Shader.PropertyToID("_CellShading_Falloff");
+
+        private Texture2D cellShadingFalloffTexture = default;
+
 
         private CullingResults cullingResults;
 
@@ -166,16 +167,12 @@ namespace AggroBird.GRP
         }
 
 
-        private Texture2D cellShadingFalloffTexture = default;
-
         private void SetupCellShading(ExperimentalSettings.CellShading settings)
         {
             ShaderUtility.SetKeyword(cellShadingKeyword, settings.enabled);
             if (settings.enabled)
             {
-                TextureUtility.RenderGradientToTexture(ref cellShadingFalloffTexture, settings.falloff, FilterMode.Point);
-
-                buffer.SetGlobalFloat(cellShadingStepsId, settings.steps);
+                TextureUtility.RenderGradientToTexture(ref cellShadingFalloffTexture, settings.falloff);
                 buffer.SetGlobalTexture(cellShadingFalloffId, cellShadingFalloffTexture);
             }
         }
