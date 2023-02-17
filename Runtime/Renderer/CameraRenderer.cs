@@ -91,7 +91,7 @@ namespace AggroBird.GRP
         private Texture lastSkyboxSourceTexture = null;
         private Material skyboxCubemapRenderMaterial = null;
         private RandomStream skyboxCubemapRandom = new RandomStream(0);
-        // For some reason, the cubemap initializes to back in editor
+        // For some reason, the cubemap initializes to black in editor
         // so for the first 8 frames, force render
         private int skyboxEditorForceUpdate = Application.isEditor ? 8 : 0;
 
