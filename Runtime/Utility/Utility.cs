@@ -215,14 +215,14 @@ namespace AggroBird.GRP
         }
     }
 
-    public sealed class CommandBufferScope : IDisposable
+    public ref struct CommandBufferScope
     {
         public CommandBufferScope(string name)
         {
             commandBuffer = CommandBufferPool.Get(name);
         }
 
-        public CommandBuffer commandBuffer { get; private set; }
+        public readonly CommandBuffer commandBuffer;
 
         public static implicit operator CommandBuffer(CommandBufferScope scope)
         {
@@ -232,7 +232,6 @@ namespace AggroBird.GRP
         public void Dispose()
         {
             CommandBufferPool.Release(commandBuffer);
-            commandBuffer = null;
         }
     }
 }
