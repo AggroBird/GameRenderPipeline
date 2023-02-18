@@ -22,7 +22,7 @@ namespace AggroBird.GRP.Editor
             }
         }
 
-        private static bool CheckSkip(Shader shader, ShaderCompilerData data, ShaderKeyword[] keywords, int activeIndex)
+        private static bool CheckSkip(Shader shader, ShaderCompilerData data, GlobalKeyword[] keywords, int activeIndex)
         {
             if (shader.keywordSpace.FindKeyword(keywords[activeIndex].name).isValid)
             {
@@ -33,7 +33,7 @@ namespace AggroBird.GRP.Editor
             }
             return false;
         }
-        private static bool CheckSkip(Shader shader, ShaderCompilerData data, ShaderKeyword keyword, bool active)
+        private static bool CheckSkip(Shader shader, ShaderCompilerData data, in GlobalKeyword keyword, bool active)
         {
             if (shader.keywordSpace.FindKeyword(keyword.name).isValid)
             {

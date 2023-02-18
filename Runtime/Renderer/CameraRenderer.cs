@@ -24,14 +24,14 @@ namespace AggroBird.GRP
 
         private static readonly ShaderTagId[] defaultShaderTags = { new("SRPDefaultUnlit"), new("GRPLit") };
 
-        private static readonly ShaderKeyword orthographicKeyword = new("_PROJECTION_ORTHOGRAPHIC");
+        private static readonly GlobalKeyword orthographicKeyword = new("_PROJECTION_ORTHOGRAPHIC");
 
-        private static readonly ShaderKeyword colorSpaceLinearKeyword = new("_COLOR_SPACE_LINEAR");
+        private static readonly GlobalKeyword colorSpaceLinearKeyword = new("_COLOR_SPACE_LINEAR");
 
-        private static readonly ShaderKeyword outputNormalsKeyword = new("_OUTPUT_NORMALS_ENABLED");
+        private static readonly GlobalKeyword outputNormalsKeyword = new("_OUTPUT_NORMALS_ENABLED");
 
 
-        private static readonly ShaderKeyword[] fogModeKeywords =
+        private static readonly GlobalKeyword[] fogModeKeywords =
         {
             new("FOG_DISABLED"),
             new("FOG_LINEAR"),
@@ -39,7 +39,7 @@ namespace AggroBird.GRP
             new("FOG_EXP2"),
         };
 
-        private static readonly ShaderKeyword skyboxCloudsKeyword = new("_SKYBOX_CLOUDS_ENABLED");
+        private static readonly GlobalKeyword skyboxCloudsKeyword = new("_SKYBOX_CLOUDS_ENABLED");
 
 
         private static readonly int
@@ -125,8 +125,8 @@ namespace AggroBird.GRP
             outputNormals = postProcessStack.ssaoEnabled || postProcessStack.outlineEnabled;
             buffer.EndSample(bufferName);
 
-            ShaderUtility.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.linearColorSpace);
-            ShaderUtility.SetKeyword(orthographicKeyword, camera.orthographic);
+            buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.linearColorSpace);
+            buffer.SetKeyword(orthographicKeyword, camera.orthographic);
 
             // Render
             Setup();
@@ -145,7 +145,7 @@ namespace AggroBird.GRP
                     SetupEnvironment(environmentSettings, false);
                 }
 
-                ShaderUtility.SetKeyword(outputNormalsKeyword, outputNormals);
+                buffer.SetKeyword(outputNormalsKeyword, outputNormals);
                 if (outputNormals)
                 {
                     buffer.SetRenderTarget(new RenderTargetIdentifier[] { opaqueColorBufferId, opaqueNormalBufferId }, opaqueDepthBufferId);
@@ -242,7 +242,7 @@ namespace AggroBird.GRP
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
             bool fogEnabled = fogSettings.enabled && ShowFog;
             int setFogKeyword = fogEnabled ? (int)fogSettings.fogMode : 0;
-            ShaderUtility.SetKeywords(fogModeKeywords, setFogKeyword);
+            buffer.SetKeywords(fogModeKeywords, setFogKeyword);
             if (fogEnabled)
             {
                 Color ambientColor = fogSettings.ambientColor.AdjustedColor();
@@ -275,7 +275,7 @@ namespace AggroBird.GRP
             // Clouds
             EnvironmentSettings.CloudSettings cloudSettings = settings.cloudSettings;
             bool cloudsEnabled = cloudSettings.enabled && ShowSkybox;
-            ShaderUtility.SetKeyword(skyboxCloudsKeyword, cloudsEnabled);
+            buffer.SetKeyword(skyboxCloudsKeyword, cloudsEnabled);
             if (cloudsEnabled)
             {
                 buffer.SetGlobalVector(cloudColorTopId, cloudSettings.colorTop.AdjustedColor());

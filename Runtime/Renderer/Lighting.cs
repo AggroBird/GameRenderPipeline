@@ -39,9 +39,9 @@ namespace AggroBird.GRP
             otherLightSpotAngles = new Vector4[MaxOtherLightCount],
             otherLightShadowData = new Vector4[MaxOtherLightCount];
 
-        internal static readonly ShaderKeyword lightsPerObjectKeyword = new("_LIGHTS_PER_OBJECT");
+        internal static readonly GlobalKeyword lightsPerObjectKeyword = new("_LIGHTS_PER_OBJECT");
 
-        internal static readonly ShaderKeyword hatchingKeyword = new("_HATCHING_ENABLED");
+        internal static readonly GlobalKeyword hatchingKeyword = new("_HATCHING_ENABLED");
 
         private static readonly int
             hatchingDarkId = Shader.PropertyToID("_Hatching_Dark"),
@@ -49,7 +49,7 @@ namespace AggroBird.GRP
             hatchingScaleId = Shader.PropertyToID("_Hatching_Scale"),
             hatchingIntensityId = Shader.PropertyToID("_Hatching_Intensity");
 
-        internal static readonly ShaderKeyword cellShadingKeyword = new("_CELL_SHADING_ENABLED");
+        internal static readonly GlobalKeyword cellShadingKeyword = new("_CELL_SHADING_ENABLED");
 
         private static readonly int cellShadingFalloffId = Shader.PropertyToID("_CellShading_Falloff");
 
@@ -124,7 +124,7 @@ namespace AggroBird.GRP
                 }
             }
 
-            ShaderUtility.SetKeyword(lightsPerObjectKeyword, useLightsPerObject);
+            buffer.SetKeyword(lightsPerObjectKeyword, useLightsPerObject);
             if (useLightsPerObject)
             {
                 for (; i < indexMap.Length; i++)
@@ -156,7 +156,7 @@ namespace AggroBird.GRP
         }
         private void SetupHatching(ExperimentalSettings.Hatching settings)
         {
-            ShaderUtility.SetKeyword(hatchingKeyword, settings.enabled);
+            buffer.SetKeyword(hatchingKeyword, settings.enabled);
             if (settings.enabled)
             {
                 buffer.SetGlobalTexture(hatchingDarkId, settings.dark);
@@ -169,7 +169,7 @@ namespace AggroBird.GRP
 
         private void SetupCellShading(ExperimentalSettings.CellShading settings)
         {
-            ShaderUtility.SetKeyword(cellShadingKeyword, settings.enabled);
+            buffer.SetKeyword(cellShadingKeyword, settings.enabled);
             if (settings.enabled)
             {
                 TextureUtility.RenderGradientToTexture(ref cellShadingFalloffTexture, settings.falloff);

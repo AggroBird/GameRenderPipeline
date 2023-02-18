@@ -57,21 +57,21 @@ namespace AggroBird.GRP
             shadowedDirectionalLightCount,
             shadowedOtherLightCount;
 
-        internal static readonly ShaderKeyword[] directionalFilterKeywords =
+        internal static readonly GlobalKeyword[] directionalFilterKeywords =
         {
             new("_DIRECTIONAL_PCF3"),
             new("_DIRECTIONAL_PCF5"),
             new("_DIRECTIONAL_PCF7"),
         };
 
-        internal static readonly ShaderKeyword[] otherFilterKeywords =
+        internal static readonly GlobalKeyword[] otherFilterKeywords =
         {
             new("_OTHER_PCF3"),
             new("_OTHER_PCF5"),
             new("_OTHER_PCF7"),
         };
 
-        internal static readonly ShaderKeyword[] cascadeBlendKeywords =
+        internal static readonly GlobalKeyword[] cascadeBlendKeywords =
         {
             new("_CASCADE_BLEND_SOFT"),
             new("_CASCADE_BLEND_DITHER"),
@@ -204,8 +204,8 @@ namespace AggroBird.GRP
             buffer.SetGlobalVectorArray(cascadeDataId, cascadeData);
             buffer.SetGlobalMatrixArray(directionalShadowMatricesId, directionalShadowMatrices);
 
-            ShaderUtility.SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
-            ShaderUtility.SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
+            buffer.SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
+            buffer.SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
 
             buffer.EndSample(bufferName);
             ExecuteBuffer();
@@ -284,7 +284,7 @@ namespace AggroBird.GRP
             buffer.SetGlobalMatrixArray(otherShadowMatricesId, otherShadowMatrices);
             buffer.SetGlobalVectorArray(otherShadowTilesId, otherShadowTiles);
 
-            ShaderUtility.SetKeywords(otherFilterKeywords, (int)settings.other.filter - 1);
+            buffer.SetKeywords(otherFilterKeywords, (int)settings.other.filter - 1);
 
             buffer.EndSample(bufferName);
             ExecuteBuffer();
