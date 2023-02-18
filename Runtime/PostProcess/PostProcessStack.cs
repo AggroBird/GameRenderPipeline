@@ -199,7 +199,8 @@ namespace AggroBird.GRP
             {
                 foreach (PostProcessEffect effect in customEffects[(int)order])
                 {
-                    string name = string.IsNullOrEmpty(effect.effectName) ? PostProcessEffect.DefaultEffectName : effect.effectName;
+                    string name = effect.effectName;
+                    if (string.IsNullOrEmpty(name)) name = PostProcessEffect.DefaultEffectName;
                     buffer.BeginSample(name);
                     try
                     {
