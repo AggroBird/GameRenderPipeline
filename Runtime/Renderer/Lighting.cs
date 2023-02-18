@@ -39,9 +39,9 @@ namespace AggroBird.GRP
             otherLightSpotAngles = new Vector4[MaxOtherLightCount],
             otherLightShadowData = new Vector4[MaxOtherLightCount];
 
-        internal static readonly GlobalKeyword lightsPerObjectKeyword = new("_LIGHTS_PER_OBJECT");
+        internal static readonly GlobalKeyword lightsPerObjectKeyword = GlobalKeyword.Create("_LIGHTS_PER_OBJECT");
 
-        internal static readonly GlobalKeyword hatchingKeyword = new("_HATCHING_ENABLED");
+        internal static readonly GlobalKeyword hatchingKeyword = GlobalKeyword.Create("_HATCHING_ENABLED");
 
         private static readonly int
             hatchingDarkId = Shader.PropertyToID("_Hatching_Dark"),
@@ -49,7 +49,7 @@ namespace AggroBird.GRP
             hatchingScaleId = Shader.PropertyToID("_Hatching_Scale"),
             hatchingIntensityId = Shader.PropertyToID("_Hatching_Intensity");
 
-        internal static readonly GlobalKeyword cellShadingKeyword = new("_CELL_SHADING_ENABLED");
+        internal static readonly GlobalKeyword cellShadingKeyword = GlobalKeyword.Create("_CELL_SHADING_ENABLED");
 
         private static readonly int cellShadingFalloffId = Shader.PropertyToID("_CellShading_Falloff");
 

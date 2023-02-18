@@ -59,22 +59,22 @@ namespace AggroBird.GRP
 
         internal static readonly GlobalKeyword[] directionalFilterKeywords =
         {
-            new("_DIRECTIONAL_PCF3"),
-            new("_DIRECTIONAL_PCF5"),
-            new("_DIRECTIONAL_PCF7"),
+            GlobalKeyword.Create("_DIRECTIONAL_PCF3"),
+            GlobalKeyword.Create("_DIRECTIONAL_PCF5"),
+            GlobalKeyword.Create("_DIRECTIONAL_PCF7"),
         };
 
         internal static readonly GlobalKeyword[] otherFilterKeywords =
         {
-            new("_OTHER_PCF3"),
-            new("_OTHER_PCF5"),
-            new("_OTHER_PCF7"),
+            GlobalKeyword.Create("_OTHER_PCF3"),
+            GlobalKeyword.Create("_OTHER_PCF5"),
+            GlobalKeyword.Create("_OTHER_PCF7"),
         };
 
         internal static readonly GlobalKeyword[] cascadeBlendKeywords =
         {
-            new("_CASCADE_BLEND_SOFT"),
-            new("_CASCADE_BLEND_DITHER"),
+            GlobalKeyword.Create("_CASCADE_BLEND_SOFT"),
+            GlobalKeyword.Create("_CASCADE_BLEND_DITHER"),
         };
 
 

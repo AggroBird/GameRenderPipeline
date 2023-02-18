@@ -24,22 +24,22 @@ namespace AggroBird.GRP
 
         private static readonly ShaderTagId[] defaultShaderTags = { new("SRPDefaultUnlit"), new("GRPLit") };
 
-        private static readonly GlobalKeyword orthographicKeyword = new("_PROJECTION_ORTHOGRAPHIC");
+        private static readonly GlobalKeyword orthographicKeyword = GlobalKeyword.Create("_PROJECTION_ORTHOGRAPHIC");
 
-        private static readonly GlobalKeyword colorSpaceLinearKeyword = new("_COLOR_SPACE_LINEAR");
+        private static readonly GlobalKeyword colorSpaceLinearKeyword = GlobalKeyword.Create("_COLOR_SPACE_LINEAR");
 
-        private static readonly GlobalKeyword outputNormalsKeyword = new("_OUTPUT_NORMALS_ENABLED");
+        private static readonly GlobalKeyword outputNormalsKeyword = GlobalKeyword.Create("_OUTPUT_NORMALS_ENABLED");
 
 
         private static readonly GlobalKeyword[] fogModeKeywords =
         {
-            new("FOG_DISABLED"),
-            new("FOG_LINEAR"),
-            new("FOG_EXP"),
-            new("FOG_EXP2"),
+            GlobalKeyword.Create("FOG_DISABLED"),
+            GlobalKeyword.Create("FOG_LINEAR"),
+            GlobalKeyword.Create("FOG_EXP"),
+            GlobalKeyword.Create("FOG_EXP2"),
         };
 
-        private static readonly GlobalKeyword skyboxCloudsKeyword = new("_SKYBOX_CLOUDS_ENABLED");
+        private static readonly GlobalKeyword skyboxCloudsKeyword = GlobalKeyword.Create("_SKYBOX_CLOUDS_ENABLED");
 
 
         private static readonly int
