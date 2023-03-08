@@ -9,7 +9,8 @@ namespace AggroBird.GRP
     {
         partial void PrepareBuffer();
 
-        partial void DrawEditorGizmos(GizmoSubset gizmoSubset);
+        partial void DrawEditorGizmosPreImageEffects();
+        partial void DrawEditorGizmosPostImageEffects();
 
         partial void DrawUnsupportedShaders();
 
@@ -53,11 +54,20 @@ namespace AggroBird.GRP
             Profiler.EndSample();
         }
 
-        partial void DrawEditorGizmos(GizmoSubset gizmoSubset)
+        partial void DrawEditorGizmosPreImageEffects()
         {
             if (Handles.ShouldRenderGizmos())
             {
-                context.DrawGizmos(camera, gizmoSubset);
+                buffer.BlitDepthBuffer(opaqueDepthBufferId, BuiltinRenderTextureType.CameraTarget);
+                ExecuteBuffer();
+                context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
+            }
+        }
+        partial void DrawEditorGizmosPostImageEffects()
+        {
+            if (Handles.ShouldRenderGizmos())
+            {
+                context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
             }
         }
 
