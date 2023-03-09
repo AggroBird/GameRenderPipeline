@@ -28,7 +28,11 @@ namespace AggroBird.GRP
         {
             BeginCameraRendering(context, camera);
 
+            CameraUtility.Current = camera;
+
             cameraRenderer.Render(context, camera, cameraIndex, pipelineAsset);
+
+            CameraUtility.Current = null;
 
             EndCameraRendering(context, camera);
         }

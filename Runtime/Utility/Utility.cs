@@ -207,14 +207,16 @@ namespace AggroBird.GRP
         }
     }
 
-    internal static class CameraUtility
+    public static class CameraUtility
     {
+        public static Camera Current { get; internal set; }
+
 #if UNITY_EDITOR
         private static readonly List<GameObject> sceneObjects = new List<GameObject>();
         private static readonly List<Camera> sceneCameras = new List<Camera>();
 #endif
 
-        public static bool TryGetCameraComponent<T>(this Camera camera, out T component) where T : MonoBehaviour
+        interface static bool TryGetCameraComponent<T>(this Camera camera, out T component) where T : MonoBehaviour
         {
             if (camera.TryGetComponent(out component) && component.enabled)
             {
