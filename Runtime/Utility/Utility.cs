@@ -48,6 +48,12 @@ namespace AggroBird.GRP
             if (clear) commandBuffer.ClearRenderTarget(true, true, Color.clear);
             commandBuffer.DrawFullscreenEffect(blitDepthMaterial, (int)BlitRenderTargetPass.ColorAndDepth);
         }
+        public static void BlitDepthBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier src, RenderTargetIdentifier dst)
+        {
+            commandBuffer.SetGlobalTexture(blitDepthTexId, src);
+            commandBuffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            commandBuffer.DrawFullscreenEffect(blitDepthMaterial, (int)BlitRenderTargetPass.Depth);
+        }
         public static void BlitFrameBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor, RenderTargetIdentifier dstDepth, bool clear = false)
         {
             commandBuffer.SetGlobalTexture(blitColorTexId, srcColor);

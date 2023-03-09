@@ -149,7 +149,7 @@ namespace AggroBird.GRP
                 // Opaque
                 DrawVisibleGeometry(pipelineAsset.Settings.general, defaultShaderTags, SortingCriteria.CommonOpaque, RenderQueueRange.opaque);
                 DrawUnsupportedShaders();
-                DrawEditorGizmos(GizmoSubset.PreImageEffects);
+                DrawEditorGizmosPreImageEffects();
 
                 // Post process
                 postProcessStack.ApplyPreTransparency(opaqueColorBufferId, opaqueNormalBufferId, opaqueDepthBufferId, opaqueColorBufferId);
@@ -204,7 +204,7 @@ namespace AggroBird.GRP
                 postProcessStack.ApplyPostTransparency(transparentColorBufferId, BuiltinRenderTextureType.CameraTarget);
 
                 // Draw gizmos
-                DrawEditorGizmos(GizmoSubset.PostImageEffects);
+                DrawEditorGizmosPostImageEffects();
             }
             Cleanup();
             Submit();
