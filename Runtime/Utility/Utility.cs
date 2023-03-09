@@ -216,7 +216,7 @@ namespace AggroBird.GRP
         private static readonly List<Camera> sceneCameras = new List<Camera>();
 #endif
 
-        interface static bool TryGetCameraComponent<T>(this Camera camera, out T component) where T : MonoBehaviour
+        internal static bool TryGetCameraComponent<T>(this Camera camera, out T component) where T : MonoBehaviour
         {
             if (camera.TryGetComponent(out component) && component.enabled)
             {
