@@ -11,7 +11,8 @@ namespace AggroBird.GRP
             {
                 if (environment)
                 {
-                    IsDirty = environment.IsDirty;
+                    IsDirty |= environment.IsDirty;
+                    environment.IsDirty = false;
                     return environment.EnvironmentSettings;
                 }
                 return null;
