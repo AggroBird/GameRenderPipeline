@@ -112,35 +112,16 @@ namespace AggroBird.GRP
         };
     }
 
-    public sealed class Environment : MonoBehaviour
+    public abstract class Environment : MonoBehaviour
     {
-        private static Environment instance = default;
-        public static Environment main
-        {
-            get
-            {
-                if (!instance)
-                {
-                    instance = FindObjectOfType<Environment>();
-                }
-                return instance;
-            }
-        }
+        public abstract EnvironmentSettings EnvironmentSettings { get; }
 
-        public EnvironmentSettings environmentSettings = default;
-
-        public void SetDirty()
-        {
-            wasValidated = true;
-        }
-
-        internal bool wasValidated = false;
-
+        public bool IsDirty { get; set; }
 
 #if UNITY_EDITOR
-        private void OnValidate()
+        protected virtual void OnValidate()
         {
-            wasValidated = true;
+            IsDirty = true;
         }
 #endif
     }

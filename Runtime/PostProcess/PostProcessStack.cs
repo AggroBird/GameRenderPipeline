@@ -236,7 +236,7 @@ namespace AggroBird.GRP
             this.camera = camera;
             this.useHDR = useHDR;
 
-            if (TryFindPostProcessCamera(out PostProcessCamera postProcessCamera))
+            if (camera.TryGetCameraComponent(out PostProcessCamera postProcessCamera))
             {
                 srcBlendMode = postProcessCamera.finalBlendMode.source;
                 dstBlendMode = postProcessCamera.finalBlendMode.destination;

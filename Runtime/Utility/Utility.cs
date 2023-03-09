@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace AggroBird.GRP
 {
@@ -196,6 +198,60 @@ namespace AggroBird.GRP
         public void Dispose()
         {
             CommandBufferPool.Release(commandBuffer);
+        }
+    }
+
+    internal static class CameraUtility
+    {
+#if UNITY_EDITOR
+        private static readonly List<GameObject> sceneObjects = new List<GameObject>();
+        private static readonly List<Camera> sceneCameras = new List<Camera>();
+#endif
+
+        public static bool TryGetCameraComponent<T>(this Camera camera, out T component) where T : MonoBehaviour
+        {
+            if (camera.TryGetComponent(out component) && component.enabled)
+            {
+                return true;
+            }
+
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                Scene currentScene;
+                if (camera.scene.IsValid())
+                {
+                    currentScene = camera.scene;
+                }
+                else
+                {
+                    currentScene = SceneManager.GetActiveScene();
+                    if (!currentScene.IsValid())
+                    {
+                        return false;
+                    }
+                }
+
+                currentScene.GetRootGameObjects(sceneObjects);
+                foreach (GameObject sceneObject in sceneObjects)
+                {
+                    sceneObject.GetComponentsInChildren(false, sceneCameras);
+                    foreach (Camera sceneCamera in sceneCameras)
+                    {
+                        if (sceneCamera == camera) continue;
+                        if (!sceneCamera.gameObject.activeInHierarchy) continue;
+                        if (!sceneCamera.enabled) continue;
+                        if (sceneCamera.tag != "MainCamera") continue;
+                        if (sceneCamera.TryGetComponent(out component) && component.enabled)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+#endif
+
+            return false;
         }
     }
 }

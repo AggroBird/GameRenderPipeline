@@ -131,19 +131,7 @@ namespace AggroBird.GRP
             // Render
             Setup();
             {
-                EnvironmentSettings environmentSettings;
-                if (Environment.main)
-                {
-                    Environment environment = Environment.main;
-                    environmentSettings = environment.environmentSettings;
-                    SetupEnvironment(environmentSettings, environment.wasValidated);
-                    environment.wasValidated = false;
-                }
-                else
-                {
-                    environmentSettings = defaultEnvironmentSettings;
-                    SetupEnvironment(environmentSettings, false);
-                }
+                GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
 
                 buffer.SetKeyword(outputNormalsKeyword, outputNormals);
                 if (outputNormals)
@@ -220,6 +208,23 @@ namespace AggroBird.GRP
             }
             Cleanup();
             Submit();
+        }
+
+        private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings)
+        {
+            if (camera.TryGetCameraComponent(out Environment environment))
+            {
+                environmentSettings = environment.EnvironmentSettings;
+                if (environmentSettings != null)
+                {
+                    SetupEnvironment(environmentSettings, environment.IsDirty);
+                    environment.IsDirty = false;
+                    return;
+                }
+            }
+
+            environmentSettings = defaultEnvironmentSettings;
+            SetupEnvironment(environmentSettings, false);
         }
 
         private bool Cull(float maxShadowDistance)
