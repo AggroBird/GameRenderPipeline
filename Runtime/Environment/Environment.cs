@@ -118,11 +118,10 @@ namespace AggroBird.GRP
 
         public bool IsDirty { get; set; }
 
-#if UNITY_EDITOR
+
         protected virtual void OnValidate()
         {
             IsDirty = true;
         }
-#endif
     }
 }
