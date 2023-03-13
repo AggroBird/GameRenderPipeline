@@ -65,6 +65,8 @@ namespace AggroBird.GRP
         }
         partial void DrawEditorGizmosPostImageEffects()
         {
+            context.DrawWireOverlay(camera);
+
             if (Handles.ShouldRenderGizmos())
             {
                 context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
