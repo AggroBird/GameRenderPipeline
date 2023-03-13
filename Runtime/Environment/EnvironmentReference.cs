@@ -2,21 +2,18 @@ using UnityEngine;
 
 namespace AggroBird.GRP
 {
-    public class EnvironmentReference : Environment
+    public class EnvironmentReference : EnvironmentComponent
     {
-        [SerializeField] private Environment environment = default;
-        public override EnvironmentSettings EnvironmentSettings
+        [SerializeField] private EnvironmentComponent environment = default;
+        public override EnvironmentSettings GetEnvironmentSettings()
         {
-            get
+            if (environment)
             {
-                if (environment)
-                {
-                    IsDirty |= environment.IsDirty;
-                    environment.IsDirty = false;
-                    return environment.EnvironmentSettings;
-                }
-                return null;
+                IsDirty |= environment.IsDirty;
+                environment.IsDirty = false;
+                return environment.GetEnvironmentSettings();
             }
+            return null;
         }
     }
 }

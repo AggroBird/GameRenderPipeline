@@ -158,7 +158,7 @@ namespace AggroBird.GRP.Editor
         }
     }
 
-    [CustomEditor(typeof(Environment))]
+    [CustomEditor(typeof(EnvironmentComponent))]
     internal sealed class EnvironmentEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()

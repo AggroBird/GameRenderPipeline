@@ -212,9 +212,9 @@ namespace AggroBird.GRP
 
         private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings)
         {
-            if (camera.TryGetCameraComponent(out Environment environment))
+            if (camera.TryGetCameraComponent(out EnvironmentComponent environment))
             {
-                environmentSettings = environment.EnvironmentSettings;
+                environmentSettings = environment.GetEnvironmentSettings();
                 if (environmentSettings != null)
                 {
                     SetupEnvironment(environmentSettings, environment.IsDirty);
