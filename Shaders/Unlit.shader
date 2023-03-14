@@ -8,7 +8,7 @@
 		[NoScaleOffset] _EmissionTex("Emission Texture", 2D) = "black" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0, 0, 0, 0)
 		[Space]
-		[Toggle(_ALPHATEST_ENABLED)] _Clipping("Alpha Clipping", Float) = 0
+		[Toggle(_ALPHATEST_ON)] _Clipping("Alpha Clipping", Float) = 0
 		_Cutoff("Alpha Cutoff", Range(0, 1)) = 0.5
 		[Space]
 		[KeywordEnum(On, Clip, Dither, Off)] _Shadows("Cast Shadows", Float) = 0
@@ -43,7 +43,7 @@
 
 			HLSLPROGRAM
 			#pragma target 3.5
-			#pragma shader_feature _ALPHATEST_ENABLED
+			#pragma shader_feature _ALPHATEST_ON
 			#pragma shader_feature _HAS_EMISSION_TEXTURE
 			#pragma vertex UnlitPassVertex
 			#pragma fragment UnlitPassFragment

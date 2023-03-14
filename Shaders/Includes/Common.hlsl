@@ -138,7 +138,7 @@ void ClipLOD(float2 clipSpacePosition, float fade)
 
 void AlphaDiscard(float alpha, float cutoff, float offset = 0.0h)
 {
-#if defined(_ALPHATEST_ENABLED)
+#if defined(_ALPHATEST_ON)
 	clip(alpha - cutoff + offset);
 #endif
 }
