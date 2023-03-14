@@ -216,7 +216,7 @@ namespace AggroBird.GRP
             var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
             int cascadeCount = settings.directional.cascadeCount;
             int tileOffset = index * cascadeCount;
-            Vector3 ratios = settings.directional.cascadeRatios;
+            Vector3 ratios = settings.directional.CascadeRatios;
 
             float cullingFactor = Mathf.Max(0f, 0.8f - settings.directional.cascadeFade);
 

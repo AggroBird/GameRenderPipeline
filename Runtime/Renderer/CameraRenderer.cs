@@ -31,7 +31,7 @@ namespace AggroBird.GRP
         private static readonly GlobalKeyword outputNormalsKeyword = GlobalKeyword.Create("_OUTPUT_NORMALS_ENABLED");
 
 
-        private static readonly GlobalKeyword[] fogModeKeywords =
+        internal static readonly GlobalKeyword[] fogModeKeywords =
         {
             GlobalKeyword.Create("_FOG_LINEAR"),
             GlobalKeyword.Create("_FOG_EXP"),

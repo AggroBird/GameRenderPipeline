@@ -9,7 +9,7 @@ namespace AggroBird.GRP
         {
             Linear = 1,
             Exponential,
-            ExponentialSquared
+            ExponentialSquared,
         }
 
         [System.Serializable]
@@ -28,7 +28,7 @@ namespace AggroBird.GRP
             public Vector3 lightDirection;
         }
 
-        public FogSettings fogSettings = new FogSettings
+        public FogSettings fogSettings = new()
         {
             enabled = false,
             blend = 1,
@@ -45,7 +45,7 @@ namespace AggroBird.GRP
         {
             internal static Gradient CreateDefaultSkyboxGradient()
             {
-                Gradient gradient = new Gradient();
+                Gradient gradient = new();
                 GradientColorKey[] gradientColorKeys =
                 {
                     new GradientColorKey(new Color(0.6f, 0.95f, 1), 0),
@@ -70,7 +70,7 @@ namespace AggroBird.GRP
             public Color ambientColor;
         }
 
-        public SkyboxSettings skyboxSettings = new SkyboxSettings
+        public SkyboxSettings skyboxSettings = new()
         {
             generateSkyboxCubemap = true,
             sourceCubemap = null,
@@ -101,7 +101,7 @@ namespace AggroBird.GRP
             [Range(0, 1)] public float traceEdgeThreshold;
         }
 
-        public CloudSettings cloudSettings = new CloudSettings
+        public CloudSettings cloudSettings = new()
         {
             enabled = false,
             colorTop = new Color(1, 1, 1, 1),

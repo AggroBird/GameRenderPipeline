@@ -5,11 +5,13 @@ namespace AggroBird.GRP
     [System.Serializable]
     internal sealed class GameRenderPipelineSettings
     {
-        public GeneralSettings general = new GeneralSettings();
+        public GeneralSettings general = new();
 
-        public ShadowSettings shadows = new ShadowSettings();
+        public ShadowSettings shadows = new();
 
-        public ExperimentalSettings experimental = new ExperimentalSettings();
+        public StrippingSettings stripping = new();
+
+        public ExperimentalSettings experimental = new();
     }
 
     [System.Serializable]
@@ -63,21 +65,23 @@ namespace AggroBird.GRP
             [Range(1, 4)] public int cascadeCount;
             [Range(0f, 1f)] public float cascadeRatio1, cascadeRatio2, cascadeRatio3;
 
-            internal Vector3 cascadeRatios => new Vector3(cascadeRatio1, cascadeRatio2, cascadeRatio3);
+            internal Vector3 CascadeRatios => new(cascadeRatio1, cascadeRatio2, cascadeRatio3);
 
             [Range(0.001f, 1f)]
             public float cascadeFade;
 
             public enum CascadeBlendMode
             {
-                Hard, Soft, Dither,
+                Hard,
+                Soft,
+                Dither,
             }
 
             public CascadeBlendMode cascadeBlend;
         }
 
         [Space]
-        public Directional directional = new Directional
+        public Directional directional = new()
         {
             atlasSize = TextureSize._1024,
             filter = FilterMode.PCF2x2,
@@ -97,10 +101,45 @@ namespace AggroBird.GRP
         }
 
         [Space]
-        public Other other = new Other
+        public Other other = new()
         {
             atlasSize = TextureSize._1024,
             filter = FilterMode.PCF2x2,
+        };
+    }
+
+    [System.Serializable]
+    internal sealed class StrippingSettings
+    {
+        [System.Serializable]
+        public struct Fog
+        {
+            public bool linear;
+            public bool exponential;
+            public bool exponentialSquared;
+
+            internal bool StripFog => !linear || !exponential || !exponentialSquared;
+
+            internal bool this[EnvironmentSettings.FogMode fogMode]
+            {
+                get
+                {
+                    switch (fogMode)
+                    {
+                        case EnvironmentSettings.FogMode.Linear: return linear;
+                        case EnvironmentSettings.FogMode.Exponential: return exponential;
+                        case EnvironmentSettings.FogMode.ExponentialSquared: return exponentialSquared;
+                    }
+                    return false;
+                }
+            }
+        }
+
+        public Fog fog = new()
+        {
+            linear = true,
+            exponential = true,
+            exponentialSquared = true,
         };
     }
 
@@ -117,7 +156,7 @@ namespace AggroBird.GRP
             public float intensity;
         }
 
-        public Hatching hatching = new Hatching
+        public Hatching hatching = new()
         {
             enabled = false,
             scale = 5,
@@ -129,21 +168,23 @@ namespace AggroBird.GRP
         {
             internal static Gradient CreateDefaultFalloffGradient()
             {
-                Gradient gradient = new Gradient();
-                gradient.mode = GradientMode.Fixed;
+                Gradient gradient = new()
+                {
+                    mode = GradientMode.Fixed
+                };
                 GradientColorKey[] gradientColorKeys =
                 {
-                    new GradientColorKey(new Color(0, 0, 0), 0),
-                    new GradientColorKey(new Color(0.33333f, 0.33333f, 0.33333f), 0.33333f),
-                    new GradientColorKey(new Color(0.66666f, 0.66666f, 0.66666f), 0.66666f),
-                    new GradientColorKey(new Color(1, 1, 1), 1),
+                    new(new Color(0, 0, 0), 0),
+                    new(new Color(0.33333f, 0.33333f, 0.33333f), 0.33333f),
+                    new(new Color(0.66666f, 0.66666f, 0.66666f), 0.66666f),
+                    new(new Color(1, 1, 1), 1),
                 };
                 GradientAlphaKey[] gradientAlphaKeys =
                 {
-                    new GradientAlphaKey(1, 0),
-                    new GradientAlphaKey(1, 0.33333f),
-                    new GradientAlphaKey(1, 0.66666f),
-                    new GradientAlphaKey(1, 1),
+                    new(1, 0),
+                    new(1, 0.33333f),
+                    new(1, 0.66666f),
+                    new(1, 1),
                 };
                 gradient.SetKeys(gradientColorKeys, gradientAlphaKeys);
                 return gradient;
@@ -154,7 +195,7 @@ namespace AggroBird.GRP
             public Gradient falloff;
         }
 
-        public CellShading cellShading = new CellShading
+        public CellShading cellShading = new()
         {
             enabled = false,
             falloff = CellShading.CreateDefaultFalloffGradient(),
