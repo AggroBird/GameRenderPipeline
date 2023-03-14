@@ -5,6 +5,13 @@ namespace AggroBird.GRP
     [System.Serializable]
     public sealed class EnvironmentSettings
     {
+        public enum FogMode
+        {
+            Linear = 1,
+            Exponential,
+            ExponentialSquared
+        }
+
         [System.Serializable]
         public struct FogSettings
         {

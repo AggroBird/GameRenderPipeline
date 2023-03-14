@@ -33,10 +33,9 @@ namespace AggroBird.GRP
 
         private static readonly GlobalKeyword[] fogModeKeywords =
         {
-            GlobalKeyword.Create("FOG_DISABLED"),
-            GlobalKeyword.Create("FOG_LINEAR"),
-            GlobalKeyword.Create("FOG_EXP"),
-            GlobalKeyword.Create("FOG_EXP2"),
+            GlobalKeyword.Create("_FOG_LINEAR"),
+            GlobalKeyword.Create("_FOG_EXP"),
+            GlobalKeyword.Create("_FOG_EXP2"),
         };
 
         private static readonly GlobalKeyword skyboxCloudsKeyword = GlobalKeyword.Create("_SKYBOX_CLOUDS_ENABLED");
@@ -247,7 +246,7 @@ namespace AggroBird.GRP
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
             bool fogEnabled = fogSettings.enabled && ShowFog;
             int setFogKeyword = fogEnabled ? (int)fogSettings.fogMode : 0;
-            buffer.SetKeywords(fogModeKeywords, setFogKeyword);
+            buffer.SetKeywords(fogModeKeywords, setFogKeyword - 1);
             if (fogEnabled)
             {
                 Color ambientColor = fogSettings.ambientColor.AdjustedColor();
@@ -261,7 +260,7 @@ namespace AggroBird.GRP
                 Vector4 fogParam = Vector4.zero;
                 switch (fogSettings.fogMode)
                 {
-                    case FogMode.Linear:
+                    case EnvironmentSettings.FogMode.Linear:
                         float linearFogStart = fogSettings.fogParam.x;
                         float linearFogEnd = fogSettings.fogParam.y;
                         float linearFogRange = linearFogEnd - linearFogStart;
