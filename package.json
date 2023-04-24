@@ -4,7 +4,7 @@
 	"version": "1.0.28",
 	"unity": "2021.3",
 	"keywords": ["Render", "Pipeline"],
-	"category": "Generation",
+	"category": "Rendering",
 	"description": "Custom render pipeline for unity games",
 	"dependencies": {
 		"com.unity.render-pipelines.core": "12.1.8"
