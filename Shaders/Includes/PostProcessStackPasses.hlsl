@@ -605,6 +605,8 @@ float4 DOFCombinePass(BlitVaryings input) : SV_TARGET
 float4 _OutlineColor;
 // x = normal intensity, y = normal bias, z = depth intensity, w = depth bias
 float4 _OutlineParam;
+// x = near plane, y = fade range
+float4 _OutlineDepthFade;
 
 void Compare(inout float depthOutline, inout float normalOutline, float baseDepth, float3 baseNormal, float2 uv, float2 offset)
 {
@@ -620,7 +622,8 @@ void Compare(inout float depthOutline, inout float normalOutline, float baseDept
 float4 OutlinePass(BlitVaryings input) : SV_TARGET
 {
 	float3 normal = SampleNormalTex(input.texcoord);
-	float depth = SampleDepthTexWorld(input.texcoord);
+	float depthLinear = SampleDepthTexLinear(input.texcoord);
+	float depth = depthLinear * _ProjectionParams.z;
 
 	float depthDifference = 0;
 	float normalDifference = 0;
@@ -633,7 +636,9 @@ float4 OutlinePass(BlitVaryings input) : SV_TARGET
 	depthDifference = pow(saturate(depthDifference * _OutlineParam.z), _OutlineParam.w);
 	normalDifference = pow(saturate(normalDifference * _OutlineParam.x), _OutlineParam.y);
 
-	float outline = saturate(normalDifference + depthDifference) * _OutlineColor.a;
+	float fade = 1 - saturate((depth - _OutlineDepthFade.x) / _OutlineDepthFade.y);
+	float outline = saturate(saturate(normalDifference + depthDifference) * _OutlineColor.a * fade);
+
 	float4 sourceColor = SampleInputTex(input.texcoord);
 	return float4(lerp(sourceColor.rgb, _OutlineColor.rgb, outline), sourceColor.a);
 }

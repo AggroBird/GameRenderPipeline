@@ -128,6 +128,15 @@ namespace AggroBird.GRP
 
             [Min(0)]
             public float depthBias;
+
+            [Space]
+            public bool useDepthFade;
+
+            [Min(0)]
+            public float depthFadeBegin;
+
+            [Min(0)]
+            public float depthFadeEnd;
         }
 
         public Outline outline = new Outline
@@ -137,6 +146,9 @@ namespace AggroBird.GRP
             normalBias = 3.4f,
             depthIntensity = 2.86f,
             depthBias = 2.03f,
+            useDepthFade = false,
+            depthFadeBegin = 0,
+            depthFadeEnd = 1000,
         };
 
         [System.Serializable]

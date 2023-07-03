@@ -117,6 +117,7 @@ namespace AggroBird.GRP
             dofConstantScaleId = Shader.PropertyToID("_DOFConstantScale"),
             outlineColorId = Shader.PropertyToID("_OutlineColor"),
             outlineParamId = Shader.PropertyToID("_OutlineParam"),
+            outlineDepthFadeId = Shader.PropertyToID("_OutlineDepthFade"),
             colorAdjustmentsId = Shader.PropertyToID("_ColorAdjustments"),
             whiteBalanceId = Shader.PropertyToID("_WhiteBalance"),
             splitToningShadowsId = Shader.PropertyToID("_SplitToningShadows"),
@@ -403,6 +404,15 @@ namespace AggroBird.GRP
 
             buffer.SetGlobalColor(outlineColorId, settings.outline.color);
             buffer.SetGlobalVector(outlineParamId, new Vector4(settings.outline.normalIntensity, settings.outline.normalBias, settings.outline.depthIntensity, settings.outline.depthBias));
+            if (settings.outline.useDepthFade)
+            {
+                float range = Mathf.Max(0.001f, settings.outline.depthFadeEnd - settings.outline.depthFadeBegin);
+                buffer.SetGlobalVector(outlineDepthFadeId, new Vector4(settings.outline.depthFadeBegin, range, 0, 0));
+            }
+            else
+            {
+                buffer.SetGlobalVector(outlineDepthFadeId, new Vector4(camera.farClipPlane, 1, 0, 0));
+            }
             buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
             buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
 
