@@ -613,7 +613,14 @@ void Compare(inout float depthOutline, inout float normalOutline, float baseDept
 	float3 neighborNormal = SampleNormalTex(uv + InputTexelSize().xy * offset);
 	float neighborDepth = SampleDepthTexWorld(uv + InputTexelSize().xy * offset);
 
-	depthOutline += baseDepth - neighborDepth;
+	if (neighborDepth >= _ProjectionParams.z - 0.001)
+	{
+		depthOutline += neighborDepth - baseDepth;
+	}
+	else
+	{
+		depthOutline += baseDepth - neighborDepth;
+	}
 
 	float3 normalDifference = baseNormal - neighborNormal;
 	normalOutline += (normalDifference.r + normalDifference.g + normalDifference.b);
@@ -622,8 +629,7 @@ void Compare(inout float depthOutline, inout float normalOutline, float baseDept
 float4 OutlinePass(BlitVaryings input) : SV_TARGET
 {
 	float3 normal = SampleNormalTex(input.texcoord);
-	float depthLinear = SampleDepthTexLinear(input.texcoord);
-	float depth = depthLinear * _ProjectionParams.z;
+	float depth = SampleDepthTexWorld(input.texcoord);
 
 	float depthDifference = 0;
 	float normalDifference = 0;
