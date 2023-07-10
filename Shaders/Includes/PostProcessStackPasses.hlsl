@@ -615,10 +615,12 @@ void Compare(inout float depthOutline, inout float normalOutline, float baseDept
 
 	if (neighborDepth >= _ProjectionParams.z - 0.001)
 	{
+		// Ensure outline between geometry and max clear depth
 		depthOutline += neighborDepth - baseDepth;
 	}
 	else
 	{
+		// Ensure outline between overlapping geometry
 		depthOutline += baseDepth - neighborDepth;
 	}
 
