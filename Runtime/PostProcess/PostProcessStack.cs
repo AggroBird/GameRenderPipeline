@@ -322,6 +322,8 @@ namespace AggroBird.GameRenderPipeline
             }
             else if (editorGizmoEffects.Count > 0)
             {
+                currentSourceBuffer = srcColor;
+
                 ExecuteEditorEffectsList(srcDepth);
                 Draw(currentSourceBuffer, dstColor, Pass.Copy);
                 ExecuteBuffer();
