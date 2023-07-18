@@ -69,6 +69,7 @@ namespace AggroBird.GameRenderPipeline
                 return settings.smaa.enabled;
             }
         }
+        private bool DrawGizmoEffects => camera.cameraType == CameraType.SceneView && editorGizmoEffects.Count > 0;
 
         private bool useHDR = false;
         internal RenderTextureFormat RenderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
@@ -315,16 +316,21 @@ namespace AggroBird.GameRenderPipeline
                         SwapBuffers();
                     }
 
-                    ExecuteEditorEffectsList(srcDepth);
+                    if (DrawGizmoEffects)
+                    {
+                        ExecuteEditorEffectsList(srcDepth);
+                    }
+
                     Draw(currentSourceBuffer, dstColor, Pass.Copy);
                     ExecuteBuffer();
                 }
             }
-            else if (editorGizmoEffects.Count > 0)
+            else if (DrawGizmoEffects)
             {
                 currentSourceBuffer = srcColor;
 
                 ExecuteEditorEffectsList(srcDepth);
+
                 Draw(currentSourceBuffer, dstColor, Pass.Copy);
                 ExecuteBuffer();
             }
