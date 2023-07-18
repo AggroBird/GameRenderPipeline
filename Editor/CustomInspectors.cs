@@ -167,7 +167,7 @@ namespace AggroBird.GameRenderPipeline.Editor
         }
     }
 
-    public abstract class InspectorBase : UnityEditor.Editor
+    internal abstract class InspectorBase : UnityEditor.Editor
     {
         protected void CollapsablePropertyField(SerializedProperty property)
         {
@@ -191,7 +191,7 @@ namespace AggroBird.GameRenderPipeline.Editor
     }
 
     [CustomEditor(typeof(PostProcessSettingsAsset))]
-    public sealed class PostProcessSettingsAssetEditor : InspectorBase
+    internal sealed class PostProcessSettingsAssetEditor : InspectorBase
     {
         public override void OnInspectorGUI()
         {
