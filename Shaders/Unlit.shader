@@ -54,5 +54,5 @@
 		UsePass "GRP/Lit/ShadowPass"
 	}
 	Dependency "BillboardShader" = "Diffuse"
-	CustomEditor "AggroBird.GRP.Editor.CustomShaderGUI"
+	CustomEditor "AggroBird.GameRenderPipeline.Editor.CustomShaderGUI"
 }
