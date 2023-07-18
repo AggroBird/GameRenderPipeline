@@ -1,6 +1,6 @@
 {
-    "name": "AggroBird.GRP.Editor",
-    "rootNamespace": "AggroBird.GRP.Editor",
+    "name": "AggroBird.GameRenderPipeline.Editor",
+    "rootNamespace": "AggroBird.GameRenderPipeline.Editor",
     "references": [
         "GUID:ed3ac5c0c1cc3ee4892fd25aed4fb817"
     ],

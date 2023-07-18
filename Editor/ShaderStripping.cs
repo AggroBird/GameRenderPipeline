@@ -4,7 +4,7 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AggroBird.GRP.Editor
+namespace AggroBird.GameRenderPipeline.Editor
 {
     internal sealed class ShaderStripper : IPreprocessShaders
     {

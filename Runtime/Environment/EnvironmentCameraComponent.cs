@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     public class EnvironmentCameraComponent : EnvironmentComponent
     {

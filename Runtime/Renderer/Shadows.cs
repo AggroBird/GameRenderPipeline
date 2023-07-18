@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     internal sealed class Shadows
     {
         private const string bufferName = "Shadows";
-        private CommandBuffer buffer = new CommandBuffer { name = bufferName };
+        private readonly CommandBuffer buffer = new() { name = bufferName };
 
         private const int
             MaxShadowedDirectionalLightCount = 4,
@@ -41,14 +41,14 @@ namespace AggroBird.GRP
             shadowDistanceFadeId = Shader.PropertyToID("_ShadowDistanceFade"),
             shadowPancakingId = Shader.PropertyToID("_ShadowPancaking");
 
-        private ShadowedDirectionalLight[] shadowedDirectionalLights = new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
-        private ShadowedOtherLight[] shadowedOtherLights = new ShadowedOtherLight[MaxShadowedOtherLightCount];
+        private readonly ShadowedDirectionalLight[] shadowedDirectionalLights = new ShadowedDirectionalLight[MaxShadowedDirectionalLightCount];
+        private readonly ShadowedOtherLight[] shadowedOtherLights = new ShadowedOtherLight[MaxShadowedOtherLightCount];
 
-        private static Matrix4x4[]
+        private static readonly Matrix4x4[]
             directionalShadowMatrices = new Matrix4x4[MaxShadowedDirectionalLightCount * MaxCascades],
             otherShadowMatrices = new Matrix4x4[MaxShadowedOtherLightCount];
 
-        private static Vector4[]
+        private static readonly Vector4[]
             cascadeCullingSpheres = new Vector4[MaxCascades],
             cascadeData = new Vector4[MaxCascades],
             otherShadowTiles = new Vector4[MaxShadowedOtherLightCount];
@@ -115,7 +115,7 @@ namespace AggroBird.GRP
             {
                 if (shadowedDirectionalLightCount < MaxShadowedDirectionalLightCount)
                 {
-                    if (cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+                    if (cullingResults.GetShadowCasterBounds(visibleLightIndex, out _))
                     {
                         shadowedDirectionalLights[shadowedDirectionalLightCount] = new ShadowedDirectionalLight
                         {
@@ -138,7 +138,7 @@ namespace AggroBird.GRP
                 int newLightCount = (isPoint ? 6 : 1);
                 if (shadowedOtherLightCount + newLightCount < MaxShadowedOtherLightCount)
                 {
-                    if (cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+                    if (cullingResults.GetShadowCasterBounds(visibleLightIndex, out _))
                     {
                         shadowedOtherLights[shadowedOtherLightCount] = new ShadowedOtherLight
                         {
@@ -148,7 +148,7 @@ namespace AggroBird.GRP
                             isPoint = isPoint
                         };
 
-                        Vector4 data = new Vector4(light.shadowStrength, shadowedOtherLightCount, isPoint ? 1f : 0f, -1);
+                        Vector4 data = new(light.shadowStrength, shadowedOtherLightCount, isPoint ? 1f : 0f, -1);
                         shadowedOtherLightCount += newLightCount;
                         return data;
                     }
@@ -378,7 +378,7 @@ namespace AggroBird.GRP
         }
         private Vector2 SetTileViewport(int index, int split, float tileSize)
         {
-            Vector2 offset = new Vector2(index % split, index / split);
+            Vector2 offset = new(index % split, index / split);
             buffer.SetViewport(new Rect(offset.x * tileSize, offset.y * tileSize, tileSize, tileSize));
             return offset;
         }

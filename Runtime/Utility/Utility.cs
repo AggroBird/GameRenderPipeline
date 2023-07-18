@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     internal enum BlitRenderTargetPass
     {
@@ -16,14 +16,16 @@ namespace AggroBird.GRP
     public static class CommandBufferUtility
     {
         private static Material blitDepthMaterialInstance = default;
-        private static Material blitDepthMaterial
+        private static Material BlitDepthMaterial
         {
             get
             {
                 if (!blitDepthMaterialInstance)
                 {
-                    blitDepthMaterialInstance = new Material(GameRenderPipelineAsset.Instance.Resources.blitRenderTargetShader);
-                    blitDepthMaterialInstance.hideFlags = HideFlags.HideAndDontSave;
+                    blitDepthMaterialInstance = new(GameRenderPipelineAsset.Instance.Resources.blitRenderTargetShader)
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    };
                 }
                 return blitDepthMaterialInstance;
             }
@@ -38,7 +40,7 @@ namespace AggroBird.GRP
             commandBuffer.SetGlobalTexture(blitColorTexId, srcColor);
             commandBuffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             if (clear) commandBuffer.ClearRenderTarget(true, true, Color.clear);
-            commandBuffer.DrawFullscreenEffect(blitDepthMaterial, (int)BlitRenderTargetPass.Color);
+            commandBuffer.DrawFullscreenEffect(BlitDepthMaterial, (int)BlitRenderTargetPass.Color);
         }
         public static void BlitFrameBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dst, bool clear = false)
         {
@@ -46,13 +48,13 @@ namespace AggroBird.GRP
             commandBuffer.SetGlobalTexture(blitDepthTexId, srcDepth);
             commandBuffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             if (clear) commandBuffer.ClearRenderTarget(true, true, Color.clear);
-            commandBuffer.DrawFullscreenEffect(blitDepthMaterial, (int)BlitRenderTargetPass.ColorAndDepth);
+            commandBuffer.DrawFullscreenEffect(BlitDepthMaterial, (int)BlitRenderTargetPass.ColorAndDepth);
         }
         public static void BlitDepthBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier src, RenderTargetIdentifier dst)
         {
             commandBuffer.SetGlobalTexture(blitDepthTexId, src);
             commandBuffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            commandBuffer.DrawFullscreenEffect(blitDepthMaterial, (int)BlitRenderTargetPass.Depth);
+            commandBuffer.DrawFullscreenEffect(BlitDepthMaterial, (int)BlitRenderTargetPass.Depth);
         }
         public static void BlitFrameBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor, RenderTargetIdentifier dstDepth, bool clear = false)
         {
@@ -60,7 +62,7 @@ namespace AggroBird.GRP
             commandBuffer.SetGlobalTexture(blitDepthTexId, srcDepth);
             commandBuffer.SetRenderTarget(dstColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, dstDepth, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             if (clear) commandBuffer.ClearRenderTarget(true, true, Color.clear);
-            commandBuffer.DrawFullscreenEffect(blitDepthMaterial, (int)BlitRenderTargetPass.ColorAndDepth);
+            commandBuffer.DrawFullscreenEffect(BlitDepthMaterial, (int)BlitRenderTargetPass.ColorAndDepth);
         }
         public static void BlitFrameBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier dst, Material material, int pass, bool clear = false)
         {
@@ -153,9 +155,11 @@ namespace AggroBird.GRP
         {
             if (!texture)
             {
-                texture = new Texture2D(256, 1, TextureFormat.RGBA32, false);
-                texture.wrapMode = TextureWrapMode.Clamp;
-                texture.filterMode = gradient.mode == GradientMode.Fixed ? FilterMode.Point : FilterMode.Bilinear;
+                texture = new(256, 1, TextureFormat.RGBA32, false)
+                {
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = gradient.mode == GradientMode.Fixed ? FilterMode.Point : FilterMode.Bilinear
+                };
             }
             RenderGradientToTexture(texture, gradient);
         }
@@ -183,11 +187,11 @@ namespace AggroBird.GRP
     {
         public static Color AdjustedColor(this Color color)
         {
-            return GameRenderPipeline.linearColorSpace ? color.linear : color;
+            return GameRenderPipeline.LinearColorSpace ? color.linear : color;
         }
     }
 
-    public ref struct CommandBufferScope
+    public readonly ref struct CommandBufferScope
     {
         public CommandBufferScope(string name)
         {
@@ -212,8 +216,8 @@ namespace AggroBird.GRP
         public static Camera Current { get; internal set; }
 
 #if UNITY_EDITOR
-        private static readonly List<GameObject> sceneObjects = new List<GameObject>();
-        private static readonly List<Camera> sceneCameras = new List<Camera>();
+        private static readonly List<GameObject> sceneObjects = new();
+        private static readonly List<Camera> sceneCameras = new();
 #endif
 
         internal static bool TryGetCameraComponent<T>(this Camera camera, out T component) where T : MonoBehaviour
@@ -249,7 +253,7 @@ namespace AggroBird.GRP
                         if (sceneCamera == camera) continue;
                         if (!sceneCamera.gameObject.activeInHierarchy) continue;
                         if (!sceneCamera.enabled) continue;
-                        if (sceneCamera.tag != "MainCamera") continue;
+                        if (!sceneCamera.CompareTag("MainCamera")) continue;
                         if (sceneCamera.TryGetComponent(out component) && component.enabled)
                         {
                             return true;

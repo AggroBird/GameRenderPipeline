@@ -2,24 +2,23 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using RandomStream = System.Random;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     internal sealed partial class CameraRenderer
     {
         private GameRenderPipelineAsset pipelineAsset;
         private ScriptableRenderContext context;
         private Camera camera;
-        private int cameraIndex;
 
-        private Lighting lighting = new Lighting();
+        private readonly Lighting lighting = new();
 
-        private CommandBuffer buffer = new CommandBuffer();
+        private readonly CommandBuffer buffer = new();
         private CullingResults cullingResults;
 
-        private PostProcessStack postProcessStack = new PostProcessStack();
+        private readonly PostProcessStack postProcessStack = new();
 
         private bool useHDR = false;
-        internal RenderTextureFormat renderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+        internal RenderTextureFormat RenderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
 
         private static readonly ShaderTagId[] defaultShaderTags = { new("SRPDefaultUnlit"), new("GRPLit") };
@@ -89,7 +88,7 @@ namespace AggroBird.GRP
         private RenderTexture skyboxCubemapRenderTexture = default;
         private Texture lastSkyboxSourceTexture = null;
         private Material skyboxCubemapRenderMaterial = null;
-        private RandomStream skyboxCubemapRandom = new RandomStream(0);
+        private readonly RandomStream skyboxCubemapRandom = new(0);
         // For some reason, the cubemap initializes to black in editor
         // so for the first 8 frames, force render
         private int skyboxEditorForceUpdate = Application.isEditor ? 8 : 0;
@@ -97,7 +96,7 @@ namespace AggroBird.GRP
         private bool outputNormals = false;
 
 
-        private readonly EnvironmentSettings defaultEnvironmentSettings = new EnvironmentSettings();
+        private readonly EnvironmentSettings defaultEnvironmentSettings = new();
 
 
         public void Render(ScriptableRenderContext context, Camera camera, int cameraIndex, GameRenderPipelineAsset pipelineAsset)
@@ -105,7 +104,6 @@ namespace AggroBird.GRP
             this.pipelineAsset = pipelineAsset;
             this.context = context;
             this.camera = camera;
-            this.cameraIndex = cameraIndex;
 
             useHDR = pipelineAsset.Settings.general.allowHDR && camera.allowHDR;
 
@@ -117,14 +115,14 @@ namespace AggroBird.GRP
             }
 
             // Light and shadows
-            buffer.BeginSample(bufferName);
+            buffer.BeginSample(BufferName);
             ExecuteBuffer();
             lighting.Setup(context, cullingResults, pipelineAsset.Settings);
             postProcessStack.Setup(context, camera, useHDR, ShowPostProcess);
-            outputNormals = postProcessStack.ssaoEnabled || postProcessStack.outlineEnabled;
-            buffer.EndSample(bufferName);
+            outputNormals = postProcessStack.SSAOEnabled || postProcessStack.OutlineEnabled;
+            buffer.EndSample(BufferName);
 
-            buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.linearColorSpace);
+            buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.LinearColorSpace);
             buffer.SetKeyword(orthographicKeyword, camera.orthographic);
 
             // Render
@@ -157,7 +155,7 @@ namespace AggroBird.GRP
                 int currentDepthBuffer = opaqueDepthBufferId;
                 if (camera.clearFlags == CameraClearFlags.Skybox)
                 {
-                    using (CommandBufferScope buffer = new CommandBufferScope("Render Skybox"))
+                    using (CommandBufferScope buffer = new("Render Skybox"))
                     {
                         EnvironmentSettings.SkyboxSettings skyboxSettings = environmentSettings.skyboxSettings;
                         if (skyboxSettings.useCubemapAsSkybox)
@@ -188,7 +186,7 @@ namespace AggroBird.GRP
                 }
 
                 // Copy opaque into transparent
-                using (CommandBufferScope buffer = new CommandBufferScope("Copy Opaque Render Buffer"))
+                using (CommandBufferScope buffer = new("Copy Opaque Render Buffer"))
                 {
                     buffer.commandBuffer.BlitFrameBuffer(opaqueColorBufferId, currentDepthBuffer, transparentColorBufferId, transparentDepthBufferId);
                     buffer.commandBuffer.SetGlobalTexture(opaqueColorBufferId, opaqueColorBufferId);
@@ -239,8 +237,8 @@ namespace AggroBird.GRP
 
         private void SetupEnvironment(EnvironmentSettings settings, bool wasValidated)
         {
-            buffer.SetGlobalVector(primaryLightDirectionId, lighting.primaryLightDirection);
-            buffer.SetGlobalVector(primaryLightColorId, lighting.primaryLightColor);
+            buffer.SetGlobalVector(primaryLightDirectionId, lighting.PrimaryLightDirection);
+            buffer.SetGlobalVector(primaryLightColorId, lighting.PrimaryLightColor);
 
             // Fog
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
@@ -250,12 +248,12 @@ namespace AggroBird.GRP
             if (fogEnabled)
             {
                 Color ambientColor = fogSettings.ambientColor.AdjustedColor();
-                buffer.SetGlobalVector(fogAmbientColorId, new Vector4(ambientColor.r, ambientColor.g, ambientColor.b, fogSettings.blend));
+                buffer.SetGlobalVector(fogAmbientColorId, new(ambientColor.r, ambientColor.g, ambientColor.b, fogSettings.blend));
                 buffer.SetGlobalVector(fogInscatteringColorId, fogSettings.inscatteringColor.AdjustedColor());
                 if (fogSettings.overrideLightDirection)
                     buffer.SetGlobalVector(fogLightDirectionId, fogSettings.lightDirection);
                 else
-                    buffer.SetGlobalVector(fogLightDirectionId, lighting.primaryLightDirection);
+                    buffer.SetGlobalVector(fogLightDirectionId, lighting.PrimaryLightDirection);
 
                 Vector4 fogParam = Vector4.zero;
                 switch (fogSettings.fogMode)
@@ -287,9 +285,9 @@ namespace AggroBird.GRP
                 buffer.SetGlobalVector(cloudSampleOffsetId, cloudSettings.sampleOffset);
                 buffer.SetGlobalVector(cloudSampleScaleId, cloudSettings.sampleScale);
                 buffer.SetGlobalVector(cloudParamId,
-                    new Vector4(cloudSettings.thickness, cloudSettings.height, cloudSettings.layerHeight, cloudSettings.fadeDistance));
+                    new(cloudSettings.thickness, cloudSettings.height, cloudSettings.layerHeight, cloudSettings.fadeDistance));
                 buffer.SetGlobalVector(cloudTraceParamId,
-                    new Vector4(cloudSettings.traceEdgeAccuracy, cloudSettings.traceEdgeThreshold, cloudSettings.traceLengthMax, cloudSettings.traceStep));
+                    new(cloudSettings.traceEdgeAccuracy, cloudSettings.traceEdgeThreshold, cloudSettings.traceLengthMax, cloudSettings.traceStep));
             }
 
 
@@ -307,13 +305,15 @@ namespace AggroBird.GRP
 
             if (!skyboxCubemapRenderMaterial)
             {
-                skyboxCubemapRenderMaterial = new Material(pipelineAsset.Resources.skyboxRenderShader);
-                skyboxCubemapRenderMaterial.hideFlags = HideFlags.HideAndDontSave;
+                skyboxCubemapRenderMaterial = new(pipelineAsset.Resources.skyboxRenderShader)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
             }
 
             if (camera.cameraType <= CameraType.SceneView)
             {
-                using (CommandBufferScope buffer = new CommandBufferScope("Render Skybox Cubemap"))
+                using (CommandBufferScope buffer = new("Render Skybox Cubemap"))
                 {
                     CommandBuffer skyboxBuffer = buffer.commandBuffer;
 
@@ -326,16 +326,20 @@ namespace AggroBird.GRP
                     else
                     {
                         // Custom dynamic skybox cubemap
-                        RenderTextureDescriptor desc = new RenderTextureDescriptor(128, 128, RenderTextureFormat.Default, 0);
-                        desc.dimension = TextureDimension.Cube;
-                        desc.useMipMap = true;
-                        desc.autoGenerateMips = false;
-                        desc.mipCount = SkyboxCubemapMipLevels - 1;
+                        RenderTextureDescriptor desc = new(128, 128, RenderTextureFormat.Default, 0)
+                        {
+                            dimension = TextureDimension.Cube,
+                            useMipMap = true,
+                            autoGenerateMips = false,
+                            mipCount = SkyboxCubemapMipLevels - 1
+                        };
                         if (!skyboxCubemapRenderTexture)
                         {
-                            skyboxCubemapRenderTexture = new RenderTexture(desc);
-                            skyboxCubemapRenderTexture.name = "SkyboxCubemapRenderTexture";
-                            skyboxCubemapRenderTexture.filterMode = FilterMode.Trilinear;
+                            skyboxCubemapRenderTexture = new(desc)
+                            {
+                                name = "SkyboxCubemapRenderTexture",
+                                filterMode = FilterMode.Trilinear
+                            };
                         }
                         skyboxBuffer.GetTemporaryRT(skyboxCubemapRenderBlurTargetId, desc, FilterMode.Bilinear);
                         skyboxBuffer.SetGlobalVector(skyboxGroundColorId, skyboxSettings.groundColor.AdjustedColor());
@@ -369,12 +373,12 @@ namespace AggroBird.GRP
                             forceRenderCubemap = false;
                             for (int srcMip = 0; srcMip < SkyboxCubemapMipLevels - 1; srcMip++)
                             {
-                                int dstMip = (srcMip + 1);
+                                int dstMip = srcMip + 1;
 
                                 for (int face = 0; face < 6; face++)
                                 {
                                     SetSkyboxCubemapFaceParameters(skyboxBuffer, (CubemapFace)face);
-                                    skyboxBuffer.SetGlobalVector(skyboxCubemapBlurParamId, new Vector4(srcMip, skyboxCubemapRandom.Next(0, 1024), str, 1));
+                                    skyboxBuffer.SetGlobalVector(skyboxCubemapBlurParamId, new(srcMip, skyboxCubemapRandom.Next(0, 1024), str, 1));
                                     skyboxBuffer.SetRenderTarget(skyboxCubemapRenderBlurTargetId, dstMip, (CubemapFace)face);
                                     skyboxBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxCubemapRenderTexture);
                                     skyboxBuffer.DrawFullscreenEffect(skyboxCubemapRenderMaterial, (int)SkyboxPass.Blur);
@@ -382,7 +386,7 @@ namespace AggroBird.GRP
                                 for (int face = 0; face < 6; face++)
                                 {
                                     SetSkyboxCubemapFaceParameters(skyboxBuffer, (CubemapFace)face);
-                                    skyboxBuffer.SetGlobalVector(skyboxCubemapBlurParamId, new Vector4(dstMip, skyboxCubemapRandom.Next(0, 1024), str, blend));
+                                    skyboxBuffer.SetGlobalVector(skyboxCubemapBlurParamId, new(dstMip, skyboxCubemapRandom.Next(0, 1024), str, blend));
                                     skyboxBuffer.SetRenderTarget(skyboxCubemapRenderTexture, dstMip, (CubemapFace)face);
                                     skyboxBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxCubemapRenderBlurTargetId);
                                     skyboxBuffer.DrawFullscreenEffect(skyboxCubemapRenderMaterial, (int)SkyboxPass.Blur);
@@ -439,7 +443,7 @@ namespace AggroBird.GRP
                 camera.backgroundColor : Color.clear;
 
             // Opaque render targets
-            buffer.GetTemporaryRT(opaqueColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, renderTextureFormat);
+            buffer.GetTemporaryRT(opaqueColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
             buffer.GetTemporaryRT(opaqueDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
             buffer.SetRenderTarget(
                 opaqueColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
@@ -455,7 +459,7 @@ namespace AggroBird.GRP
             }
 
             // Transparent render target
-            buffer.GetTemporaryRT(transparentColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, renderTextureFormat);
+            buffer.GetTemporaryRT(transparentColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
             buffer.GetTemporaryRT(transparentDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
             buffer.SetRenderTarget(
                 transparentColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
@@ -465,7 +469,7 @@ namespace AggroBird.GRP
             // Cloud depth target
             buffer.GetTemporaryRT(cloudDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
-            buffer.BeginSample(bufferName);
+            buffer.BeginSample(BufferName);
             ExecuteBuffer();
         }
         private void Cleanup()
@@ -486,7 +490,7 @@ namespace AggroBird.GRP
 
         private void Submit()
         {
-            buffer.EndSample(bufferName);
+            buffer.EndSample(BufferName);
             ExecuteBuffer();
             context.Submit();
         }

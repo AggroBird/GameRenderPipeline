@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     internal sealed partial class CameraRenderer
     {
@@ -33,9 +33,9 @@ namespace AggroBird.GRP
 
 
 #if UNITY_EDITOR
-        private string bufferName { get; set; }
+        private string BufferName { get; set; }
 
-        private static ShaderTagId[] legacyShaderTagIds =
+        private static readonly ShaderTagId[] legacyShaderTagIds =
         {
             new ShaderTagId("Always"),
             new ShaderTagId("ForwardBase"),
@@ -50,7 +50,7 @@ namespace AggroBird.GRP
         partial void PrepareBuffer()
         {
             Profiler.BeginSample("Allocate Buffer Name");
-            buffer.name = bufferName = camera.name;
+            buffer.name = BufferName = camera.name;
             Profiler.EndSample();
         }
 

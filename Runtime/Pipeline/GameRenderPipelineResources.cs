@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     [CreateAssetMenu(menuName = "Rendering/GRP/Pipeline Resources", order = 998)]
     public sealed class GameRenderPipelineResources : ScriptableObject

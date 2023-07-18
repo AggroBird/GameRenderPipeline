@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace AggroBird.GRP.Editor
+namespace AggroBird.GameRenderPipeline.Editor
 {
     [CustomEditorForRenderPipeline(typeof(Light), typeof(GameRenderPipelineAsset))]
     internal sealed class CustomLightEditor : LightEditor

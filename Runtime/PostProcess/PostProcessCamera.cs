@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     [DisallowMultipleComponent, RequireComponent(typeof(Camera))]
     public sealed class PostProcessCamera : MonoBehaviour

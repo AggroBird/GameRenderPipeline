@@ -1,17 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AggroBird.GRP
+[assembly: InternalsVisibleTo("AggroBird.GameRenderPipeline.Editor")]
+
+namespace AggroBird.GameRenderPipeline
 {
     internal sealed class GameRenderPipeline : RenderPipeline
     {
         public const string PipelineName = "GameRenderPipeline";
 
-        internal static bool linearColorSpace => QualitySettings.activeColorSpace == ColorSpace.Linear;
+        internal static bool LinearColorSpace => QualitySettings.activeColorSpace == ColorSpace.Linear;
 
-        private CameraRenderer cameraRenderer = new CameraRenderer();
-        private GameRenderPipelineAsset pipelineAsset = default;
+        private readonly CameraRenderer cameraRenderer = new();
+        private readonly GameRenderPipelineAsset pipelineAsset = default;
 
         public GameRenderPipeline(GameRenderPipelineAsset pipelineAsset)
         {
@@ -21,7 +24,7 @@ namespace AggroBird.GRP
 
             LODGroup.crossFadeAnimationDuration = pipelineAsset.Settings.general.crossFadeAnimationDuration;
             GraphicsSettings.useScriptableRenderPipelineBatching = pipelineAsset.Settings.general.useSRPBatcher;
-            GraphicsSettings.lightsUseLinearIntensity = linearColorSpace;
+            GraphicsSettings.lightsUseLinearIntensity = LinearColorSpace;
         }
 
         private void RenderCamera(ScriptableRenderContext context, Camera camera, int cameraIndex)

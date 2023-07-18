@@ -2,12 +2,12 @@ using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     internal sealed class Lighting
     {
         private const string bufferName = "Lighting";
-        private CommandBuffer buffer = new CommandBuffer { name = bufferName };
+        private readonly CommandBuffer buffer = new() { name = bufferName };
 
         private const int
             MaxDirectionalLightCount = 4,
@@ -19,7 +19,7 @@ namespace AggroBird.GRP
             directionalLightDirectionsId = Shader.PropertyToID("_DirectionalLightDirections"),
             directionalLightShadowDataId = Shader.PropertyToID("_DirectionalLightShadowData");
 
-        private static Vector4[]
+        private readonly static Vector4[]
             directionalLightColors = new Vector4[MaxDirectionalLightCount],
             directionalLightDirections = new Vector4[MaxDirectionalLightCount],
             directionalLightShadowData = new Vector4[MaxDirectionalLightCount];
@@ -32,7 +32,7 @@ namespace AggroBird.GRP
             otherLightSpotAnglesId = Shader.PropertyToID("_OtherLightSpotAngles"),
             otherLightShadowDataId = Shader.PropertyToID("_OtherLightShadowData");
 
-        private static Vector4[]
+        private readonly static Vector4[]
             otherLightColors = new Vector4[MaxOtherLightCount],
             otherLightPositions = new Vector4[MaxOtherLightCount],
             otherLightDirections = new Vector4[MaxOtherLightCount],
@@ -58,10 +58,10 @@ namespace AggroBird.GRP
 
         private CullingResults cullingResults;
 
-        private Shadows shadows = new Shadows();
+        private readonly Shadows shadows = new();
 
-        public Vector3 primaryLightDirection { get; private set; }
-        public Color primaryLightColor { get; private set; }
+        public Vector3 PrimaryLightDirection { get; private set; }
+        public Color PrimaryLightColor { get; private set; }
 
 
         public void Setup(ScriptableRenderContext context, CullingResults cullingResults, GameRenderPipelineSettings settings)
@@ -185,8 +185,8 @@ namespace AggroBird.GRP
 
             if (index == 0)
             {
-                primaryLightDirection = directionalLightDirections[index];
-                primaryLightColor = visibleLight.finalColor;
+                PrimaryLightDirection = directionalLightDirections[index];
+                PrimaryLightColor = visibleLight.finalColor;
             }
         }
 

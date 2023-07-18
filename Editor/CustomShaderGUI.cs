@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace AggroBird.GRP.Editor
+namespace AggroBird.GameRenderPipeline.Editor
 {
     internal sealed class CustomShaderGUI : ShaderGUI
     {

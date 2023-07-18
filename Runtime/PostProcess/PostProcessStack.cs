@@ -2,12 +2,12 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     internal partial class PostProcessStack
     {
         private const string bufferName = "Post Process";
-        private CommandBuffer buffer = new CommandBuffer { name = bufferName };
+        private readonly CommandBuffer buffer = new() { name = bufferName };
 
         private Material postProcessMaterial = default;
         private Material smaaMaterial = default;
@@ -20,7 +20,7 @@ namespace AggroBird.GRP
 
         private bool postProcessEnabled;
 
-        public bool ssaoEnabled
+        public bool SSAOEnabled
         {
             get
             {
@@ -28,7 +28,7 @@ namespace AggroBird.GRP
                 return settings.ambientOcclusion.enabled;
             }
         }
-        public bool outlineEnabled
+        public bool OutlineEnabled
         {
             get
             {
@@ -36,7 +36,7 @@ namespace AggroBird.GRP
                 return settings.outline.enabled;
             }
         }
-        public bool dofEnabled
+        public bool DofEnabled
         {
             get
             {
@@ -48,7 +48,7 @@ namespace AggroBird.GRP
                 return dof.bokehRadius > 0;
             }
         }
-        public bool bloomEnabled
+        public bool BloomEnabled
         {
             get
             {
@@ -61,7 +61,7 @@ namespace AggroBird.GRP
                 return bloom.intensity > 0 && width >= bloom.downscaleLimit * 2 && height >= bloom.downscaleLimit * 2;
             }
         }
-        public bool smaaEnabled
+        public bool SMAAEnabled
         {
             get
             {
@@ -71,7 +71,7 @@ namespace AggroBird.GRP
         }
 
         private bool useHDR = false;
-        internal RenderTextureFormat renderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
+        internal RenderTextureFormat RenderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
 
         public enum Pass
@@ -99,7 +99,7 @@ namespace AggroBird.GRP
         }
 
         private static readonly int[] postProcessRenderTargetIds = new int[] { Shader.PropertyToID("_PostProcessRenderTarget0"), Shader.PropertyToID("_PostProcessRenderTarget1") };
-        private bool[] buffersAllocated = new bool[2] { false, false };
+        private readonly bool[] buffersAllocated = new bool[2] { false, false };
 
         private static readonly int
             bloomBucibicUpsamplingId = Shader.PropertyToID("_BloomBicubicUpsampling"),
@@ -142,8 +142,8 @@ namespace AggroBird.GRP
             finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
             finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
         private const int MaxBloomPyramidLevels = 16;
-        private int bloomPyramidId;
-        private int[] ssaoBufferIds = new int[2] { Shader.PropertyToID("_SSAOBuffer0"), Shader.PropertyToID("_SSAOBuffer1") };
+        private readonly int bloomPyramidId;
+        private readonly int[] ssaoBufferIds = new int[2] { Shader.PropertyToID("_SSAOBuffer0"), Shader.PropertyToID("_SSAOBuffer1") };
 
         private enum SMAAPass
         {
@@ -169,7 +169,7 @@ namespace AggroBird.GRP
 
             if (!buffersAllocated[next])
             {
-                buffer.GetTemporaryRT(postProcessRenderTargetIds[next], camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, renderTextureFormat);
+                buffer.GetTemporaryRT(postProcessRenderTargetIds[next], camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
                 buffersAllocated[next] = true;
             }
 
@@ -183,42 +183,17 @@ namespace AggroBird.GRP
 
 
         private List<PostProcessEffect>[] customEffects = default;
-        private List<PostProcessEffect> GetCustomEffectsList(PostProcessEffectOrder order) => customEffects[(int)order];
-        private void ClearCustomEffectsList()
+        private readonly List<PostProcessEffect> effectComponentBuffer = new();
+
+        internal interface IEditorGizmoEffect
         {
-            if (customEffects != null)
-            {
-                for (int i = 0; i < customEffects.Length; i++)
-                {
-                    customEffects[i].Clear();
-                }
-            }
+            bool Enabled { get; }
+            int Priority { get; }
+            string EffectName { get; }
+
+            void Execute(CommandBuffer buffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor);
         }
-        private void ExecuteCustomEffectsList(PostProcessEffectOrder order)
-        {
-            if (customEffects != null)
-            {
-                foreach (PostProcessEffect effect in customEffects[(int)order])
-                {
-                    string name = effect.effectName;
-                    if (string.IsNullOrEmpty(name)) name = PostProcessEffect.DefaultEffectName;
-                    buffer.BeginSample(name);
-                    try
-                    {
-                        effect.Execute(buffer, currentSourceBuffer, GetNextBuffer());
-                        context.ExecuteCommandBuffer(buffer);
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                    buffer.Clear();
-                    buffer.EndSample(name);
-                    SwapBuffers();
-                }
-            }
-        }
-        private List<PostProcessEffect> effectComponentBuffer = new List<PostProcessEffect>();
+        internal static readonly List<IEditorGizmoEffect> editorGizmoEffects = new();
 
 
         public PostProcessStack()
@@ -264,7 +239,7 @@ namespace AggroBird.GRP
                         customEffects = new List<PostProcessEffect>[PostProcessEffect.OrderCount];
                         for (int i = 0; i < customEffects.Length; i++)
                         {
-                            customEffects[i] = new List<PostProcessEffect>();
+                            customEffects[i] = new();
                         }
                     }
 
@@ -272,7 +247,7 @@ namespace AggroBird.GRP
                     {
                         if (effect != null && effect.enabled)
                         {
-                            GetCustomEffectsList(effect.order).Add(effect);
+                            GetCustomEffectsList(effect.Order).Add(effect);
                         }
                     }
 
@@ -280,17 +255,21 @@ namespace AggroBird.GRP
                     {
                         if (customEffects[i].Count > 1)
                         {
-                            customEffects[i].Sort((x, y) => x.priority.CompareTo(y.priority));
+                            customEffects[i].Sort((x, y) => x.Priority.CompareTo(y.Priority));
                         }
                     }
                 }
             }
 
+            editorGizmoEffects.Sort((x, y) => x.Priority.CompareTo(y.Priority));
+
             // Ensure there is a post process material
             if (!postProcessMaterial)
             {
-                postProcessMaterial = new Material(GameRenderPipelineAsset.Instance.Resources.postProcessShader);
-                postProcessMaterial.hideFlags = HideFlags.HideAndDontSave;
+                postProcessMaterial = new(GameRenderPipelineAsset.Instance.Resources.postProcessShader)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
             }
 
             currentBufferIndex = 0;
@@ -316,29 +295,36 @@ namespace AggroBird.GRP
             ClearCustomEffectsList();
         }
 
-        public void ApplyPreTransparency(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dst)
+        public void ApplyPreTransparency(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
         {
             if (postProcessEnabled)
             {
-                if (ssaoEnabled || outlineEnabled)
+                if (SSAOEnabled || OutlineEnabled)
                 {
                     currentSourceBuffer = srcColor;
 
-                    if (ssaoEnabled)
+                    if (SSAOEnabled)
                     {
                         ApplySSAO(currentSourceBuffer, srcNormal, srcDepth, GetNextBuffer());
                         SwapBuffers();
                     }
 
-                    if (outlineEnabled)
+                    if (OutlineEnabled)
                     {
                         ApplyOutline(currentSourceBuffer, srcNormal, srcDepth, GetNextBuffer());
                         SwapBuffers();
                     }
 
-                    Draw(currentSourceBuffer, dst, Pass.Copy);
+                    ExecuteEditorEffectsList(srcDepth);
+                    Draw(currentSourceBuffer, dstColor, Pass.Copy);
                     ExecuteBuffer();
                 }
+            }
+            else if (editorGizmoEffects.Count > 0)
+            {
+                ExecuteEditorEffectsList(srcDepth);
+                Draw(currentSourceBuffer, dstColor, Pass.Copy);
+                ExecuteBuffer();
             }
         }
         public void ApplyPostTransparency(RenderTargetIdentifier src, RenderTargetIdentifier dst)
@@ -348,7 +334,7 @@ namespace AggroBird.GRP
                 currentSourceBuffer = src;
 
                 // Depth of field
-                if (dofEnabled)
+                if (DofEnabled)
                 {
                     ApplyDOF(currentSourceBuffer, GetNextBuffer());
                     SwapBuffers();
@@ -357,7 +343,7 @@ namespace AggroBird.GRP
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeBloom);
 
                 // Bloom
-                if (bloomEnabled)
+                if (BloomEnabled)
                 {
                     ApplyBloom(currentSourceBuffer, GetNextBuffer());
                     SwapBuffers();
@@ -373,7 +359,7 @@ namespace AggroBird.GRP
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeAntiAlias);
 
                 // SMAA
-                if (smaaEnabled)
+                if (SMAAEnabled)
                 {
                     ApplySMAA(currentSourceBuffer, GetNextBuffer());
                     SwapBuffers();
@@ -398,25 +384,57 @@ namespace AggroBird.GRP
             buffer.Clear();
         }
 
-        private void ApplyOutline(RenderTargetIdentifier src, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dst)
+        private void ApplySSAO(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
+        {
+            buffer.BeginSample("SSAO");
+
+            int width = camera.pixelWidth, height = camera.pixelHeight;
+            buffer.GetTemporaryRT(ssaoBufferIds[0], width, height, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
+            buffer.GetTemporaryRT(ssaoBufferIds[1], width, height, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
+
+            // AO
+            PostProcessSettings.AmbientOcclusion ao = settings.ambientOcclusion;
+            buffer.SetGlobalVector(ssaoParametersId, new(ao.sampleCount, ao.radius, ao.intensity, 0));
+            buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
+            buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
+            buffer.SetRenderTarget(ssaoBufferIds[0], RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            buffer.DrawFullscreenEffect(postProcessMaterial, (int)Pass.SSAO);
+
+            // Blur
+            Draw(ssaoBufferIds[0], ssaoBufferIds[1], Pass.BlurHorizontal);
+            Draw(ssaoBufferIds[1], ssaoBufferIds[0], Pass.BlurVertical);
+
+            // Combine
+            buffer.SetGlobalTexture(postProcessCombineTexId, ssaoBufferIds[0]);
+            Draw(srcColor, dstColor, Pass.SSAOCombine);
+
+            buffer.ReleaseTemporaryRT(ssaoBufferIds[0]);
+            buffer.ReleaseTemporaryRT(ssaoBufferIds[1]);
+
+            buffer.EndSample("SSAO");
+
+            ExecuteBuffer();
+        }
+
+        private void ApplyOutline(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
         {
             buffer.BeginSample("Outline");
 
             buffer.SetGlobalColor(outlineColorId, settings.outline.color);
-            buffer.SetGlobalVector(outlineParamId, new Vector4(settings.outline.normalIntensity, settings.outline.normalBias, settings.outline.depthIntensity, settings.outline.depthBias));
+            buffer.SetGlobalVector(outlineParamId, new(settings.outline.normalIntensity, settings.outline.normalBias, settings.outline.depthIntensity, settings.outline.depthBias));
             if (settings.outline.useDepthFade)
             {
                 float range = Mathf.Max(0.001f, settings.outline.depthFadeEnd - settings.outline.depthFadeBegin);
-                buffer.SetGlobalVector(outlineDepthFadeId, new Vector4(settings.outline.depthFadeBegin, range, 0, 0));
+                buffer.SetGlobalVector(outlineDepthFadeId, new(settings.outline.depthFadeBegin, range, 0, 0));
             }
             else
             {
-                buffer.SetGlobalVector(outlineDepthFadeId, new Vector4(camera.farClipPlane, 1, 0, 0));
+                buffer.SetGlobalVector(outlineDepthFadeId, new(camera.farClipPlane, 1, 0, 0));
             }
             buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
             buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
 
-            Draw(src, dst, Pass.Outline);
+            Draw(srcColor, dstColor, Pass.Outline);
 
             buffer.EndSample("Outline");
 
@@ -439,7 +457,7 @@ namespace AggroBird.GRP
 #else
             int width = camera.pixelWidth, height = camera.pixelHeight;
 #endif
-            RenderTextureFormat format = renderTextureFormat;
+            RenderTextureFormat format = RenderTextureFormat;
             buffer.GetTemporaryRT(dofBokeh0Id, width, height, 0, FilterMode.Bilinear, format);
             buffer.GetTemporaryRT(dofBokeh1Id, width, height, 0, FilterMode.Bilinear, format);
 
@@ -477,7 +495,7 @@ namespace AggroBird.GRP
             buffer.SetGlobalVector(bloomThresholdId, threshold);
 
             // Prefilter
-            RenderTextureFormat format = renderTextureFormat;
+            RenderTextureFormat format = RenderTextureFormat;
             buffer.GetTemporaryRT(bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
             Draw(src, bloomPrefilterId, Pass.BloomPrefilter);
             width /= 2;
@@ -558,38 +576,6 @@ namespace AggroBird.GRP
             ExecuteBuffer();
         }
 
-        private void ApplySSAO(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dst)
-        {
-            buffer.BeginSample("SSAO");
-
-            int width = camera.pixelWidth, height = camera.pixelHeight;
-            buffer.GetTemporaryRT(ssaoBufferIds[0], width, height, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
-            buffer.GetTemporaryRT(ssaoBufferIds[1], width, height, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
-
-            // AO
-            PostProcessSettings.AmbientOcclusion ao = settings.ambientOcclusion;
-            buffer.SetGlobalVector(ssaoParametersId, new Vector4(ao.sampleCount, ao.radius, ao.intensity, 0));
-            buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
-            buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
-            buffer.SetRenderTarget(ssaoBufferIds[0], RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            buffer.DrawFullscreenEffect(postProcessMaterial, (int)Pass.SSAO);
-
-            // Blur
-            Draw(ssaoBufferIds[0], ssaoBufferIds[1], Pass.BlurHorizontal);
-            Draw(ssaoBufferIds[1], ssaoBufferIds[0], Pass.BlurVertical);
-
-            // Combine
-            buffer.SetGlobalTexture(postProcessCombineTexId, ssaoBufferIds[0]);
-            Draw(srcColor, dst, Pass.SSAOCombine);
-
-            buffer.ReleaseTemporaryRT(ssaoBufferIds[0]);
-            buffer.ReleaseTemporaryRT(ssaoBufferIds[1]);
-
-            buffer.EndSample("SSAO");
-
-            ExecuteBuffer();
-        }
-
         private void ApplyColorGrading(RenderTargetIdentifier src, RenderTargetIdentifier dst)
         {
             int lutHeight = (int)settings.general.colorLUTResolution;
@@ -599,7 +585,7 @@ namespace AggroBird.GRP
             {
                 // Color adjustment
                 PostProcessSettings.ColorAdjustments colorAdjustments = settings.colorAdjustments;
-                buffer.SetGlobalVector(colorAdjustmentsId, new Vector4(
+                buffer.SetGlobalVector(colorAdjustmentsId, new(
                     Mathf.Pow(2f, colorAdjustments.postExposure),
                     colorAdjustments.contrast * 0.01f + 1f,
                     colorAdjustments.hueShift * (1f / 360f),
@@ -629,13 +615,13 @@ namespace AggroBird.GRP
                 buffer.SetGlobalColor(smhShadowsId, smh.shadows.linear);
                 buffer.SetGlobalColor(smhMidtonesId, smh.midtones.linear);
                 buffer.SetGlobalColor(smhHighlightsId, smh.highlights.linear);
-                buffer.SetGlobalVector(smhRangeId, new Vector4(smh.shadowsStart, smh.shadowsEnd, smh.highlightsStart, smh.highLightsEnd));
+                buffer.SetGlobalVector(smhRangeId, new(smh.shadowsStart, smh.shadowsEnd, smh.highlightsStart, smh.highLightsEnd));
 
                 // Vignette
-                buffer.SetGlobalVector(vignetteParamId, new Vector4(settings.vignette.enabled ? 1f : 0f, camera.aspect, settings.vignette.falloff));
+                buffer.SetGlobalVector(vignetteParamId, new(settings.vignette.enabled ? 1f : 0f, camera.aspect, settings.vignette.falloff));
 
                 buffer.GetTemporaryRT(colorGradingLUTId, lutWidth, lutHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-                buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)));
+                buffer.SetGlobalVector(colorGradingLUTParametersId, new(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)));
                 PostProcessSettings.ToneMapping.Mode mode = settings.toneMapping.mode;
                 Pass pass = Pass.ColorGradingNone + (int)mode;
                 buffer.SetGlobalBool(colorGradingLUTInLogCId, useHDR && pass != Pass.ColorGradingNone);
@@ -645,7 +631,7 @@ namespace AggroBird.GRP
 
             buffer.BeginSample("Apply Color Grading LUT");
             {
-                buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f));
+                buffer.SetGlobalVector(colorGradingLUTParametersId, new(1f / lutWidth, 1f / lutHeight, lutHeight - 1f));
                 Draw(src, dst, Pass.Final);
                 buffer.ReleaseTemporaryRT(colorGradingLUTId);
             }
@@ -660,8 +646,10 @@ namespace AggroBird.GRP
 
             if (!smaaMaterial)
             {
-                smaaMaterial = new Material(GameRenderPipelineAsset.Instance.Resources.smaaShader);
-                smaaMaterial.hideFlags = HideFlags.HideAndDontSave;
+                smaaMaterial = new(GameRenderPipelineAsset.Instance.Resources.smaaShader)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
             }
 
             buffer.GetTemporaryRT(flipId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);//, RenderTextureReadWrite.Linear, 1, false, RenderTextureMemoryless.None, camera.allowDynamicResolution);
@@ -702,6 +690,67 @@ namespace AggroBird.GRP
             buffer.DrawFullscreenEffect(postProcessMaterial, (int)Pass.Copy);
 
             buffer.EndSample("Final Blit");
+        }
+
+
+        private List<PostProcessEffect> GetCustomEffectsList(PostProcessEffectOrder order) => customEffects[(int)order];
+        private void ClearCustomEffectsList()
+        {
+            if (customEffects != null)
+            {
+                for (int i = 0; i < customEffects.Length; i++)
+                {
+                    customEffects[i].Clear();
+                }
+            }
+        }
+        private void ExecuteCustomEffectsList(PostProcessEffectOrder order)
+        {
+            if (customEffects != null)
+            {
+                foreach (PostProcessEffect effect in customEffects[(int)order])
+                {
+                    string name = effect.EffectName;
+                    if (string.IsNullOrEmpty(name)) name = PostProcessEffect.DefaultEffectName;
+                    buffer.BeginSample(name);
+                    try
+                    {
+                        effect.Execute(buffer, currentSourceBuffer, GetNextBuffer());
+                        context.ExecuteCommandBuffer(buffer);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                    buffer.Clear();
+                    buffer.EndSample(name);
+                    SwapBuffers();
+                }
+            }
+        }
+
+        private void ExecuteEditorEffectsList(RenderTargetIdentifier srcDepth)
+        {
+            foreach (IEditorGizmoEffect effect in editorGizmoEffects)
+            {
+                if (!effect.Enabled) continue;
+
+                string name = effect.EffectName;
+                if (string.IsNullOrEmpty(name)) name = PostProcessEffect.DefaultEffectName;
+                buffer.BeginSample(name);
+                try
+                {
+                    effect.Execute(buffer, currentSourceBuffer, srcDepth, GetNextBuffer());
+                    context.ExecuteCommandBuffer(buffer);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogException(e);
+                }
+                buffer.Clear();
+                buffer.EndSample(name);
+                SwapBuffers();
+            }
         }
     }
 }

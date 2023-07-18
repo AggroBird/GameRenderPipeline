@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     [System.Serializable]
     public sealed class EnvironmentSettings

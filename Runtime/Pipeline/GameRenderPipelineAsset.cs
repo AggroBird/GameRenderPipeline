@@ -1,10 +1,7 @@
-﻿using System.Runtime.CompilerServices;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 
-[assembly: InternalsVisibleTo("AggroBird.GRP.Editor")]
-
-namespace AggroBird.GRP
+namespace AggroBird.GameRenderPipeline
 {
     [CreateAssetMenu(menuName = "Rendering/GRP/Pipeline Asset", order = 997)]
     public sealed partial class GameRenderPipelineAsset : RenderPipelineAsset
