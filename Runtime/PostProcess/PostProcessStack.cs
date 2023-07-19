@@ -190,7 +190,6 @@ namespace AggroBird.GameRenderPipeline
         {
             bool Enabled { get; }
             int Priority { get; }
-            string EffectName { get; }
 
             void Execute(CommandBuffer buffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor);
         }
@@ -743,9 +742,6 @@ namespace AggroBird.GameRenderPipeline
             {
                 if (!effect.Enabled) continue;
 
-                string name = effect.EffectName;
-                if (string.IsNullOrEmpty(name)) name = PostProcessEffect.DefaultEffectName;
-                buffer.BeginSample(name);
                 try
                 {
                     effect.Execute(buffer, currentSourceBuffer, srcDepth, GetNextBuffer());
@@ -756,7 +752,6 @@ namespace AggroBird.GameRenderPipeline
                     Debug.LogException(e);
                 }
                 buffer.Clear();
-                buffer.EndSample(name);
                 SwapBuffers();
             }
         }
