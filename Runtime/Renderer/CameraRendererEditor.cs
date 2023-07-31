@@ -109,7 +109,7 @@ namespace AggroBird.GameRenderPipeline
 
 #else
 
-        private const string bufferName = "GRP Render Camera";
+        private const string BufferName = "GRP Render Camera";
 
 #endif
     }
