@@ -185,7 +185,7 @@ namespace AggroBird.GameRenderPipeline
 
     internal static class LinearColorUtility
     {
-        public static Color AdjustedColor(this Color color)
+        public static Color ColorSpaceAdjusted(this Color color)
         {
             return GameRenderPipeline.LinearColorSpace ? color.linear : color;
         }
