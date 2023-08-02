@@ -48,11 +48,11 @@ namespace AggroBird.GameRenderPipeline
             fogParamId = Shader.PropertyToID("_FogParam");
 
         private static readonly int
+            rtColorBufferId = Shader.PropertyToID("_RTColorBuffer"),
+            rtDepthBufferId = Shader.PropertyToID("_RTDepthBuffer"),
+            rtNormalBufferId = Shader.PropertyToID("_RTNormalBuffer"),
             opaqueColorBufferId = Shader.PropertyToID("_OpaqueColorBuffer"),
             opaqueDepthBufferId = Shader.PropertyToID("_OpaqueDepthBuffer"),
-            opaqueNormalBufferId = Shader.PropertyToID("_OpaqueNormalBuffer"),
-            transparentColorBufferId = Shader.PropertyToID("_TransparentColorBuffer"),
-            transparentDepthBufferId = Shader.PropertyToID("_TransparentDepthBuffer"),
             ambientLightColorId = Shader.PropertyToID("_AmbientLightColor");
 
         private static readonly int
@@ -63,7 +63,8 @@ namespace AggroBird.GameRenderPipeline
 
         private Material defaultSkyboxMaterial = null;
 
-        private bool outputNormals = false;
+        private bool outputNormals;
+        private bool outputOpaque;
 
         private float skyboxAnimTimeOffset;
 
@@ -98,6 +99,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.EndSample(BufferName);
 
             outputNormals = postProcessStack.SSAOEnabled || postProcessStack.OutlineEnabled;
+            outputOpaque = pipelineAsset.Settings.general.outputOpaqueRenderTargets;
 
             buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.LinearColorSpace);
             buffer.SetKeyword(orthographicKeyword, camera.orthographic);
@@ -106,16 +108,7 @@ namespace AggroBird.GameRenderPipeline
             Setup();
             {
                 buffer.SetKeyword(outputNormalsKeyword, outputNormals);
-                if (outputNormals)
-                {
-                    buffer.SetRenderTarget(new RenderTargetIdentifier[] { opaqueColorBufferId, opaqueNormalBufferId }, opaqueDepthBufferId);
-                }
-                else
-                {
-                    buffer.SetRenderTarget(
-                        opaqueColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
-                        opaqueDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                }
+                RestoreDefaultRenderTargets();
                 ExecuteBuffer();
 
                 GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
@@ -149,28 +142,47 @@ namespace AggroBird.GameRenderPipeline
                 DrawEditorGizmosPreImageEffects();
 
                 // Post process
-                postProcessStack.ApplyPreTransparency(opaqueColorBufferId, opaqueNormalBufferId, opaqueDepthBufferId, opaqueColorBufferId);
+                postProcessStack.ApplyPreTransparency(rtColorBufferId, rtNormalBufferId, rtDepthBufferId, rtColorBufferId);
 
-                // Copy opaque into transparent
-                using (CommandBufferScope buffer = new("Copy Opaque Render Buffer"))
+                // Copy render targets into opaque buffers
+                if (outputOpaque)
                 {
-                    buffer.commandBuffer.BlitFrameBuffer(opaqueColorBufferId, opaqueDepthBufferId, transparentColorBufferId, transparentDepthBufferId);
-                    buffer.commandBuffer.SetGlobalTexture(opaqueColorBufferId, opaqueColorBufferId);
-                    buffer.commandBuffer.SetGlobalTexture(opaqueDepthBufferId, opaqueDepthBufferId);
-                    context.ExecuteCommandBuffer(buffer);
+                    using (CommandBufferScope buffer = new("Copy Opaque Render Buffer"))
+                    {
+                        buffer.commandBuffer.BlitFrameBuffer(rtColorBufferId, rtDepthBufferId, opaqueColorBufferId, opaqueDepthBufferId);
+                        buffer.commandBuffer.SetGlobalTexture(opaqueColorBufferId, opaqueColorBufferId);
+                        buffer.commandBuffer.SetGlobalTexture(opaqueDepthBufferId, opaqueDepthBufferId);
+                        context.ExecuteCommandBuffer(buffer);
+                    }
+                    RestoreDefaultRenderTargets();
+                    ExecuteBuffer();
                 }
 
                 // Transparent
                 DrawVisibleGeometry(pipelineAsset.Settings.general, defaultShaderTags, SortingCriteria.CommonTransparent, RenderQueueRange.transparent);
 
                 // Post process
-                postProcessStack.ApplyPostTransparency(transparentColorBufferId, BuiltinRenderTextureType.CameraTarget);
+                postProcessStack.ApplyPostTransparency(rtColorBufferId, BuiltinRenderTextureType.CameraTarget);
 
                 // Draw gizmos
                 DrawEditorGizmosPostImageEffects();
             }
             Cleanup();
             Submit();
+        }
+
+        private void RestoreDefaultRenderTargets()
+        {
+            if (outputNormals)
+            {
+                buffer.SetRenderTarget(new RenderTargetIdentifier[] { rtColorBufferId, rtNormalBufferId }, rtDepthBufferId);
+            }
+            else
+            {
+                buffer.SetRenderTarget(
+                    rtColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
+                    rtDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            }
         }
 
         private bool TryGetEnvironmentComponent(Camera camera, out EnvironmentComponent environmentComponent)
@@ -327,29 +339,32 @@ namespace AggroBird.GameRenderPipeline
             bool clearColor = clearFlags == CameraClearFlags.Color;
             Color backgroundColor = clearFlags == CameraClearFlags.Color ? camera.backgroundColor.ColorSpaceAdjusted() : Color.clear;
 
-            // Opaque render targets
-            buffer.GetTemporaryRT(opaqueColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
-            buffer.GetTemporaryRT(opaqueDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+            // Render targets
+            buffer.GetTemporaryRT(rtColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
+            buffer.GetTemporaryRT(rtDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
             buffer.SetRenderTarget(
-                opaqueColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                opaqueDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                rtColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                rtDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
             if (outputNormals)
             {
                 // Normal buffer
-                buffer.GetTemporaryRT(opaqueNormalBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.RGHalf);
-                buffer.SetRenderTarget(opaqueNormalBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                buffer.GetTemporaryRT(rtNormalBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.RGHalf);
+                buffer.SetRenderTarget(rtNormalBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 buffer.ClearRenderTarget(true, true, Color.clear);
             }
 
-            // Transparent render target
-            buffer.GetTemporaryRT(transparentColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
-            buffer.GetTemporaryRT(transparentDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-            buffer.SetRenderTarget(
-                transparentColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                transparentDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            buffer.ClearRenderTarget(true, true, Color.clear);
+            // Opaque render target
+            if (outputOpaque)
+            {
+                buffer.GetTemporaryRT(opaqueColorBufferId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
+                buffer.GetTemporaryRT(opaqueDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                buffer.SetRenderTarget(
+                    opaqueColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    opaqueDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                buffer.ClearRenderTarget(true, true, Color.clear);
+            }
 
             buffer.BeginSample(BufferName);
             ExecuteBuffer();
@@ -359,14 +374,17 @@ namespace AggroBird.GameRenderPipeline
             lighting.Cleanup();
             postProcessStack.Cleanup();
 
-            buffer.ReleaseTemporaryRT(opaqueColorBufferId);
-            buffer.ReleaseTemporaryRT(opaqueDepthBufferId);
+            buffer.ReleaseTemporaryRT(rtColorBufferId);
+            buffer.ReleaseTemporaryRT(rtDepthBufferId);
             if (outputNormals)
             {
-                buffer.ReleaseTemporaryRT(opaqueNormalBufferId);
+                buffer.ReleaseTemporaryRT(rtNormalBufferId);
             }
-            buffer.ReleaseTemporaryRT(transparentColorBufferId);
-            buffer.ReleaseTemporaryRT(transparentDepthBufferId);
+            if (outputOpaque)
+            {
+                buffer.ReleaseTemporaryRT(opaqueColorBufferId);
+                buffer.ReleaseTemporaryRT(opaqueDepthBufferId);
+            }
         }
 
         private void Submit()

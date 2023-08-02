@@ -5,7 +5,7 @@
 		
 #define SMAA_HLSL_4_1 1
 
-TEXTURE2D(_MainTex);
+TEXTURE2D(_Blit_ColorInput);
 TEXTURE2D(_SMAA_BlendTex);
 TEXTURE2D(_SMAA_AreaTex);
 TEXTURE2D(_SMAA_SearchTex);
@@ -49,7 +49,7 @@ VaryingsEdge VertEdge(uint vertexID : SV_VertexID)
 
 float4 FragEdge(VaryingsEdge i) : SV_Target
 {
-	return float4(SMAAColorEdgeDetectionPS(i.texcoord, i.offsets, _MainTex), 0.0, 0.0);
+	return float4(SMAAColorEdgeDetectionPS(i.texcoord, i.offsets, _Blit_ColorInput), 0.0, 0.0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ VaryingsBlend VertBlend(uint vertexID : SV_VertexID)
 
 float4 FragBlend(VaryingsBlend i) : SV_Target
 {
-	return SMAABlendingWeightCalculationPS(i.texcoord, i.pixcoord, i.offsets, _MainTex, _SMAA_AreaTex, _SMAA_SearchTex, 0);
+	return SMAABlendingWeightCalculationPS(i.texcoord, i.pixcoord, i.offsets, _Blit_ColorInput, _SMAA_AreaTex, _SMAA_SearchTex, 0);
 }
 
 // ----------------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ VaryingsNeighbor VertNeighbor(uint vertexID : SV_VertexID)
 
 float4 FragNeighbor(VaryingsNeighbor i) : SV_Target
 {
-	return SMAANeighborhoodBlendingPS(i.texcoord, i.offset, _MainTex, _SMAA_BlendTex);
+	return SMAANeighborhoodBlendingPS(i.texcoord, i.offset, _Blit_ColorInput, _SMAA_BlendTex);
 }
 
 #endif

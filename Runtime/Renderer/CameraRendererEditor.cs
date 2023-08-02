@@ -58,7 +58,7 @@ namespace AggroBird.GameRenderPipeline
         {
             if (Handles.ShouldRenderGizmos())
             {
-                buffer.BlitDepthBuffer(opaqueDepthBufferId, BuiltinRenderTextureType.CameraTarget);
+                buffer.BlitDepthBuffer(rtDepthBufferId, BuiltinRenderTextureType.CameraTarget);
                 ExecuteBuffer();
                 context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
             }

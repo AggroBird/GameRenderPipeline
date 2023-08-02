@@ -27,6 +27,9 @@ namespace AggroBird.GameRenderPipeline
 
         [Space]
         public bool allowHDR = true;
+
+        [Space]
+        public bool outputOpaqueRenderTargets = false;
     }
 
     [System.Serializable]

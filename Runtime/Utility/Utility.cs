@@ -40,8 +40,8 @@ namespace AggroBird.GameRenderPipeline
         }
 
         private static readonly int
-            blitColorTexId = Shader.PropertyToID("_MainTex"),
-            blitDepthTexId = Shader.PropertyToID("_DepthTex");
+            blitColorTexId = Shader.PropertyToID("_Blit_ColorInput"),
+            blitDepthTexId = Shader.PropertyToID("_Blit_DepthInput");
 
         public static void BlitFrameBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier dst, bool clear = false)
         {
@@ -95,6 +95,7 @@ namespace AggroBird.GameRenderPipeline
             if (clear) commandBuffer.ClearRenderTarget(true, true, Color.clear);
             commandBuffer.DrawFullscreenEffect(material, pass);
         }
+
         public static void DrawFullscreenEffect(this CommandBuffer commandBuffer, Material material, int pass)
         {
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3);
