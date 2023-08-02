@@ -12,7 +12,7 @@ namespace AggroBird.GameRenderPipeline
         BeforeDisplay,
     }
 
-    [RequireComponent(typeof(PostProcessCamera))]
+    [RequireComponent(typeof(PostProcessComponent))]
     public abstract class PostProcessEffect : MonoBehaviour
     {
         internal static readonly int OrderCount = Enum.GetValues(typeof(PostProcessEffectOrder)).Length;
@@ -20,8 +20,7 @@ namespace AggroBird.GameRenderPipeline
         public virtual PostProcessEffectOrder Order => PostProcessEffectOrder.BeforeColorGrading;
         public virtual int Priority => 0;
 
-        internal const string DefaultEffectName = "CustomPostProcessEffect";
-        public virtual string EffectName => DefaultEffectName;
+        public virtual string EffectName => GetType().Name;
 
         public abstract void Execute(CommandBuffer buffer, RenderTargetIdentifier src, RenderTargetIdentifier dst);
 

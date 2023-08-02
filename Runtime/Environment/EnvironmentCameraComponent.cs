@@ -1,13 +1,30 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AggroBird.GameRenderPipeline
 {
-    public class EnvironmentCameraComponent : EnvironmentComponent
+    [RequireComponent(typeof(Camera)), ExecuteAlways]
+    public sealed class EnvironmentCameraComponent : EnvironmentComponent
     {
-        [SerializeField] private EnvironmentSettings environmentSettings = default;
-        public override EnvironmentSettings GetEnvironmentSettings()
+        [SerializeField] private EnvironmentSettings environmentSettings;
+        public override EnvironmentSettings EnvironmentSettings => environmentSettings;
+
+        private void Start()
         {
-            return environmentSettings;
+
         }
+
+#if UNITY_EDITOR
+        internal static List<EnvironmentCameraComponent> activeCameraComponents = new();
+
+        protected override void OnEnable()
+        {
+            activeCameraComponents.Add(this);
+        }
+        protected override void OnDisable()
+        {
+            activeCameraComponents.Remove(this);
+        }
+#endif
     }
 }

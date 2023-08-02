@@ -2,9 +2,10 @@ using UnityEngine;
 
 namespace AggroBird.GameRenderPipeline
 {
-    public class EnvironmentReference : EnvironmentComponent
+    [System.Obsolete]
+    public class LEGACY_EnvironmentReference : LEGACY_EnvironmentComponent
     {
-        [SerializeField] private EnvironmentComponent environment = default;
+        [SerializeField] private LEGACY_EnvironmentComponent environment = default;
         public override EnvironmentSettings GetEnvironmentSettings()
         {
             if (environment)

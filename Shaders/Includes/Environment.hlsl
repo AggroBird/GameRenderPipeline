@@ -1,7 +1,7 @@
 #ifndef _GRP_ENVIRONMENT
 #define _GRP_ENVIRONMENT
 
-
+// Fog
 #if defined(_FOG_LINEAR) || defined(_FOG_EXP) || defined(_FOG_EXP2)
 #define FOG_ENABLED
 
@@ -91,12 +91,14 @@ void BlendFog(inout float3 rgb, FOG_ATTRIBUTE_TYPE fogAttribute)
 
 #endif
 
+
+// Skybox
 TEXTURE2D(_SkyboxGradientTexture);
 SAMPLER(sampler_SkyboxGradientTexture);
 
 float3 _SkyboxGroundColor;
 
-float3 SampleSkyboxProcedural(float3 dir, bool applyGroundColor = false)
+float3 SampleSkyboxGradient(float3 dir, bool applyGroundColor = false)
 {
     float3 skyColor = SAMPLE_TEXTURE2D(_SkyboxGradientTexture, sampler_SkyboxGradientTexture, float2(max(dir.y, 0), 0.5)).rgb;
     if (applyGroundColor)
@@ -106,13 +108,17 @@ float3 SampleSkyboxProcedural(float3 dir, bool applyGroundColor = false)
     return skyColor;
 }
 
-TEXTURECUBE(_SkyboxStaticCubemap);
-SAMPLER(sampler_SkyboxStaticCubemap);
+TEXTURECUBE(unity_SpecCube0);
+SAMPLER(samplerunity_SpecCube0);
 
-float4 SampleSkyboxCubemap(float3 dir, float mip = 0)
+float _SkyboxAnimTime;
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+
+float3 SampleSkyboxCubemap(float3 dir, float mip = 0)
 {
-    return SAMPLE_TEXTURECUBE_LOD(_SkyboxStaticCubemap, sampler_SkyboxStaticCubemap, dir, mip);
+    float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, dir, mip);
+    return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
-
 
 #endif

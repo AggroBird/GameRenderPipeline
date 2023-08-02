@@ -6,6 +6,11 @@ using UnityEngine.SceneManagement;
 
 namespace AggroBird.GameRenderPipeline
 {
+    internal static class Tags
+    {
+        public const string MainCameraTag = "MainCamera";
+    }
+
     internal enum BlitRenderTargetPass
     {
         Color,
@@ -208,62 +213,6 @@ namespace AggroBird.GameRenderPipeline
         public void Dispose()
         {
             CommandBufferPool.Release(commandBuffer);
-        }
-    }
-
-    public static class CameraUtility
-    {
-        public static Camera Current { get; internal set; }
-
-#if UNITY_EDITOR
-        private static readonly List<GameObject> sceneObjects = new();
-        private static readonly List<Camera> sceneCameras = new();
-#endif
-
-        internal static bool TryGetCameraComponent<T>(this Camera camera, out T component) where T : MonoBehaviour
-        {
-            if (camera.TryGetComponent(out component) && component.enabled)
-            {
-                return true;
-            }
-
-#if UNITY_EDITOR
-            if (camera.cameraType == CameraType.SceneView)
-            {
-                Scene currentScene;
-                if (camera.scene.IsValid())
-                {
-                    currentScene = camera.scene;
-                }
-                else
-                {
-                    currentScene = SceneManager.GetActiveScene();
-                    if (!currentScene.IsValid())
-                    {
-                        return false;
-                    }
-                }
-
-                currentScene.GetRootGameObjects(sceneObjects);
-                foreach (GameObject sceneObject in sceneObjects)
-                {
-                    sceneObject.GetComponentsInChildren(false, sceneCameras);
-                    foreach (Camera sceneCamera in sceneCameras)
-                    {
-                        if (sceneCamera == camera) continue;
-                        if (!sceneCamera.gameObject.activeInHierarchy) continue;
-                        if (!sceneCamera.enabled) continue;
-                        if (!sceneCamera.CompareTag("MainCamera")) continue;
-                        if (sceneCamera.TryGetComponent(out component) && component.enabled)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-#endif
-
-            return false;
         }
     }
 }

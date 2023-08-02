@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
-    [DisallowMultipleComponent, RequireComponent(typeof(Camera))]
-    public sealed class PostProcessCamera : MonoBehaviour
+    [DisallowMultipleComponent]
+    public abstract class PostProcessComponent : MonoBehaviour
     {
         [System.Serializable]
         public struct FinalBlendMode
@@ -12,7 +12,7 @@ namespace AggroBird.GameRenderPipeline
             public BlendMode source, destination;
         }
 
-        public FinalBlendMode finalBlendMode = new FinalBlendMode
+        public FinalBlendMode finalBlendMode = new()
         {
             source = BlendMode.One,
             destination = BlendMode.Zero,
@@ -21,7 +21,14 @@ namespace AggroBird.GameRenderPipeline
         [Space]
         public PostProcessSettingsAsset postProcessSettingsAsset;
 
-        private void Start()
+
+        internal static PostProcessComponent activeScenePostProcess;
+
+        protected virtual void OnEnable()
+        {
+
+        }
+        protected virtual void OnDisable()
         {
 
         }

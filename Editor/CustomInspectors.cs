@@ -3,167 +3,53 @@ using UnityEngine;
 
 namespace AggroBird.GameRenderPipeline.Editor
 {
-    internal abstract class EnvironmentSettingsPropertyDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(ConditionalPropertyAttribute))]
+    internal sealed class ConditionalPropertyAttributeDrawer : PropertyDrawer
     {
-        protected const float BaseHeight = 20;
-        private SerializedProperty property = default;
-        protected Rect rowPosition;
-
-        private float totalHeight = 0;
-
-        protected EnvironmentSettingsPropertyDrawer(int propertyCount, int spaceCount)
-        {
-            totalHeight = BaseHeight * (propertyCount + 1) + BaseHeight * 0.5f * spaceCount;
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            float height = BaseHeight;
-            if (property.isExpanded)
-            {
-                height += totalHeight;
-            }
-            return height;
-        }
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            this.property = property;
-            rowPosition = position;
-            rowPosition.height = BaseHeight - 2;
-
-            property.isExpanded = EditorGUI.Foldout(rowPosition, property.isExpanded, property.displayName);
-            rowPosition.y += BaseHeight;
-        }
-
-        protected SerializedProperty DefaultPropertyField(string name, bool space = false)
-        {
-            if (space)
+            if (CheckCondition(property))
             {
-                rowPosition.y += BaseHeight * 0.5f;
+                EditorGUI.PropertyField(position, property, label);
             }
-
-            SerializedProperty prop = property.FindPropertyRelative(name);
-            if (prop == null)
-            {
-                EditorGUI.LabelField(rowPosition, $"<{name}>");
-            }
-            else
-            {
-                EditorGUI.PropertyField(rowPosition, prop);
-            }
-            rowPosition.y += BaseHeight;
-            return prop;
         }
-    }
-
-    [CustomPropertyDrawer(typeof(EnvironmentSettings.FogSettings))]
-    internal sealed class FogSettingsPropertyDrawer : EnvironmentSettingsPropertyDrawer
-    {
-        public FogSettingsPropertyDrawer() : base(5, 1)
-        {
-
-        }
-
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return base.GetPropertyHeight(property, label) + (GetFogMode(property.FindPropertyRelative("fogMode")) == FogMode.Linear && property.isExpanded ? BaseHeight : 0);
+            if (CheckCondition(property))
+            {
+                return EditorGUI.GetPropertyHeight(property);
+            }
+            return 0;
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        private bool CheckCondition(SerializedProperty property)
         {
-            base.OnGUI(position, property, label);
-
-            if (!property.isExpanded) return;
-
-            using (new EditorGUI.IndentLevelScope())
+            if (attribute is ConditionalPropertyAttribute conditional)
             {
-                using (new EditorGUI.DisabledScope(!DefaultPropertyField("enabled").boolValue))
+                string path = property.propertyPath;
+                int idx = path.LastIndexOf('.');
+                if (idx != -1)
                 {
-                    DefaultPropertyField("blend", true);
-                    DefaultPropertyField("ambientColor");
-                    DefaultPropertyField("inscatteringColor");
-                    FogMode fogMode = GetFogMode(DefaultPropertyField("fogMode"));
-
-                    SerializedProperty fogParamProperty = property.FindPropertyRelative("fogParam");
-                    switch (fogMode)
+                    path = path.Substring(0, idx);
+                    SerializedProperty check = property.serializedObject.FindProperty(path + '.' + conditional.name);
+                    if (check != null)
                     {
-                        case FogMode.Linear:
+                        switch (check.propertyType)
                         {
-                            SerializedProperty linearStart = fogParamProperty.FindPropertyRelative("x");
-                            SerializedProperty linearEnd = fogParamProperty.FindPropertyRelative("y");
-                            EditorGUI.PropertyField(rowPosition, linearStart, new GUIContent("Linear Start"));
-                            rowPosition.y += BaseHeight;
-                            EditorGUI.PropertyField(rowPosition, linearEnd, new GUIContent("Linear End"));
-                            linearStart.floatValue = Mathf.Max(linearStart.floatValue, 0);
-                            linearEnd.floatValue = Mathf.Max(linearStart.floatValue, linearEnd.floatValue);
+                            case SerializedPropertyType.Enum:
+                                foreach (var val in conditional.values)
+                                {
+                                    if (val.Equals(check.enumNames[check.enumValueIndex], System.StringComparison.Ordinal))
+                                    {
+                                        return true;
+                                    }
+                                }
+                                return false;
                         }
-                        break;
-                        default:
-                            SerializedProperty density = fogParamProperty.FindPropertyRelative("z");
-                            EditorGUI.PropertyField(rowPosition, density, new GUIContent("Density"));
-                            density.floatValue = Mathf.Max(density.floatValue, 0);
-                            break;
                     }
-                    rowPosition.y += BaseHeight;
                 }
             }
-        }
-
-        private FogMode GetFogMode(SerializedProperty property)
-        {
-            if (property != null && property.propertyType == SerializedPropertyType.Enum)
-            {
-                return (FogMode)property.intValue;
-            }
-            return FogMode.Linear;
-        }
-    }
-
-    [CustomPropertyDrawer(typeof(EnvironmentSettings.CloudSettings))]
-    internal sealed class CloudSettingsPropertyDrawer : EnvironmentSettingsPropertyDrawer
-    {
-        public CloudSettingsPropertyDrawer() : base(12, 4)
-        {
-
-        }
-
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            base.OnGUI(position, property, label);
-
-            if (!property.isExpanded) return;
-
-            using (new EditorGUI.IndentLevelScope())
-            {
-                using (new EditorGUI.DisabledScope(!DefaultPropertyField("enabled").boolValue))
-                {
-                    DefaultPropertyField("colorTop", true);
-                    DefaultPropertyField("colorBottom");
-
-                    DefaultPropertyField("sampleOffset", true);
-                    DefaultPropertyField("sampleScale");
-
-                    DefaultPropertyField("thickness", true);
-                    DefaultPropertyField("height");
-                    DefaultPropertyField("layerHeight");
-                    DefaultPropertyField("fadeDistance");
-
-                    DefaultPropertyField("traceLengthMax", true);
-                    DefaultPropertyField("traceStep");
-                    DefaultPropertyField("traceEdgeAccuracy");
-                    DefaultPropertyField("traceEdgeThreshold");
-                }
-            }
-        }
-    }
-
-    [CustomEditor(typeof(EnvironmentComponent))]
-    internal sealed class EnvironmentEditor : UnityEditor.Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            base.OnInspectorGUI();
+            return true;
         }
     }
 

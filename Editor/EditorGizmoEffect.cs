@@ -4,6 +4,22 @@ namespace AggroBird.GameRenderPipeline.Editor
 {
     public abstract class EditorGizmoEffect : PostProcessStack.IEditorGizmoEffect
     {
+        public static void Register(EditorGizmoEffect effect)
+        {
+            if (effect != null && !PostProcessStack.editorGizmoEffects.Contains(effect))
+            {
+                PostProcessStack.editorGizmoEffects.Add(effect);
+            }
+        }
+        public static void Unregister(EditorGizmoEffect effect)
+        {
+            if (effect != null)
+            {
+                PostProcessStack.editorGizmoEffects.Remove(effect);
+            }
+        }
+
+
         public virtual bool Enabled => true;
 
         public virtual int Priority => 0;
@@ -12,23 +28,5 @@ namespace AggroBird.GameRenderPipeline.Editor
         public virtual string EffectName => DefaultEffectName;
 
         public abstract void Execute(CommandBuffer buffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor);
-    }
-
-    public static class EditorGizmoEffects
-    {
-        public static void AddEditorGizmoEffect(EditorGizmoEffect effect)
-        {
-            if (effect != null && !PostProcessStack.editorGizmoEffects.Contains(effect))
-            {
-                PostProcessStack.editorGizmoEffects.Add(effect);
-            }
-        }
-        public static void RemoveEditorGizmoEffect(EditorGizmoEffect effect)
-        {
-            if (effect != null)
-            {
-                PostProcessStack.editorGizmoEffects.Remove(effect);
-            }
-        }
     }
 }

@@ -7,7 +7,8 @@
 	Subshader
 	{
 		HLSLINCLUDE
-		#include "Includes/SkyboxRenderPasses.hlsl"
+		#include "Includes/BlitPass.hlsl"
+		#include "Includes/Environment.hlsl"
 		#pragma multi_compile _ _SKYBOX_CLOUDS_ENABLED
 		ENDHLSL
 
@@ -19,65 +20,38 @@
 			"RenderPipeline" = "GameRenderPipeline"
 			"ShaderModel" = "3.5"
 		}
+		Cull Off ZWrite Off
 
-		Cull Off
-		ZTest Always
-		ZWrite Off
-
-		// Render skybox cubemap dynamic
 		Pass
 		{
 			HLSLPROGRAM
 			#pragma target 3.5
 			#pragma vertex BlitVertex
-			#pragma fragment RenderSkyboxCubemapDynamic
+			#pragma fragment RenderSkyboxGradient
+
+			float4 RenderSkyboxGradient(BlitVaryings input) : SV_TARGET
+			{
+				return float4(SampleSkyboxGradient(normalize(CameraTraceDirection(input.texcoord)), true), 1);
+			}
+
 			ENDHLSL
 		}
 
-		// Render skybox cubemap static
 		Pass
 		{
 			HLSLPROGRAM
 			#pragma target 3.5
 			#pragma vertex BlitVertex
-			#pragma fragment RenderSkyboxCubemapStatic
-			ENDHLSL
-		}
+			#pragma fragment RenderSkyboxCubemap
 
-		// Blur skybox cubemap
-		Pass
-		{
-			Blend SrcAlpha OneMinusSrcAlpha
+			TEXTURECUBE(_SkyboxStaticCubemap);
+			SAMPLER(sampler_SkyboxStaticCubemap);
 
-			HLSLPROGRAM
-			#pragma target 3.5
-			#pragma vertex BlitVertex
-			#pragma fragment BlurSkyboxCubemap
-			ENDHLSL
-		}
+			float4 RenderSkyboxCubemap(BlitVaryings input) : SV_TARGET
+			{
+				return SAMPLE_TEXTURECUBE(_SkyboxStaticCubemap, sampler_SkyboxStaticCubemap, normalize(CameraTraceDirection(input.texcoord)));
+			}
 
-		// Render skybox world dynamic
-		Pass
-		{
-			ZWrite On
-			Blend SrcAlpha OneMinusSrcAlpha
-
-			HLSLPROGRAM
-			#pragma target 3.5
-			#pragma vertex BlitVertex
-			#pragma fragment RenderSkyboxWorldDynamic
-			ENDHLSL
-		}
-
-		// Render skybox world static
-		Pass
-		{
-			ZTest LEqual
-
-			HLSLPROGRAM
-			#pragma target 3.5
-			#pragma vertex BlitVertex
-			#pragma fragment RenderSkyboxWorldStatic
 			ENDHLSL
 		}
 	}

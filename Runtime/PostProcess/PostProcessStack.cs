@@ -206,17 +206,60 @@ namespace AggroBird.GameRenderPipeline
         }
 
 
+        private bool TryGetPostProcessComponent(Camera camera, out PostProcessComponent postProcessComponent)
+        {
+            if (camera.TryGetComponent(out postProcessComponent) && postProcessComponent.enabled)
+            {
+                return true;
+            }
+            else if (camera.cameraType == CameraType.SceneView)
+            {
+#if UNITY_EDITOR
+                // Try to get current main camera component
+                var activeCameraComponents = PostProcessCameraComponent.activeCameraComponents;
+                for (int i = 0; i < activeCameraComponents.Count;)
+                {
+                    if (!activeCameraComponents[i])
+                    {
+                        int last = activeCameraComponents.Count - 1;
+                        if (i == last)
+                        {
+                            activeCameraComponents.RemoveAt(i);
+                        }
+                        else
+                        {
+                            activeCameraComponents[i] = activeCameraComponents[last];
+                            activeCameraComponents.RemoveAt(last);
+                        }
+                        continue;
+                    }
+
+                    if (activeCameraComponents[i].enabled && activeCameraComponents[i].TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                    {
+                        postProcessComponent = activeCameraComponents[i];
+                        return true;
+                    }
+
+                    i++;
+                }
+#endif
+            }
+
+            postProcessComponent = PostProcessComponent.activeScenePostProcess;
+            return postProcessComponent && postProcessComponent.enabled;
+        }
+
         public void Setup(ScriptableRenderContext context, Camera camera, bool useHDR, bool postProcessEnabled)
         {
             this.context = context;
             this.camera = camera;
             this.useHDR = useHDR;
 
-            if (camera.TryGetCameraComponent(out PostProcessCamera postProcessCamera))
+            if (TryGetPostProcessComponent(camera, out PostProcessComponent postProcessComponent))
             {
-                srcBlendMode = postProcessCamera.finalBlendMode.source;
-                dstBlendMode = postProcessCamera.finalBlendMode.destination;
-                settings = postProcessCamera.postProcessSettingsAsset ? postProcessCamera.postProcessSettingsAsset.settings : null;
+                srcBlendMode = postProcessComponent.finalBlendMode.source;
+                dstBlendMode = postProcessComponent.finalBlendMode.destination;
+                settings = postProcessComponent.postProcessSettingsAsset ? postProcessComponent.postProcessSettingsAsset.settings : null;
                 if (settings == null) postProcessEnabled = false;
             }
             else
@@ -231,7 +274,7 @@ namespace AggroBird.GameRenderPipeline
             if (postProcessEnabled)
             {
                 // Get custom effects
-                postProcessCamera.GetComponents(effectComponentBuffer);
+                postProcessComponent.GetComponents(effectComponentBuffer);
                 if (effectComponentBuffer.Count > 0)
                 {
                     if (customEffects == null)
@@ -245,7 +288,7 @@ namespace AggroBird.GameRenderPipeline
 
                     foreach (PostProcessEffect effect in effectComponentBuffer)
                     {
-                        if (effect != null && effect.enabled)
+                        if (effect.enabled)
                         {
                             GetCustomEffectsList(effect.Order).Add(effect);
                         }
@@ -718,19 +761,19 @@ namespace AggroBird.GameRenderPipeline
                 foreach (PostProcessEffect effect in customEffects[(int)order])
                 {
                     string name = effect.EffectName;
-                    if (string.IsNullOrEmpty(name)) name = PostProcessEffect.DefaultEffectName;
+                    if (string.IsNullOrEmpty(name)) name = effect.GetType().Name;
+
                     buffer.BeginSample(name);
                     try
                     {
                         effect.Execute(buffer, currentSourceBuffer, GetNextBuffer());
-                        context.ExecuteCommandBuffer(buffer);
                     }
                     catch (System.Exception e)
                     {
                         Debug.LogException(e);
                     }
-                    buffer.Clear();
                     buffer.EndSample(name);
+                    ExecuteBuffer();
                     SwapBuffers();
                 }
             }
@@ -742,16 +785,19 @@ namespace AggroBird.GameRenderPipeline
             {
                 if (!effect.Enabled) continue;
 
+                string name = effect.GetType().Name;
+
+                buffer.BeginSample(name);
                 try
                 {
                     effect.Execute(buffer, currentSourceBuffer, srcDepth, GetNextBuffer());
-                    context.ExecuteCommandBuffer(buffer);
                 }
                 catch (System.Exception e)
                 {
                     Debug.LogException(e);
                 }
-                buffer.Clear();
+                buffer.EndSample(name);
+                ExecuteBuffer();
                 SwapBuffers();
             }
         }

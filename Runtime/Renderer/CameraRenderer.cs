@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-using RandomStream = System.Random;
 
 namespace AggroBird.GameRenderPipeline
 {
@@ -22,7 +21,6 @@ namespace AggroBird.GameRenderPipeline
 
 
         private static readonly ShaderTagId[] defaultShaderTags = { new("SRPDefaultUnlit"), new("GRPLit") };
-        private static readonly ShaderTagId[] skyboxShaderTags = { new("GRPSkybox") };
 
         private static readonly GlobalKeyword orthographicKeyword = GlobalKeyword.Create("_PROJECTION_ORTHOGRAPHIC");
 
@@ -37,8 +35,6 @@ namespace AggroBird.GameRenderPipeline
             GlobalKeyword.Create("_FOG_EXP"),
             GlobalKeyword.Create("_FOG_EXP2"),
         };
-
-        private static readonly GlobalKeyword skyboxCloudsKeyword = GlobalKeyword.Create("_SKYBOX_CLOUDS_ENABLED");
 
 
         private static readonly int
@@ -55,50 +51,29 @@ namespace AggroBird.GameRenderPipeline
             opaqueColorBufferId = Shader.PropertyToID("_OpaqueColorBuffer"),
             opaqueDepthBufferId = Shader.PropertyToID("_OpaqueDepthBuffer"),
             opaqueNormalBufferId = Shader.PropertyToID("_OpaqueNormalBuffer"),
-            cloudDepthBufferId = Shader.PropertyToID("_CloudDepthBuffer"),
             transparentColorBufferId = Shader.PropertyToID("_TransparentColorBuffer"),
             transparentDepthBufferId = Shader.PropertyToID("_TransparentDepthBuffer"),
             ambientLightColorId = Shader.PropertyToID("_AmbientLightColor");
 
-        private enum SkyboxPass
-        {
-            RenderDynamic,
-            RenderStatic,
-            Blur,
-            RenderWorldDynamic,
-            RenderWorldStatic,
-        }
-
-        private Texture2D skyboxGradientTexture = default;
-        private const int SkyboxCubemapMipLevels = 8;
         private static readonly int
             skyboxStaticCubemapId = Shader.PropertyToID("_SkyboxStaticCubemap"),
             skyboxGradientTextureId = Shader.PropertyToID("_SkyboxGradientTexture"),
             skyboxGroundColorId = Shader.PropertyToID("_SkyboxGroundColor"),
-            skyboxCubemapRenderBlurTargetId = Shader.PropertyToID("_SkyboxCubemapRenderBlurTarget"),
-            skyboxCubemapBlurParamId = Shader.PropertyToID("_SkyboxCubemapBlurParam"),
-            skyboxCubemapRenderForwardId = Shader.PropertyToID("_SkyboxCubemapRenderForward"),
-            skyboxCubemapRenderUpId = Shader.PropertyToID("_SkyboxCubemapRenderUp");
-        private static readonly int
-            cloudColorTopId = Shader.PropertyToID("_CloudColorTop"),
-            cloudColorBottomId = Shader.PropertyToID("_CloudColorBottom"),
-            cloudSampleOffsetId = Shader.PropertyToID("_CloudSampleOffset"),
-            cloudSampleScaleId = Shader.PropertyToID("_CloudSampleScale"),
-            cloudParamId = Shader.PropertyToID("_CloudParam"),
-            cloudTraceParamId = Shader.PropertyToID("_CloudTraceParam");
-        private RenderTexture skyboxCubemapRenderTexture = default;
-        private Texture lastSkyboxSourceTexture = null;
-        private Material skyboxCubemapRenderMaterial = null;
-        private readonly RandomStream skyboxCubemapRandom = new(0);
-        // For some reason, the cubemap initializes to black in editor
-        // so for the first 8 frames, force render
-        private int skyboxEditorForceUpdate = Application.isEditor ? 8 : 0;
+            skyboxAnimTimeId = Shader.PropertyToID("_SkyboxAnimTime");
+
+        private Material defaultSkyboxMaterial = null;
 
         private bool outputNormals = false;
 
+        private float skyboxAnimTimeOffset;
 
         private readonly EnvironmentSettings defaultEnvironmentSettings = new();
 
+
+        public CameraRenderer()
+        {
+            skyboxAnimTimeOffset = Random.Range(0f, 1000f);
+        }
 
         public void Render(ScriptableRenderContext context, Camera camera, int cameraIndex, GameRenderPipelineAsset pipelineAsset)
         {
@@ -114,7 +89,6 @@ namespace AggroBird.GameRenderPipeline
             }
 
             useHDR = pipelineAsset.Settings.general.allowHDR && camera.allowHDR;
-            outputNormals = postProcessStack.SSAOEnabled || postProcessStack.OutlineEnabled;
 
             // Light and shadows
             buffer.BeginSample(BufferName);
@@ -123,14 +97,14 @@ namespace AggroBird.GameRenderPipeline
             postProcessStack.Setup(context, camera, useHDR, ShowPostProcess);
             buffer.EndSample(BufferName);
 
+            outputNormals = postProcessStack.SSAOEnabled || postProcessStack.OutlineEnabled;
+
             buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.LinearColorSpace);
             buffer.SetKeyword(orthographicKeyword, camera.orthographic);
 
             // Render
             Setup();
             {
-                GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
-
                 buffer.SetKeyword(outputNormalsKeyword, outputNormals);
                 if (outputNormals)
                 {
@@ -144,54 +118,45 @@ namespace AggroBird.GameRenderPipeline
                 }
                 ExecuteBuffer();
 
+                GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
+
                 // Opaque
                 DrawVisibleGeometry(pipelineAsset.Settings.general, defaultShaderTags, SortingCriteria.CommonOpaque, RenderQueueRange.opaque);
                 DrawUnsupportedShaders();
-                DrawEditorGizmosPreImageEffects();
-
-                // Post process
-                postProcessStack.ApplyPreTransparency(opaqueColorBufferId, opaqueNormalBufferId, opaqueDepthBufferId, opaqueColorBufferId);
 
                 // Skybox
-                int currentDepthBuffer = opaqueDepthBufferId;
                 if (camera.clearFlags == CameraClearFlags.Skybox)
                 {
                     using (CommandBufferScope buffer = new("Render Skybox"))
                     {
-                        EnvironmentSettings.SkyboxSettings skyboxSettings = environmentSettings.skyboxSettings;
-                        if (skyboxSettings.useCubemapAsSkybox)
+                        switch (environmentSettings.skyboxSettings.skyboxSource)
                         {
-                            buffer.commandBuffer.SetRenderTarget(
-                                opaqueColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                                opaqueDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                            buffer.commandBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxSettings.sourceCubemap);
-
-                            buffer.commandBuffer.DrawFullscreenEffect(skyboxCubemapRenderMaterial, (int)SkyboxPass.RenderWorldStatic);
-
-                            // Restore mipped skybox cubemap
-                            buffer.commandBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxCubemapRenderTexture);
-                        }
-                        else
-                        {
-                            buffer.commandBuffer.SetRenderTarget(
-                                opaqueColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                                cloudDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                            buffer.commandBuffer.SetGlobalTexture(opaqueDepthBufferId, currentDepthBuffer);
-
-                            buffer.commandBuffer.DrawFullscreenEffect(skyboxCubemapRenderMaterial, (int)SkyboxPass.RenderWorldDynamic);
-
-                            currentDepthBuffer = cloudDepthBufferId;
+                            case EnvironmentSettings.SkyboxSource.Material:
+                            case EnvironmentSettings.SkyboxSource.Gradient:
+                                bool useDefault = environmentSettings.skyboxSettings.skyboxSource == EnvironmentSettings.SkyboxSource.Gradient || !environmentSettings.skyboxSettings.skyboxMaterial;
+                                Material mat = useDefault ? defaultSkyboxMaterial : environmentSettings.skyboxSettings.skyboxMaterial;
+                                buffer.commandBuffer.DrawFullscreenEffect(mat, 0);
+                                break;
+                            case EnvironmentSettings.SkyboxSource.Cubemap:
+                                buffer.commandBuffer.SetGlobalTexture(skyboxStaticCubemapId, environmentSettings.skyboxSettings.skyboxCubemap);
+                                buffer.commandBuffer.DrawFullscreenEffect(defaultSkyboxMaterial, 1);
+                                break;
                         }
                         context.ExecuteCommandBuffer(buffer);
                     }
                 }
 
+                DrawEditorGizmosPreImageEffects();
+
+                // Post process
+                postProcessStack.ApplyPreTransparency(opaqueColorBufferId, opaqueNormalBufferId, opaqueDepthBufferId, opaqueColorBufferId);
+
                 // Copy opaque into transparent
                 using (CommandBufferScope buffer = new("Copy Opaque Render Buffer"))
                 {
-                    buffer.commandBuffer.BlitFrameBuffer(opaqueColorBufferId, currentDepthBuffer, transparentColorBufferId, transparentDepthBufferId);
+                    buffer.commandBuffer.BlitFrameBuffer(opaqueColorBufferId, opaqueDepthBufferId, transparentColorBufferId, transparentDepthBufferId);
                     buffer.commandBuffer.SetGlobalTexture(opaqueColorBufferId, opaqueColorBufferId);
-                    buffer.commandBuffer.SetGlobalTexture(opaqueDepthBufferId, currentDepthBuffer);
+                    buffer.commandBuffer.SetGlobalTexture(opaqueDepthBufferId, opaqueDepthBufferId);
                     context.ExecuteCommandBuffer(buffer);
                 }
 
@@ -208,15 +173,61 @@ namespace AggroBird.GameRenderPipeline
             Submit();
         }
 
+        private bool TryGetEnvironmentComponent(Camera camera, out EnvironmentComponent environmentComponent)
+        {
+            if (camera.TryGetComponent(out environmentComponent) && environmentComponent.enabled)
+            {
+                return true;
+            }
+            else
+            {
+                if (camera.cameraType == CameraType.SceneView)
+                {
+#if UNITY_EDITOR
+                    // Try to get current main camera component
+                    var activeCameraComponents = EnvironmentCameraComponent.activeCameraComponents;
+                    for (int i = 0; i < activeCameraComponents.Count;)
+                    {
+                        if (!activeCameraComponents[i])
+                        {
+                            int last = activeCameraComponents.Count - 1;
+                            if (i == last)
+                            {
+                                activeCameraComponents.RemoveAt(i);
+                            }
+                            else
+                            {
+                                activeCameraComponents[i] = activeCameraComponents[last];
+                                activeCameraComponents.RemoveAt(last);
+                            }
+                            continue;
+                        }
+
+                        if (activeCameraComponents[i].enabled && activeCameraComponents[i].TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                        {
+                            environmentComponent = activeCameraComponents[i];
+                            return true;
+                        }
+
+                        i++;
+                    }
+#endif
+                }
+            }
+
+            environmentComponent = EnvironmentComponent.activeSceneEnvironment;
+            return environmentComponent && environmentComponent.enabled;
+        }
         private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings)
         {
-            if (camera.TryGetCameraComponent(out EnvironmentComponent environment))
+            if (TryGetEnvironmentComponent(camera, out EnvironmentComponent environmentComponent))
             {
-                environmentSettings = environment.GetEnvironmentSettings();
-                if (environmentSettings != null)
+                var settings = environmentComponent.EnvironmentSettings;
+                if (settings != null)
                 {
-                    SetupEnvironment(environmentSettings, environment.IsDirty);
-                    environment.IsDirty = false;
+                    environmentSettings = settings;
+                    SetupEnvironment(environmentSettings, environmentComponent.modified);
+                    environmentComponent.modified = false;
                     return;
                 }
             }
@@ -236,8 +247,10 @@ namespace AggroBird.GameRenderPipeline
             return false;
         }
 
-        private void SetupEnvironment(EnvironmentSettings settings, bool wasValidated)
+        private void SetupEnvironment(EnvironmentSettings settings, bool environmentModified)
         {
+            settings.UpdateEnvironment();
+
             buffer.SetGlobalVector(primaryLightDirectionId, lighting.PrimaryLightDirection);
             buffer.SetGlobalVector(primaryLightColorId, lighting.PrimaryLightColor);
 
@@ -260,14 +273,14 @@ namespace AggroBird.GameRenderPipeline
                 switch (fogSettings.fogMode)
                 {
                     case EnvironmentSettings.FogMode.Linear:
-                        float linearFogStart = fogSettings.fogParam.x;
-                        float linearFogEnd = fogSettings.fogParam.y;
+                        float linearFogStart = fogSettings.linearStart;
+                        float linearFogEnd = fogSettings.linearEnd;
                         float linearFogRange = linearFogEnd - linearFogStart;
                         fogParam.x = -1.0f / linearFogRange;
                         fogParam.y = linearFogEnd / linearFogRange;
                         break;
                     default:
-                        float expFogDensity = fogSettings.fogParam.z;
+                        float expFogDensity = fogSettings.density;
                         fogParam.x = expFogDensity;
                         break;
                 }
@@ -275,169 +288,41 @@ namespace AggroBird.GameRenderPipeline
                 buffer.SetGlobalVector(fogParamId, fogParam);
             }
 
-            // Clouds
-            EnvironmentSettings.CloudSettings cloudSettings = settings.cloudSettings;
-            bool cloudsEnabled = cloudSettings.enabled && ShowSkybox;
-            buffer.SetKeyword(skyboxCloudsKeyword, cloudsEnabled);
-            if (cloudsEnabled)
-            {
-                buffer.SetGlobalVector(cloudColorTopId, cloudSettings.colorTop.ColorSpaceAdjusted());
-                buffer.SetGlobalVector(cloudColorBottomId, cloudSettings.colorBottom.ColorSpaceAdjusted());
-                buffer.SetGlobalVector(cloudSampleOffsetId, cloudSettings.sampleOffset);
-                buffer.SetGlobalVector(cloudSampleScaleId, cloudSettings.sampleScale);
-                buffer.SetGlobalVector(cloudParamId,
-                    new(cloudSettings.thickness, cloudSettings.height, cloudSettings.layerHeight, cloudSettings.fadeDistance));
-                buffer.SetGlobalVector(cloudTraceParamId,
-                    new(cloudSettings.traceEdgeAccuracy, cloudSettings.traceEdgeThreshold, cloudSettings.traceLengthMax, cloudSettings.traceStep));
-            }
-
-
             // Skybox
-            EnvironmentSettings.SkyboxSettings skyboxSettings = settings.skyboxSettings;
-            Texture2D useGradientTexture = skyboxSettings.gradientTexture;
-            if (!useGradientTexture)
+            if (!defaultSkyboxMaterial)
             {
-                TextureUtility.RenderGradientToTexture(ref skyboxGradientTexture, skyboxSettings.gradient);
-                useGradientTexture = skyboxGradientTexture;
-            }
-
-            buffer.SetGlobalVector(ambientLightColorId, settings.skyboxSettings.ambientColor.ColorSpaceAdjusted());
-            ExecuteBuffer();
-
-            if (!skyboxCubemapRenderMaterial)
-            {
-                skyboxCubemapRenderMaterial = new(pipelineAsset.Resources.skyboxRenderShader)
+                defaultSkyboxMaterial = new(pipelineAsset.Resources.skyboxRenderShader)
                 {
                     hideFlags = HideFlags.HideAndDontSave
                 };
             }
 
-            if (camera.cameraType <= CameraType.SceneView)
+            buffer.SetGlobalTexture(skyboxGradientTextureId, settings.SkyboxGradientTexture);
+            buffer.SetGlobalVector(skyboxGroundColorId, settings.skyboxSettings.groundColor.ColorSpaceAdjusted());
+
+            buffer.SetGlobalFloat(skyboxAnimTimeId, Time.time + skyboxAnimTimeOffset);
+
+#if UNITY_EDITOR
+            if (environmentModified)
             {
-                using (CommandBufferScope buffer = new("Render Skybox Cubemap"))
+                foreach (var reflectionProbe in Object.FindObjectsOfType<ReflectionProbe>())
                 {
-                    CommandBuffer skyboxBuffer = buffer.commandBuffer;
-
-                    skyboxBuffer.SetGlobalTexture(skyboxGradientTextureId, useGradientTexture);
-
-                    if (!skyboxSettings.generateSkyboxCubemap)
+                    if (reflectionProbe.mode == ReflectionProbeMode.Realtime)
                     {
-                        skyboxBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxSettings.sourceCubemap);
+                        reflectionProbe.RenderProbe();
                     }
-                    else
-                    {
-                        // Custom dynamic skybox cubemap
-                        RenderTextureDescriptor desc = new(128, 128, RenderTextureFormat.Default, 0)
-                        {
-                            dimension = TextureDimension.Cube,
-                            useMipMap = true,
-                            autoGenerateMips = false,
-                            mipCount = SkyboxCubemapMipLevels - 1
-                        };
-                        if (!skyboxCubemapRenderTexture)
-                        {
-                            skyboxCubemapRenderTexture = new(desc)
-                            {
-                                name = "SkyboxCubemapRenderTexture",
-                                filterMode = FilterMode.Trilinear
-                            };
-                        }
-                        skyboxBuffer.GetTemporaryRT(skyboxCubemapRenderBlurTargetId, desc, FilterMode.Bilinear);
-                        skyboxBuffer.SetGlobalVector(skyboxGroundColorId, skyboxSettings.groundColor.ColorSpaceAdjusted());
-
-                        bool useStaticCubemap = skyboxSettings.sourceCubemap;
-                        Texture currentSourceTexture = useStaticCubemap ? skyboxSettings.sourceCubemap : skyboxCubemapRenderTexture;
-                        // Force render when static cubemap environment settings changed
-                        bool forceRenderCubemap = (currentSourceTexture != lastSkyboxSourceTexture || wasValidated);
-
-                        if (skyboxEditorForceUpdate <= 0)
-                            lastSkyboxSourceTexture = currentSourceTexture;
-                        else
-                            skyboxEditorForceUpdate--;
-
-                        if (useStaticCubemap) skyboxBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxSettings.sourceCubemap);
-                        SkyboxPass skyboxPass = useStaticCubemap ? SkyboxPass.RenderStatic : SkyboxPass.RenderDynamic;
-                        for (int face = 0; face < 6; face++)
-                        {
-                            skyboxBuffer.SetRenderTarget(skyboxCubemapRenderTexture, 0, (CubemapFace)face);
-                            SetSkyboxCubemapFaceParameters(skyboxBuffer, (CubemapFace)face);
-                            skyboxBuffer.DrawFullscreenEffect(skyboxCubemapRenderMaterial, (int)skyboxPass);
-                        }
-
-                        // If we are not force rendering, we only have to do the blur when we are not using a static cubemap
-                        // (static cubemap is not bound to change)
-                        int iterCount = forceRenderCubemap ? 32 : (useStaticCubemap ? 0 : 1);
-                        for (int iter = 0; iter < iterCount; iter++)
-                        {
-                            float str = 0.1f;
-                            float blend = forceRenderCubemap ? 1.0f : 0.1f;
-                            forceRenderCubemap = false;
-                            for (int srcMip = 0; srcMip < SkyboxCubemapMipLevels - 1; srcMip++)
-                            {
-                                int dstMip = srcMip + 1;
-
-                                for (int face = 0; face < 6; face++)
-                                {
-                                    SetSkyboxCubemapFaceParameters(skyboxBuffer, (CubemapFace)face);
-                                    skyboxBuffer.SetGlobalVector(skyboxCubemapBlurParamId, new(srcMip, skyboxCubemapRandom.Next(0, 1024), str, 1));
-                                    skyboxBuffer.SetRenderTarget(skyboxCubemapRenderBlurTargetId, dstMip, (CubemapFace)face);
-                                    skyboxBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxCubemapRenderTexture);
-                                    skyboxBuffer.DrawFullscreenEffect(skyboxCubemapRenderMaterial, (int)SkyboxPass.Blur);
-                                }
-                                for (int face = 0; face < 6; face++)
-                                {
-                                    SetSkyboxCubemapFaceParameters(skyboxBuffer, (CubemapFace)face);
-                                    skyboxBuffer.SetGlobalVector(skyboxCubemapBlurParamId, new(dstMip, skyboxCubemapRandom.Next(0, 1024), str, blend));
-                                    skyboxBuffer.SetRenderTarget(skyboxCubemapRenderTexture, dstMip, (CubemapFace)face);
-                                    skyboxBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxCubemapRenderBlurTargetId);
-                                    skyboxBuffer.DrawFullscreenEffect(skyboxCubemapRenderMaterial, (int)SkyboxPass.Blur);
-                                }
-                                str *= 1.5f;
-                            }
-                        }
-
-                        skyboxBuffer.SetGlobalTexture(skyboxStaticCubemapId, skyboxCubemapRenderTexture);
-                        skyboxBuffer.ReleaseTemporaryRT(skyboxCubemapRenderBlurTargetId);
-                    }
-                    context.ExecuteCommandBuffer(skyboxBuffer);
                 }
             }
-        }
-        private void SetSkyboxCubemapFaceParameters(CommandBuffer buffer, CubemapFace cubemapFace)
-        {
-            switch (cubemapFace)
-            {
-                case CubemapFace.PositiveX:
-                    buffer.SetGlobalVector(skyboxCubemapRenderForwardId, Vector3.right);
-                    buffer.SetGlobalVector(skyboxCubemapRenderUpId, Vector3.up);
-                    break;
-                case CubemapFace.NegativeX:
-                    buffer.SetGlobalVector(skyboxCubemapRenderForwardId, Vector3.left);
-                    buffer.SetGlobalVector(skyboxCubemapRenderUpId, Vector3.up);
-                    break;
-                case CubemapFace.PositiveY:
-                    buffer.SetGlobalVector(skyboxCubemapRenderForwardId, Vector3.up);
-                    buffer.SetGlobalVector(skyboxCubemapRenderUpId, Vector3.back);
-                    break;
-                case CubemapFace.NegativeY:
-                    buffer.SetGlobalVector(skyboxCubemapRenderForwardId, Vector3.down);
-                    buffer.SetGlobalVector(skyboxCubemapRenderUpId, Vector3.forward);
-                    break;
-                case CubemapFace.PositiveZ:
-                    buffer.SetGlobalVector(skyboxCubemapRenderForwardId, Vector3.forward);
-                    buffer.SetGlobalVector(skyboxCubemapRenderUpId, Vector3.up);
-                    break;
-                case CubemapFace.NegativeZ:
-                    buffer.SetGlobalVector(skyboxCubemapRenderForwardId, Vector3.back);
-                    buffer.SetGlobalVector(skyboxCubemapRenderUpId, Vector3.up);
-                    break;
-            }
+#endif
+
+            buffer.SetGlobalVector(ambientLightColorId, settings.skyboxSettings.ambientColor.ColorSpaceAdjusted());
+            ExecuteBuffer();
         }
 
         private void Setup()
         {
             context.SetupCameraProperties(camera);
-            CameraClearFlags clearFlags = (camera.cameraType == CameraType.Preview) ? CameraClearFlags.SolidColor : camera.clearFlags;
+            CameraClearFlags clearFlags = (camera.cameraType == CameraType.Preview || camera.cameraType == CameraType.SceneView) ? CameraClearFlags.SolidColor : camera.clearFlags;
             bool clearDepth = clearFlags <= CameraClearFlags.Depth;
             bool clearColor = clearFlags == CameraClearFlags.Color;
             Color backgroundColor = clearFlags == CameraClearFlags.Color ? camera.backgroundColor.ColorSpaceAdjusted() : Color.clear;
@@ -466,9 +351,6 @@ namespace AggroBird.GameRenderPipeline
                 transparentDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(true, true, Color.clear);
 
-            // Cloud depth target
-            buffer.GetTemporaryRT(cloudDepthBufferId, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-
             buffer.BeginSample(BufferName);
             ExecuteBuffer();
         }
@@ -485,7 +367,6 @@ namespace AggroBird.GameRenderPipeline
             }
             buffer.ReleaseTemporaryRT(transparentColorBufferId);
             buffer.ReleaseTemporaryRT(transparentDepthBufferId);
-            buffer.ReleaseTemporaryRT(cloudDepthBufferId);
         }
 
         private void Submit()
