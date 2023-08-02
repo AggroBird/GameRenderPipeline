@@ -4,15 +4,11 @@ using UnityEngine;
 namespace AggroBird.GameRenderPipeline
 {
     [RequireComponent(typeof(Camera)), ExecuteAlways]
-    public sealed class EnvironmentCameraComponent : EnvironmentComponent
+    public class EnvironmentCameraComponent : EnvironmentComponent
     {
         [SerializeField] private EnvironmentSettings environmentSettings;
         public override EnvironmentSettings GetEnvironmentSettings() => environmentSettings;
 
-        private void Start()
-        {
-
-        }
 
 #if UNITY_EDITOR
         internal static List<EnvironmentCameraComponent> activeCameraComponents = new();

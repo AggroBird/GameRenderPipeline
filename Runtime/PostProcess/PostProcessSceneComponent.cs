@@ -3,7 +3,7 @@ using UnityEngine;
 namespace AggroBird.GameRenderPipeline
 {
     [ExecuteAlways]
-    public sealed class PostProcessSceneComponent : PostProcessComponent
+    public class PostProcessSceneComponent : PostProcessComponent
     {
         protected override void OnEnable()
         {

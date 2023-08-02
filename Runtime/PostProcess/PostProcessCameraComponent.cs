@@ -4,7 +4,7 @@ using UnityEngine;
 namespace AggroBird.GameRenderPipeline
 {
     [RequireComponent(typeof(Camera)), ExecuteAlways]
-    public sealed class PostProcessCameraComponent : PostProcessComponent
+    public class PostProcessCameraComponent : PostProcessComponent
     {
 #if UNITY_EDITOR
         internal static List<PostProcessCameraComponent> activeCameraComponents = new();

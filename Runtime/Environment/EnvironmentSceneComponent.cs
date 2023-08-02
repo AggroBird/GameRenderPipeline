@@ -3,7 +3,7 @@ using UnityEngine;
 namespace AggroBird.GameRenderPipeline
 {
     [ExecuteAlways]
-    public sealed class EnvironmentSceneComponent : EnvironmentComponent
+    public class EnvironmentSceneComponent : EnvironmentComponent
     {
         [SerializeField] private EnvironmentSettings environmentSettings;
         public override EnvironmentSettings GetEnvironmentSettings() => environmentSettings;
