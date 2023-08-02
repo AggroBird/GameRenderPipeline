@@ -31,7 +31,18 @@ namespace AggroBird.GameRenderPipeline
         {
             BeginCameraRendering(context, camera);
 
-            cameraRenderer.Render(context, camera, cameraIndex, pipelineAsset);
+            CameraUtility.CurrentCamera = camera;
+
+            try
+            {
+                cameraRenderer.Render(context, camera, cameraIndex, pipelineAsset);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+
+            CameraUtility.CurrentCamera = null;
 
             EndCameraRendering(context, camera);
         }

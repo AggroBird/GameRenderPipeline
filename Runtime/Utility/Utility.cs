@@ -1,11 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 
 namespace AggroBird.GameRenderPipeline
 {
+    public static class CameraUtility
+    {
+        public static Camera CurrentCamera { get; internal set; }
+    }
+
     internal static class Tags
     {
         public const string MainCameraTag = "MainCamera";
