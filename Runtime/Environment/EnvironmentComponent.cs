@@ -5,7 +5,7 @@ namespace AggroBird.GameRenderPipeline
     [DisallowMultipleComponent]
     public abstract class EnvironmentComponent : MonoBehaviour
     {
-        public abstract EnvironmentSettings EnvironmentSettings { get; }
+        public abstract EnvironmentSettings GetEnvironmentSettings();
 
         public static EnvironmentComponent activeSceneEnvironment;
 

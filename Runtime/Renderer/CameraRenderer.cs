@@ -222,7 +222,7 @@ namespace AggroBird.GameRenderPipeline
         {
             if (TryGetEnvironmentComponent(camera, out EnvironmentComponent environmentComponent))
             {
-                var settings = environmentComponent.EnvironmentSettings;
+                var settings = environmentComponent.GetEnvironmentSettings();
                 if (settings != null)
                 {
                     environmentSettings = settings;

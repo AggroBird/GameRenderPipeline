@@ -6,7 +6,7 @@ namespace AggroBird.GameRenderPipeline
     public sealed class EnvironmentSceneComponent : EnvironmentComponent
     {
         [SerializeField] private EnvironmentSettings environmentSettings;
-        public override EnvironmentSettings EnvironmentSettings => environmentSettings;
+        public override EnvironmentSettings GetEnvironmentSettings() => environmentSettings;
 
 
         protected override void OnEnable()
