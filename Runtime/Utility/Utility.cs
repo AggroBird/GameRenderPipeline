@@ -40,8 +40,8 @@ namespace AggroBird.GameRenderPipeline
         }
 
         private static readonly int
-            blitColorTexId = Shader.PropertyToID("_MainTex"),
-            blitDepthTexId = Shader.PropertyToID("_DepthTex");
+            blitColorTexId = Shader.PropertyToID("_Blit_ColorTex"),
+            blitDepthTexId = Shader.PropertyToID("_Blit_DepthTex");
 
         public static void BlitFrameBuffer(this CommandBuffer commandBuffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier dst, bool clear = false)
         {
