@@ -99,7 +99,7 @@ namespace AggroBird.GameRenderPipeline
             [Min(3)]
             public float focusRange;
 
-            [Min(1)]
+            [Min(0)]
             public float bokehRadius;
         }
 
