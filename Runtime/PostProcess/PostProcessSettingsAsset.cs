@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace AggroBird.GameRenderPipeline
 {
-    [System.Serializable]
+    [Serializable]
     public sealed class PostProcessSettings
     {
-        [System.Serializable]
+        [Serializable]
         public struct General
         {
             public enum ColorLUTResolution
@@ -18,12 +19,12 @@ namespace AggroBird.GameRenderPipeline
             public ColorLUTResolution colorLUTResolution;
         }
 
-        public General general = new General
+        public General general = new()
         {
             colorLUTResolution = General.ColorLUTResolution._32,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct SMAA
         {
             public enum Quality
@@ -38,13 +39,13 @@ namespace AggroBird.GameRenderPipeline
             public Quality quality;
         }
 
-        public SMAA smaa = new SMAA
+        public SMAA smaa = new()
         {
             enabled = false,
             quality = SMAA.Quality.High,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct Bloom
         {
             public bool enabled;
@@ -74,7 +75,7 @@ namespace AggroBird.GameRenderPipeline
             public float scatter;
         }
 
-        public Bloom bloom = new Bloom
+        public Bloom bloom = new()
         {
             enabled = false,
             maxIterations = 3,
@@ -87,7 +88,7 @@ namespace AggroBird.GameRenderPipeline
             scatter = 0.7f,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct DepthOfField
         {
             public bool enabled;
@@ -102,7 +103,7 @@ namespace AggroBird.GameRenderPipeline
             public float bokehRadius;
         }
 
-        public DepthOfField depthOfField = new DepthOfField
+        public DepthOfField depthOfField = new()
         {
             enabled = false,
             focusDistance = 3,
@@ -110,7 +111,7 @@ namespace AggroBird.GameRenderPipeline
             bokehRadius = 4,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct Outline
         {
             public bool enabled;
@@ -139,7 +140,7 @@ namespace AggroBird.GameRenderPipeline
             public float depthFadeEnd;
         }
 
-        public Outline outline = new Outline
+        public Outline outline = new()
         {
             color = new Color(0, 0, 0, 1),
             normalIntensity = 2.78f,
@@ -151,7 +152,7 @@ namespace AggroBird.GameRenderPipeline
             depthFadeEnd = 1000,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct AmbientOcclusion
         {
             public bool enabled;
@@ -166,7 +167,7 @@ namespace AggroBird.GameRenderPipeline
             public float intensity;
         }
 
-        public AmbientOcclusion ambientOcclusion = new AmbientOcclusion
+        public AmbientOcclusion ambientOcclusion = new()
         {
             enabled = false,
             sampleCount = 4,
@@ -174,7 +175,7 @@ namespace AggroBird.GameRenderPipeline
             intensity = 0.25f,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct ColorAdjustments
         {
             public float postExposure;
@@ -192,12 +193,12 @@ namespace AggroBird.GameRenderPipeline
             public float saturation;
         }
 
-        public ColorAdjustments colorAdjustments = new ColorAdjustments
+        public ColorAdjustments colorAdjustments = new()
         {
             colorFilter = Color.white
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct WhiteBalance
         {
             [Range(-100f, 100f)]
@@ -207,12 +208,12 @@ namespace AggroBird.GameRenderPipeline
             public float tint;
         }
 
-        public WhiteBalance whiteBalance = new WhiteBalance
+        public WhiteBalance whiteBalance = new()
         {
 
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct SplitToning
         {
             [ColorUsage(false)]
@@ -225,26 +226,26 @@ namespace AggroBird.GameRenderPipeline
             public float balance;
         }
 
-        public SplitToning splitToning = new SplitToning
+        public SplitToning splitToning = new()
         {
             shadows = Color.gray,
             highlights = Color.gray,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct ChannelMixer
         {
             public Vector3 red, green, blue;
         }
 
-        public ChannelMixer channelMixer = new ChannelMixer
+        public ChannelMixer channelMixer = new()
         {
             red = Vector3.right,
             green = Vector3.up,
             blue = Vector3.forward,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct ShadowsMidtonesHighlights
         {
             [ColorUsage(false, true)]
@@ -254,7 +255,7 @@ namespace AggroBird.GameRenderPipeline
             public float shadowsStart, shadowsEnd, highlightsStart, highLightsEnd;
         }
 
-        public ShadowsMidtonesHighlights shadowsMidtonesHighlights = new ShadowsMidtonesHighlights
+        public ShadowsMidtonesHighlights shadowsMidtonesHighlights = new()
         {
             shadows = Color.white,
             midtones = Color.white,
@@ -264,7 +265,7 @@ namespace AggroBird.GameRenderPipeline
             highLightsEnd = 1f,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct Vignette
         {
             public bool enabled;
@@ -272,13 +273,13 @@ namespace AggroBird.GameRenderPipeline
             public float falloff;
         }
 
-        public Vignette vignette = new Vignette
+        public Vignette vignette = new()
         {
             enabled = false,
             falloff = 0.5f,
         };
 
-        [System.Serializable]
+        [Serializable]
         public struct ToneMapping
         {
             public enum Mode
@@ -292,7 +293,7 @@ namespace AggroBird.GameRenderPipeline
             public Mode mode;
         }
 
-        public ToneMapping toneMapping = new ToneMapping
+        public ToneMapping toneMapping = new()
         {
             mode = ToneMapping.Mode.None,
         };
@@ -302,7 +303,7 @@ namespace AggroBird.GameRenderPipeline
     public sealed class PostProcessSettingsAsset : ScriptableObject
     {
         [SerializeField]
-        private PostProcessSettings postProcessSettings = new PostProcessSettings();
-        public PostProcessSettings settings => postProcessSettings;
+        private PostProcessSettings postProcessSettings = new();
+        public PostProcessSettings Settings => postProcessSettings;
     }
 }

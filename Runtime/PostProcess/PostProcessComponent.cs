@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -6,7 +7,7 @@ namespace AggroBird.GameRenderPipeline
     [DisallowMultipleComponent]
     public abstract class PostProcessComponent : MonoBehaviour
     {
-        [System.Serializable]
+        [Serializable]
         public struct FinalBlendMode
         {
             public BlendMode source, destination;
@@ -19,7 +20,16 @@ namespace AggroBird.GameRenderPipeline
         };
 
         [Space]
-        public PostProcessSettingsAsset postProcessSettingsAsset;
+        [SerializeField] private PostProcessSettingsAsset postProcessSettingsAsset;
+
+        public virtual PostProcessSettings GetPostProcessSettings()
+        {
+            if (postProcessSettingsAsset != null)
+            {
+                return postProcessSettingsAsset.Settings;
+            }
+            return null;
+        }
 
 
         internal static PostProcessComponent activeScenePostProcess;

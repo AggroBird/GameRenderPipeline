@@ -259,7 +259,7 @@ namespace AggroBird.GameRenderPipeline
             {
                 srcBlendMode = postProcessComponent.finalBlendMode.source;
                 dstBlendMode = postProcessComponent.finalBlendMode.destination;
-                settings = postProcessComponent.postProcessSettingsAsset ? postProcessComponent.postProcessSettingsAsset.settings : null;
+                settings = postProcessComponent.GetPostProcessSettings();
                 if (settings == null) postProcessEnabled = false;
             }
             else
