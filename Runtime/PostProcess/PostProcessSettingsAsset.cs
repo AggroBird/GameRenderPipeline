@@ -96,7 +96,7 @@ namespace AggroBird.GameRenderPipeline
             [Min(0)]
             public float focusDistance;
 
-            [Min(3)]
+            [Min(0.1f)]
             public float focusRange;
 
             [Min(0)]
