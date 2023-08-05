@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
-
-[assembly: InternalsVisibleTo("AggroBird.GameRenderPipeline.Editor")]
 
 namespace AggroBird.GameRenderPipeline
 {
