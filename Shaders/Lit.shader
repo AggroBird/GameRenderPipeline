@@ -38,7 +38,7 @@
 		HLSLINCLUDE
 		#pragma multi_compile_instancing
 		#pragma multi_compile _ LOD_FADE_CROSSFADE
-		#include "Includes/LitInput.hlsl"
+		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/LitInput.hlsl"
 		ENDHLSL
 
 		Tags
@@ -78,7 +78,7 @@
 			#pragma multi_compile _ _CELL_SHADING_ENABLED
 			#pragma vertex LitPassVertex
 			#pragma fragment LitPassFragment
-			#include "Includes/LitPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/LitPass.hlsl"
 			ENDHLSL
 		}
 
@@ -99,7 +99,7 @@
 			#pragma shader_feature _TREE_MATERIAL
 			#pragma vertex ShadowCasterPassVertex
 			#pragma fragment ShadowCasterPassFragment
-			#include "Includes/ShadowCasterPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/ShadowCasterPass.hlsl"
 			ENDHLSL
 		}
 	}

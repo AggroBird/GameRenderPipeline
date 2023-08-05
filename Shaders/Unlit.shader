@@ -23,7 +23,7 @@
 	{
 		HLSLINCLUDE
 		#pragma multi_compile_instancing
-		#include "Includes/UnlitInput.hlsl"
+		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/UnlitInput.hlsl"
 		ENDHLSL
 
 		Tags
@@ -47,7 +47,7 @@
 			#pragma shader_feature _HAS_EMISSION_TEXTURE
 			#pragma vertex UnlitPassVertex
 			#pragma fragment UnlitPassFragment
-			#include "Includes/UnlitPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/UnlitPass.hlsl"
 			ENDHLSL
 		}
 

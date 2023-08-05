@@ -7,8 +7,8 @@
 	Subshader
 	{
 		HLSLINCLUDE
-		#include "Includes/BlitPass.hlsl"
-		#include "Includes/Environment.hlsl"
+		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/BlitPass.hlsl"
+		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/Environment.hlsl"
 		#pragma multi_compile _ _SKYBOX_CLOUDS_ENABLED
 		ENDHLSL
 

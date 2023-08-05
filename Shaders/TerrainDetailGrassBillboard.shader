@@ -1,4 +1,4 @@
-﻿Shader "Hidden/GRP/TerrainDetailGrass"
+﻿Shader "Hidden/GRP/TerrainDetailGrassBillboard"
 {
 	Properties
 	{
@@ -38,9 +38,10 @@
 
 			#pragma vertex GrassVertex
 			#pragma fragment GrassFragment
+			#define GRASS_BILLBOARD
 
-			#include "Includes/TerrainGrassInput.hlsl"
-			#include "Includes/TerrainGrassPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainGrassInput.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainGrassPass.hlsl"
 
 			ENDHLSL
 		}

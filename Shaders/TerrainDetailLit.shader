@@ -7,7 +7,7 @@
 	Subshader
 	{
 		HLSLINCLUDE
-		#include "Includes/Common.hlsl"
+		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/Common.hlsl"
 		ENDHLSL
 
 		Tags

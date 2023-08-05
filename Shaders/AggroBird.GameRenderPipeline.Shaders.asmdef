@@ -1,11 +1,7 @@
 {
-    "name": "AggroBird.GameRenderPipeline",
-    "rootNamespace": "AggroBird.GameRenderPipeline",
-    "references": [
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
-        "GUID:aa3a8715dda4abe428fe18cc8124d015",
-        "GUID:69aeef8a5eb2ac447a4c6fd674ba1fed"
-    ],
+    "name": "AggroBird.GameRenderPipeline.Shaders",
+    "rootNamespace": "",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

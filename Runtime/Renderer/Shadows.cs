@@ -213,7 +213,7 @@ namespace AggroBird.GameRenderPipeline
         private void RenderDirectionalShadows(int index, int split, int tileSize)
         {
             ShadowedDirectionalLight light = shadowedDirectionalLights[index];
-            var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
+            var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex, BatchCullingProjectionType.Orthographic);
             int cascadeCount = settings.directional.cascadeCount;
             int tileOffset = index * cascadeCount;
             Vector3 ratios = settings.directional.CascadeRatios;
@@ -292,7 +292,7 @@ namespace AggroBird.GameRenderPipeline
         private void RenderSpotShadows(int index, int split, int tileSize)
         {
             ShadowedOtherLight light = shadowedOtherLights[index];
-            var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
+            var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex, BatchCullingProjectionType.Perspective);
             cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(light.visibleLightIndex, out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix, out ShadowSplitData splitData);
             shadowSettings.splitData = splitData;
 
@@ -313,7 +313,7 @@ namespace AggroBird.GameRenderPipeline
         private void RenderPointShadows(int index, int split, int tileSize)
         {
             ShadowedOtherLight light = shadowedOtherLights[index];
-            var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
+            var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex, BatchCullingProjectionType.Perspective);
 
             float texelSize = 2f / tileSize;
             float filterSize = texelSize * ((float)settings.other.filter + 1f);

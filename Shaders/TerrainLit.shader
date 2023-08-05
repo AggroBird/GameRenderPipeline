@@ -55,8 +55,8 @@
 			#pragma multi_compile _ _CELL_SHADING_ENABLED
 			#pragma vertex TerrainLitPassVertex
 			#pragma fragment TerrainLitPassFragment
-			#include "Includes/TerrainLitInput.hlsl"
-			#include "Includes/TerrainLitPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitInput.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitPass.hlsl"
 			ENDHLSL
 		}
 
@@ -74,8 +74,8 @@
 			#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
 			#pragma vertex TerrainShadowCasterPassVertex
 			#pragma fragment TerrainShadowCasterPassFragment
-			#include "Includes/TerrainLitInput.hlsl"
-			#include "Includes/TerrainLitPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitInput.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitPass.hlsl"
 			ENDHLSL
 		}
 
@@ -93,8 +93,8 @@
 			#pragma target 3.5
 			#pragma vertex DepthOnlyVertex
 			#pragma fragment DepthOnlyFragment
-			#include "Includes/TerrainLitInput.hlsl"
-			#include "Includes/TerrainLitPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitInput.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitPass.hlsl"
 			ENDHLSL
 		}
 
@@ -110,8 +110,8 @@
 			#pragma vertex DepthOnlyVertex
 			#pragma fragment DepthOnlyFragment
 			#define SCENESELECTIONPASS
-			#include "Includes/TerrainLitInput.hlsl"
-			#include "Includes/TerrainLitPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitInput.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitPass.hlsl"
             ENDHLSL
         }
 		UsePass "Hidden/Nature/Terrain/Utilities/PICKING"

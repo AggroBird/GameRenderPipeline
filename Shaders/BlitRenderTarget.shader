@@ -7,7 +7,7 @@
 	Subshader
 	{
 		HLSLINCLUDE
-		#include "Includes/BlitPass.hlsl"
+		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/BlitPass.hlsl"
 		ENDHLSL
 
 		Pass

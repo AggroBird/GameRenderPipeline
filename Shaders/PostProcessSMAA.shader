@@ -15,7 +15,7 @@
             #pragma vertex VertEdge
             #pragma fragment FragEdge
             #define SMAA_PRESET_LOW
-            #include "Includes/SMAAPass.hlsl"
+            #include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/SMAAPass.hlsl"
             ENDHLSL
         }
 
@@ -26,7 +26,7 @@
             #pragma vertex VertEdge
             #pragma fragment FragEdge
             #define SMAA_PRESET_MEDIUM
-            #include "Includes/SMAAPass.hlsl"
+            #include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/SMAAPass.hlsl"
             ENDHLSL
         }
 
@@ -37,7 +37,7 @@
             #pragma vertex VertEdge
             #pragma fragment FragEdge
             #define SMAA_PRESET_HIGH
-            #include "Includes/SMAAPass.hlsl"
+            #include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/SMAAPass.hlsl"
             ENDHLSL
         }
 
@@ -48,7 +48,7 @@
             #pragma vertex VertBlend
             #pragma fragment FragBlend
             #define SMAA_PRESET_LOW
-            #include "Includes/SMAAPass.hlsl"
+            #include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/SMAAPass.hlsl"
             ENDHLSL
         }
 
@@ -59,7 +59,7 @@
             #pragma vertex VertBlend
             #pragma fragment FragBlend
             #define SMAA_PRESET_MEDIUM
-            #include "Includes/SMAAPass.hlsl"
+            #include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/SMAAPass.hlsl"
             ENDHLSL
         }
 
@@ -70,7 +70,7 @@
             #pragma vertex VertBlend
             #pragma fragment FragBlend
             #define SMAA_PRESET_HIGH
-            #include "Includes/SMAAPass.hlsl"
+            #include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/SMAAPass.hlsl"
             ENDHLSL
         }
 
@@ -80,7 +80,7 @@
             HLSLPROGRAM
             #pragma vertex VertNeighbor
             #pragma fragment FragNeighbor
-            #include "Includes/SMAAPass.hlsl"
+            #include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/SMAAPass.hlsl"
             ENDHLSL
         }
 	}

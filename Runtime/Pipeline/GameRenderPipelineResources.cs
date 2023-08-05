@@ -16,5 +16,8 @@ namespace AggroBird.GameRenderPipeline
         public Shader smaaShader = default;
         public Texture2D smaaAreaTexture = default;
         public Texture2D smaaSearchTexture = default;
+
+        [Space]
+        public Shader[] includeShaders;
     }
 }

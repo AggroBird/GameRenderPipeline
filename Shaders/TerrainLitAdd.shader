@@ -60,8 +60,8 @@
 			#pragma vertex TerrainLitPassVertex
 			#pragma fragment TerrainLitPassFragment
 			#define TERRAIN_SPLAT_ADDPASS
-			#include "Includes/TerrainLitInput.hlsl"
-			#include "Includes/TerrainLitPass.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitInput.hlsl"
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitPass.hlsl"
 			ENDHLSL
 		}
 	}
