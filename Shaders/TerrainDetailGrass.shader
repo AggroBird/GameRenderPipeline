@@ -12,8 +12,6 @@
 		Tags
 		{
 			"Queue" = "Geometry+200"
-			"RenderPipeline" = "GameRenderPipeline"
-			"ShaderModel" = "3.5"
 		}
 
 		Cull Off

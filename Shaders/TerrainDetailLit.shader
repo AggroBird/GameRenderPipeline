@@ -10,12 +10,6 @@
 		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/Common.hlsl"
 		ENDHLSL
 
-		Tags
-		{
-			"RenderPipeline" = "GameRenderPipeline"
-			"ShaderModel" = "3.5"
-		}
-
 		Pass
 		{
 			HLSLPROGRAM

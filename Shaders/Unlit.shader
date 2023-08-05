@@ -29,7 +29,6 @@
 		Tags
 		{
 			"RenderPipeline" = "GameRenderPipeline"
-			"ShaderModel" = "3.5"
 		}
 
 		Pass

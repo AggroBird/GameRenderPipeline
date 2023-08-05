@@ -33,8 +33,6 @@
 		Tags
 		{
 			"Queue" = "Geometry-99"
-			"RenderPipeline" = "GameRenderPipeline"
-			"ShaderModel" = "3.5"
 		}
 
 		Pass

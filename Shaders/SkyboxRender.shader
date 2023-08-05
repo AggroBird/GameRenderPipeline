@@ -17,8 +17,6 @@
 			"Queue" = "Background"
 			"RenderType" = "Background"
 			"PreviewType" = "Skybox"
-			"RenderPipeline" = "GameRenderPipeline"
-			"ShaderModel" = "3.5"
 		}
 		Cull Off ZWrite Off
 

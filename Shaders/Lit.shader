@@ -41,12 +41,6 @@
 		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/LitInput.hlsl"
 		ENDHLSL
 
-		Tags
-		{
-			"RenderPipeline" = "GameRenderPipeline"
-			"ShaderModel" = "3.5"
-		}
-
 		Pass
 		{
 			Name "LitPass"
