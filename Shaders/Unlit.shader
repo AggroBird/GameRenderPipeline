@@ -26,11 +26,6 @@
 		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/UnlitInput.hlsl"
 		ENDHLSL
 
-		Tags
-		{
-			"RenderPipeline" = "GameRenderPipeline"
-		}
-
 		Pass
 		{
 			Name "UnlitPass"
