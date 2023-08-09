@@ -1,12 +1,13 @@
 {
 	"name": "com.aggrobird.gamerenderpipeline",
-	"displayName":"Game Render Pipeline",
+	"displayName": "Game Render Pipeline",
 	"version": "1.0.36",
 	"unity": "2022.3",
 	"keywords": ["Render", "Pipeline"],
 	"category": "Rendering",
 	"description": "Custom render pipeline for unity games",
-	"dependencies": {
+	"dependencies":
+	{
 		"com.unity.render-pipelines.core": "12.1.8"
 	},
 	"author":
