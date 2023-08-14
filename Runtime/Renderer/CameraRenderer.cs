@@ -53,6 +53,7 @@ namespace AggroBird.GameRenderPipeline
             rtNormalBufferId = Shader.PropertyToID("_RTNormalBuffer"),
             opaqueColorBufferId = Shader.PropertyToID("_OpaqueColorBuffer"),
             opaqueDepthBufferId = Shader.PropertyToID("_OpaqueDepthBuffer"),
+            opaqueNormalBufferId = Shader.PropertyToID("_OpaqueNormalBuffer"),
             ambientLightColorId = Shader.PropertyToID("_AmbientLightColor");
 
         private static readonly int
@@ -152,6 +153,11 @@ namespace AggroBird.GameRenderPipeline
                         buffer.commandBuffer.BlitFrameBuffer(rtColorBufferId, rtDepthBufferId, opaqueColorBufferId, opaqueDepthBufferId);
                         buffer.commandBuffer.SetGlobalTexture(opaqueColorBufferId, opaqueColorBufferId);
                         buffer.commandBuffer.SetGlobalTexture(opaqueDepthBufferId, opaqueDepthBufferId);
+                        if (outputNormals)
+                        {
+                            buffer.commandBuffer.BlitFrameBuffer(rtNormalBufferId, opaqueNormalBufferId);
+                            buffer.commandBuffer.SetGlobalTexture(opaqueNormalBufferId, opaqueNormalBufferId);
+                        }
                         context.ExecuteCommandBuffer(buffer);
                     }
                     RestoreDefaultRenderTargets();
