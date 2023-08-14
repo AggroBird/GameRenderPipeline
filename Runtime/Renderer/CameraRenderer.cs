@@ -109,7 +109,15 @@ namespace AggroBird.GameRenderPipeline
             Setup();
             {
                 buffer.SetKeyword(outputNormalsKeyword, outputNormals);
-                RestoreDefaultRenderTargets();
+                if (outputNormals)
+                {
+                    // Bind normal buffer as second output
+                    buffer.SetRenderTarget(new RenderTargetIdentifier[] { rtColorBufferId, rtNormalBufferId }, rtDepthBufferId);
+                }
+                else
+                {
+                    RestoreDefaultRenderTargets();
+                }
                 ExecuteBuffer();
 
                 GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
@@ -155,11 +163,15 @@ namespace AggroBird.GameRenderPipeline
                         buffer.commandBuffer.SetGlobalTexture(opaqueDepthBufferId, opaqueDepthBufferId);
                         if (outputNormals)
                         {
-                            buffer.commandBuffer.BlitFrameBuffer(rtNormalBufferId, opaqueNormalBufferId);
-                            buffer.commandBuffer.SetGlobalTexture(opaqueNormalBufferId, opaqueNormalBufferId);
+                            buffer.commandBuffer.SetGlobalTexture(opaqueNormalBufferId, rtNormalBufferId);
                         }
                         context.ExecuteCommandBuffer(buffer);
                     }
+                }
+
+                // Transparent does not output normals, use only the default render targets
+                if (outputOpaque || outputNormals)
+                {
                     RestoreDefaultRenderTargets();
                     ExecuteBuffer();
                 }
@@ -179,16 +191,9 @@ namespace AggroBird.GameRenderPipeline
 
         private void RestoreDefaultRenderTargets()
         {
-            if (outputNormals)
-            {
-                buffer.SetRenderTarget(new RenderTargetIdentifier[] { rtColorBufferId, rtNormalBufferId }, rtDepthBufferId);
-            }
-            else
-            {
-                buffer.SetRenderTarget(
-                    rtColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
-                    rtDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            }
+            buffer.SetRenderTarget(
+                rtColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
+                rtDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
         }
 
         private bool TryGetEnvironmentComponent(Camera camera, out EnvironmentComponent environmentComponent)
