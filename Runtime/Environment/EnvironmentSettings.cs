@@ -5,14 +5,14 @@ namespace AggroBird.GameRenderPipeline
 {
     internal sealed class ConditionalPropertyAttribute : PropertyAttribute
     {
-        public ConditionalPropertyAttribute(string name, params string[] values)
+        public ConditionalPropertyAttribute(string name, params object[] values)
         {
             this.name = name;
             this.values = values;
         }
 
         public readonly string name;
-        public readonly string[] values;
+        public readonly object[] values;
     }
 
     [Serializable]
@@ -35,11 +35,11 @@ namespace AggroBird.GameRenderPipeline
             public Color ambientColor;
             public Color inscatteringColor;
             public FogMode fogMode;
-            [ConditionalProperty("fogMode", "Linear"), Min(0)]
+            [ConditionalProperty("fogMode", FogMode.Linear), Min(0)]
             public float linearStart;
-            [ConditionalProperty("fogMode", "Linear"), Min(0)]
+            [ConditionalProperty("fogMode", FogMode.Linear), Min(0)]
             public float linearEnd;
-            [ConditionalProperty("fogMode", "Exponential", "ExponentialSquared"), Min(0)]
+            [ConditionalProperty("fogMode", FogMode.Exponential, FogMode.ExponentialSquared), Min(0)]
             public float density;
 
             [Space]
