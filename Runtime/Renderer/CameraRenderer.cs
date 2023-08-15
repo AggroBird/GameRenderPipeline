@@ -172,6 +172,7 @@ namespace AggroBird.GameRenderPipeline
                 // Transparent does not output normals, use only the default render targets
                 if (outputOpaque || outputNormals)
                 {
+                    buffer.SetKeyword(outputNormalsKeyword, false);
                     RestoreDefaultRenderTargets();
                     ExecuteBuffer();
                 }
