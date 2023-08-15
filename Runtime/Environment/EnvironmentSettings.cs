@@ -35,11 +35,11 @@ namespace AggroBird.GameRenderPipeline
             public Color ambientColor;
             public Color inscatteringColor;
             public FogMode fogMode;
-            [ConditionalProperty("fogMode", FogMode.Linear), Min(0)]
+            [ConditionalProperty(nameof(fogMode), FogMode.Linear), Min(0)]
             public float linearStart;
-            [ConditionalProperty("fogMode", FogMode.Linear), Min(0)]
+            [ConditionalProperty(nameof(fogMode), FogMode.Linear), Min(0)]
             public float linearEnd;
-            [ConditionalProperty("fogMode", FogMode.Exponential, FogMode.ExponentialSquared), Min(0)]
+            [ConditionalProperty(nameof(fogMode), FogMode.Exponential, FogMode.ExponentialSquared), Min(0)]
             public float density;
 
             [Space]
@@ -60,17 +60,17 @@ namespace AggroBird.GameRenderPipeline
             lightDirection = Vector3.forward,
         };
 
+        public enum GradientSource
+        {
+            Gradient,
+            Texture,
+        }
+
         public enum SkyboxSource
         {
             Material,
             Cubemap,
             Gradient,
-        }
-
-        public enum GradientSource
-        {
-            Gradient,
-            Texture,
         }
 
         [Serializable]
@@ -96,16 +96,16 @@ namespace AggroBird.GameRenderPipeline
             }
 
             public GradientSource gradientSource;
-            [ConditionalProperty("gradientSource", "Gradient")]
+            [ConditionalProperty(nameof(gradientSource), GradientSource.Gradient)]
             public Gradient skyboxGradient;
-            [ConditionalProperty("gradientSource", "Texture")]
+            [ConditionalProperty(nameof(gradientSource), GradientSource.Texture)]
             public Texture2D skyboxTexture;
             public Color groundColor;
             [Space]
             public SkyboxSource skyboxSource;
-            [ConditionalProperty("skyboxSource", "Material")]
+            [ConditionalProperty(nameof(skyboxSource), SkyboxSource.Material)]
             public Material skyboxMaterial;
-            [ConditionalProperty("skyboxSource", "Cubemap")]
+            [ConditionalProperty(nameof(skyboxSource), SkyboxSource.Cubemap)]
             public Cubemap skyboxCubemap;
             [Space]
             [ColorUsage(false, true)]

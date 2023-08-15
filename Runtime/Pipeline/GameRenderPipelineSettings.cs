@@ -30,7 +30,7 @@ namespace AggroBird.GameRenderPipeline
 
         [Space]
         public bool outputOpaqueRenderTargets = false;
-        [ConditionalProperty("outputOpaqueRenderTargets", true)]
+        [ConditionalProperty(nameof(outputOpaqueRenderTargets), true)]
         public bool outputOpaqueNormalBuffer = false;
     }
 
