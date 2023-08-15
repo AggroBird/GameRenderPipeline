@@ -43,5 +43,5 @@
 			ENDHLSL
 		}
 	}
-	CustomEditor "AggroBird.GRP.Editor.CustomShaderGUI"
+	CustomEditor "AggroBird.GameRenderPipeline.Editor.CustomShaderGUI"
 }

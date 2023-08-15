@@ -115,5 +115,5 @@
 		UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
 	}
 	Dependency "AddPassShader" = "Hidden/GRP/TerrainLitAdd"
-	CustomEditor "AggroBird.GRP.Editor.CustomShaderGUI"
+	CustomEditor "AggroBird.GameRenderPipeline.Editor.CustomShaderGUI"
 }
