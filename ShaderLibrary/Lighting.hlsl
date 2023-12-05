@@ -35,9 +35,11 @@ float3 DefaultLightAttenuation(Surface surface, Light light)
 float3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
 {
 	ShadowData shadowData = GetShadowData(surface);
-
+	
+	// Metallic, smoothness and fresnel
 	float3 indirect = IndirectBRDF(surface, brdf, globalIllumination.specular);
 	
+	// Direct lights
 	float3 result = indirect;
 	for (int i = 0; i < GetDirectionalLightCount(); i++)
 	{
@@ -45,6 +47,7 @@ float3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination globa
 		result += DirectBRDF(surface, brdf, light) * GRP_LIGHT_ATTENUATION_FUNC(surface, light);
 	}
 
+	// Other lights
 #if defined(_LIGHTS_PER_OBJECT)
 	for (int j = 0; j < min(unity_LightData.y, 8); j++)
 	{
