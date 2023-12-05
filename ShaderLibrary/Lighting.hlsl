@@ -18,6 +18,10 @@ SAMPLER(sampler_CellShading_Falloff);
 #define GRP_LIGHT_ATTENUATION_FUNC DefaultLightAttenuation
 #endif
 
+#ifndef GRP_LIGHT_GET_TOTAL_FUNC
+#define GRP_LIGHT_GET_TOTAL_FUNC DefaultGetLightTotal
+#endif
+
 float3 DefaultLightAttenuation(Surface surface, Light light)
 {
 	float d = dot(surface.normal, light.direction);
@@ -28,12 +32,7 @@ float3 DefaultLightAttenuation(Surface surface, Light light)
 	return light.color * a;
 }
 
-float3 GetLighting(Surface surface, BRDF brdf, Light light)
-{
-	return DirectBRDF(surface, brdf, light) * GRP_LIGHT_ATTENUATION_FUNC(surface, light);
-}
-
-float3 GetTotalLighting(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
+float3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
 {
 	ShadowData shadowData = GetShadowData(surface);
 
@@ -43,7 +42,7 @@ float3 GetTotalLighting(Surface surface, BRDF brdf, GlobalIllumination globalIll
 	for (int i = 0; i < GetDirectionalLightCount(); i++)
 	{
 		Light light = GetDirectionalLight(i, surface, shadowData);
-		result += GetLighting(surface, brdf, light);
+		result += DirectBRDF(surface, brdf, light) * GRP_LIGHT_ATTENUATION_FUNC(surface, light);
 	}
 
 #if defined(_LIGHTS_PER_OBJECT)
@@ -51,13 +50,13 @@ float3 GetTotalLighting(Surface surface, BRDF brdf, GlobalIllumination globalIll
 	{
 		int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
 		Light light = GetOtherLight(lightIndex, surface, shadowData);
-		result += GetLighting(surface, brdf, light);
+		result += DirectBRDF(surface, brdf, light) * GRP_LIGHT_ATTENUATION_FUNC(surface, light);
 	}
 #else
 	for (int j = 0; j < GetOtherLightCount(); j++)
 	{
 		Light light = GetOtherLight(j, surface, shadowData);
-		result += GetLighting(surface, brdf, light);
+		result += DirectBRDF(surface, brdf, light) * GRP_LIGHT_ATTENUATION_FUNC(surface, light);
 	}
 #endif
 
