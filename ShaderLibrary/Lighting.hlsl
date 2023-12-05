@@ -14,7 +14,11 @@ TEXTURE2D(_CellShading_Falloff);
 SAMPLER(sampler_CellShading_Falloff);
 #endif
 
-float3 IncomingLight(Surface surface, Light light)
+#ifndef GRP_LIGHT_ATTENUATION_FUNC
+#define GRP_LIGHT_ATTENUATION_FUNC DefaultLightAttenuation
+#endif
+
+float3 DefaultLightAttenuation(Surface surface, Light light)
 {
 	float3 d = saturate(dot(surface.normal, light.direction) * light.attenuation);
 #if defined(_CELL_SHADING_ENABLED)
@@ -25,7 +29,7 @@ float3 IncomingLight(Surface surface, Light light)
 
 float3 GetLighting(Surface surface, BRDF brdf, Light light)
 {
-	return DirectBRDF(surface, brdf, light) * IncomingLight(surface, light);
+	return DirectBRDF(surface, brdf, light) * GRP_LIGHT_ATTENUATION_FUNC(surface, light);
 }
 
 float3 GetTotalLighting(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
