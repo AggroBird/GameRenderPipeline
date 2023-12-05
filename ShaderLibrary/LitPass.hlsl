@@ -48,7 +48,7 @@ Varyings LitPassVertex(Attributes input)
 	output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
-	output.texcoord = TransformTexcoord(input.texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MainTex_ST));
+	output.texcoord = input.texcoord;
 
 	output.color = input.color;
 

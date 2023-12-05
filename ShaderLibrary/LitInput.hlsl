@@ -11,6 +11,8 @@ SAMPLER(sampler_MainTex);
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
+	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionTex_ST)
+	UNITY_DEFINE_INSTANCED_PROP(float4, _NormalTex_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
 	UNITY_DEFINE_INSTANCED_PROP(float, _NormalScale)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
@@ -24,12 +26,24 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 struct InputConfig
 {
 	float2 texcoord;
+#if defined(_HAS_EMISSION_TEXTURE)
+	float2 emission_Texcoord;
+#endif
+#if defined(_HAS_NORMAL_TEXTURE)
+	float2 normal_Texcoord;
+#endif
 };
 
 InputConfig GetInputConfig(float2 texcoord)
 {
 	InputConfig config;
-	config.texcoord = texcoord;
+	config.texcoord = TransformTexcoord(texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MainTex_ST));
+#if defined(_HAS_EMISSION_TEXTURE)
+	config.emission_Texcoord = TransformTexcoord(texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionTex_ST));
+#endif
+#if defined(_HAS_NORMAL_TEXTURE)
+	config.normal_Texcoord = TransformTexcoord(texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NormalTex_ST));
+#endif
 	return config;
 }
 
@@ -44,16 +58,20 @@ float3 GetEmission(InputConfig config)
 {
 	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
 #if defined(_HAS_EMISSION_TEXTURE)
-	color *= SAMPLE_TEXTURE2D(_EmissionTex, sampler_MainTex, config.texcoord);
+	color *= SAMPLE_TEXTURE2D(_EmissionTex, sampler_MainTex, config.emission_Texcoord);
 #endif
 	return color.rgb;
 }
 
 float3 GetNormal(InputConfig config)
 {
-	float4 map = SAMPLE_TEXTURE2D(_NormalTex, sampler_MainTex, config.texcoord);
+#if defined(_HAS_NORMAL_TEXTURE)
+	float4 map = SAMPLE_TEXTURE2D(_NormalTex, sampler_MainTex, config.normal_Texcoord);
 	float scale = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NormalScale);
 	return DecodeNormal(map, scale);
+#else
+	return float3(0, 1, 0);
+#endif
 }
 
 float GetAlpha(InputConfig config)

@@ -11,6 +11,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
+	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionTex_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
 	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -19,12 +20,18 @@ UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 struct InputConfig
 {
 	float2 texcoord;
+#if defined(_HAS_EMISSION_TEXTURE)
+	float2 emission_Texcoord;
+#endif
 };
 
 InputConfig GetInputConfig(float2 texcoord)
 {
 	InputConfig config;
 	config.texcoord = texcoord;
+#if defined(_HAS_EMISSION_TEXTURE)
+	config.emission_Texcoord = TransformTexcoord(texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionTex_ST));
+#endif
 	return config;
 }
 
@@ -39,7 +46,7 @@ float3 GetEmission(InputConfig config)
 {
 	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
 #if defined(_HAS_EMISSION_TEXTURE)
-	color *= SAMPLE_TEXTURE2D(_EmissionTex, sampler_MainTex, config.texcoord);
+	color *= SAMPLE_TEXTURE2D(_EmissionTex, sampler_MainTex, config.emission_Texcoord);
 #endif
 	return color.rgb;
 }

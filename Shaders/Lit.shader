@@ -5,10 +5,10 @@
 		_MainTex("Diffuse Texture", 2D) = "white" {}
 		_Color("Diffuse Color", Color) = (1, 1, 1, 1)
 		[Space]
-		[NoScaleOffset] _EmissionTex("Emission Texture", 2D) = "black" {}
+		_EmissionTex("Emission Texture", 2D) = "black" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0, 0, 0, 0)
 		[Space]
-		[NoScaleOffset] _NormalTex("Normal Texture", 2D) = "normal" {}
+		_NormalTex("Normal Texture", 2D) = "normal" {}
 		_NormalScale("Normal Scale", Range(0, 1)) = 1
 		[Space]
 		_Metallic("Metallic", Range(0, 1)) = 0
