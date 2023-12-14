@@ -556,16 +556,7 @@ float Compare(inout float depthOutline, inout float normalOutline, float baseDep
 	float3 neighborNormal = SampleNormalTex(uv + InputTexelSize().xy * offset);
 	float neighborDepth = SampleDepthTexWorld(uv + InputTexelSize().xy * offset);
 
-	if (neighborDepth >= _ProjectionParams.z - 0.001)
-	{
-		// Ensure outline between geometry and max clear depth
-		depthOutline += neighborDepth - baseDepth;
-	}
-	else
-	{
-		// Ensure outline between overlapping geometry
-		depthOutline += baseDepth - neighborDepth;
-	}
+	depthOutline += baseDepth - neighborDepth;
 
 	float3 normalDifference = baseNormal - neighborNormal;
 	normalOutline += (normalDifference.r + normalDifference.g + normalDifference.b);
