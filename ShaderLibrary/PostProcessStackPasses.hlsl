@@ -551,7 +551,7 @@ float4 _OutlineParam;
 // x = near plane, y = fade range
 float4 _OutlineDepthFade;
 
-void Compare(inout float depthOutline, inout float normalOutline, float baseDepth, float3 baseNormal, float2 uv, float2 offset)
+float Compare(inout float depthOutline, inout float normalOutline, float baseDepth, float3 baseNormal, float2 uv, float2 offset)
 {
 	float3 neighborNormal = SampleNormalTex(uv + InputTexelSize().xy * offset);
 	float neighborDepth = SampleDepthTexWorld(uv + InputTexelSize().xy * offset);
@@ -569,6 +569,7 @@ void Compare(inout float depthOutline, inout float normalOutline, float baseDept
 
 	float3 normalDifference = baseNormal - neighborNormal;
 	normalOutline += (normalDifference.r + normalDifference.g + normalDifference.b);
+	return neighborDepth;
 }
 
 float4 OutlinePass(BlitVaryings input) : SV_TARGET
@@ -579,15 +580,16 @@ float4 OutlinePass(BlitVaryings input) : SV_TARGET
 	float depthDifference = 0;
 	float normalDifference = 0;
 
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(1, 0));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, 1));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, -1));
-	Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-1, 0));
+	float d0 = Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(1, 0));
+	float d1 = Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, 1));
+	float d2 = Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(0, -1));
+	float d3 = Compare(depthDifference, normalDifference, depth, normal, input.texcoord, float2(-1, 0));
 
 	depthDifference = pow(saturate(depthDifference * _OutlineParam.z), _OutlineParam.w);
 	normalDifference = pow(saturate(normalDifference * _OutlineParam.x), _OutlineParam.y);
 
-	float fade = 1 - saturate((depth - _OutlineDepthFade.x) / _OutlineDepthFade.y);
+	float nearestDepth = min(min(min(min(d0, d1), d2), d3), depth);
+	float fade = 1 - saturate((nearestDepth - _OutlineDepthFade.x) / _OutlineDepthFade.y);
 	float outline = saturate(saturate(normalDifference + depthDifference) * _OutlineColor.a * fade);
 
 	float4 sourceColor = SampleInputTex(input.texcoord);
