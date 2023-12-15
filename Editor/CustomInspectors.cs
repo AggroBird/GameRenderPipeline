@@ -39,7 +39,7 @@ namespace AggroBird.GameRenderPipeline.Editor
                             case SerializedPropertyType.Enum:
                                 foreach (var val in conditional.values)
                                 {
-                                    if ((int)val == check.enumValueIndex)
+                                    if ((int)val == check.intValue)
                                     {
                                         return true;
                                     }
