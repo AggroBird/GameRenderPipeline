@@ -10,6 +10,8 @@ namespace AggroBird.GameRenderPipeline.Editor
     {
         public int callbackOrder => 0;
 
+        public const string DisableStrippingKeyword = "DISABLE_STRIPPING";
+
         private readonly GameRenderPipelineSettings settings;
 
         public ShaderStripper()
@@ -75,6 +77,14 @@ namespace AggroBird.GameRenderPipeline.Editor
                     case PassType.ScriptableRenderPipelineDefaultUnlit:
                         for (int i = data.Count - 1; i >= 0; i--)
                         {
+                            foreach (var kw in data[i].shaderKeywordSet.GetShaderKeywords())
+                            {
+                                if (kw.name == DisableStrippingKeyword)
+                                {
+                                    goto Continue;
+                                }
+                            }
+
                             if (CheckSkip(shader, data[i], Shadows.directionalFilterKeywords, (int)settings.shadows.directional.filter))
                             {
                                 data.RemoveAt(i);
