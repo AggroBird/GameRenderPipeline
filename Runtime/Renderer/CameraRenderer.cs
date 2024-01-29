@@ -79,6 +79,8 @@ namespace AggroBird.GameRenderPipeline
 
         public void Render(ScriptableRenderContext context, Camera camera, int cameraIndex, GameRenderPipelineAsset pipelineAsset)
         {
+            context.SetupCameraProperties(camera);
+
             this.pipelineAsset = pipelineAsset;
             this.context = context;
             this.camera = camera;
@@ -346,7 +348,6 @@ namespace AggroBird.GameRenderPipeline
 
         private void Setup()
         {
-            context.SetupCameraProperties(camera);
             CameraClearFlags clearFlags = (camera.cameraType == CameraType.Preview || camera.cameraType == CameraType.SceneView) ? CameraClearFlags.SolidColor : camera.clearFlags;
             bool clearDepth = clearFlags <= CameraClearFlags.Depth;
             bool clearColor = clearFlags == CameraClearFlags.Color;
