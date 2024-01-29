@@ -79,6 +79,9 @@ namespace AggroBird.GameRenderPipeline
 
         public void Render(ScriptableRenderContext context, Camera camera, int cameraIndex, GameRenderPipelineAsset pipelineAsset)
         {
+            context.SetupCameraProperties(camera);
+            ExecuteBuffer();
+
             this.pipelineAsset = pipelineAsset;
             this.context = context;
             this.camera = camera;
@@ -92,8 +95,6 @@ namespace AggroBird.GameRenderPipeline
 
             var generalSettings = pipelineAsset.Settings.general;
             useHDR = generalSettings.allowHDR && camera.allowHDR;
-
-            context.SetupCameraProperties(camera);
 
             // Light and shadows
             buffer.BeginSample(BufferName);
