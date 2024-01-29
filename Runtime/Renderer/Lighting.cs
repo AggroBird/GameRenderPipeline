@@ -64,7 +64,7 @@ namespace AggroBird.GameRenderPipeline
         public Color PrimaryLightColor { get; private set; }
 
 
-        public void Setup(ScriptableRenderContext context, CullingResults cullingResults, GameRenderPipelineSettings settings)
+        public void Setup(Camera camera, ScriptableRenderContext context, CullingResults cullingResults, GameRenderPipelineSettings settings)
         {
             this.cullingResults = cullingResults;
 
@@ -73,6 +73,7 @@ namespace AggroBird.GameRenderPipeline
             SetupLights(settings.general.useLightsPerObject);
             SetupHatching(settings.experimental.hatching);
             SetupCellShading(settings.experimental.cellShading);
+            context.SetupCameraProperties(camera);
             shadows.Render();
             buffer.EndSample(bufferName);
             context.ExecuteCommandBuffer(buffer);
