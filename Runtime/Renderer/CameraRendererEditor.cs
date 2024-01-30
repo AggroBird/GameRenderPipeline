@@ -56,16 +56,20 @@ namespace AggroBird.GameRenderPipeline
 
         partial void DrawEditorGizmosPreImageEffects()
         {
+            buffer.BlitDepthBuffer(rtDepthBufferId, BuiltinRenderTextureType.CameraTarget);
+            ExecuteBuffer();
+
             if (Handles.ShouldRenderGizmos())
             {
-                buffer.BlitDepthBuffer(rtDepthBufferId, BuiltinRenderTextureType.CameraTarget);
-                ExecuteBuffer();
                 context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
             }
         }
         partial void DrawEditorGizmosPostImageEffects()
         {
             context.DrawWireOverlay(camera);
+
+            buffer.BlitDepthBuffer(rtDepthBufferId, BuiltinRenderTextureType.CameraTarget);
+            ExecuteBuffer();
 
             if (Handles.ShouldRenderGizmos())
             {
