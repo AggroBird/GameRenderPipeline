@@ -152,23 +152,6 @@ namespace AggroBird.GameRenderPipeline
     internal sealed class ExperimentalSettings
     {
         [System.Serializable]
-        public struct Hatching
-        {
-            public bool enabled;
-            public Texture2D dark;
-            public Texture2D bright;
-            public float scale;
-            public float intensity;
-        }
-
-        public Hatching hatching = new()
-        {
-            enabled = false,
-            scale = 5,
-            intensity = 1,
-        };
-
-        [System.Serializable]
         public struct CellShading
         {
             internal static Gradient CreateDefaultFalloffGradient()

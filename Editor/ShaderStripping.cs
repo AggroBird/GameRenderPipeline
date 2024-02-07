@@ -105,11 +105,6 @@ namespace AggroBird.GameRenderPipeline.Editor
                                 data.RemoveAt(i);
                                 goto Continue;
                             }
-                            if (CheckSkip(shader, data[i], Lighting.hatchingKeyword, settings.experimental.hatching.enabled))
-                            {
-                                data.RemoveAt(i);
-                                goto Continue;
-                            }
                             if (CheckSkip(shader, data[i], Lighting.cellShadingKeyword, settings.experimental.cellShading.enabled))
                             {
                                 data.RemoveAt(i);

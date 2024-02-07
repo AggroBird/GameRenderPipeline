@@ -41,8 +41,6 @@ namespace AggroBird.GameRenderPipeline
 
         internal static readonly GlobalKeyword lightsPerObjectKeyword = GlobalKeyword.Create("_LIGHTS_PER_OBJECT");
 
-        internal static readonly GlobalKeyword hatchingKeyword = GlobalKeyword.Create("_HATCHING_ENABLED");
-
         private static readonly int
             hatchingDarkId = Shader.PropertyToID("_Hatching_Dark"),
             hatchingBrightId = Shader.PropertyToID("_Hatching_Bright"),
@@ -71,7 +69,6 @@ namespace AggroBird.GameRenderPipeline
             buffer.BeginSample(bufferName);
             shadows.Setup(context, cullingResults, settings.shadows);
             SetupLights(settings.general.useLightsPerObject);
-            SetupHatching(settings.experimental.hatching);
             SetupCellShading(settings.experimental.cellShading);
             context.SetupCameraProperties(camera);
             shadows.Render();
@@ -153,17 +150,6 @@ namespace AggroBird.GameRenderPipeline
                 buffer.SetGlobalVectorArray(otherLightDirectionsId, otherLightDirections);
                 buffer.SetGlobalVectorArray(otherLightSpotAnglesId, otherLightSpotAngles);
                 buffer.SetGlobalVectorArray(otherLightShadowDataId, otherLightShadowData);
-            }
-        }
-        private void SetupHatching(ExperimentalSettings.Hatching settings)
-        {
-            buffer.SetKeyword(hatchingKeyword, settings.enabled);
-            if (settings.enabled)
-            {
-                buffer.SetGlobalTexture(hatchingDarkId, settings.dark);
-                buffer.SetGlobalTexture(hatchingBrightId, settings.bright);
-                buffer.SetGlobalFloat(hatchingScaleId, settings.scale);
-                buffer.SetGlobalFloat(hatchingIntensityId, settings.intensity);
             }
         }
 
