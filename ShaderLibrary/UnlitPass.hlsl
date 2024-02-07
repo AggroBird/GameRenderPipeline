@@ -37,6 +37,8 @@ Varyings UnlitPassVertex(Attributes input)
 float4 UnlitPassFragment(Varyings input) : SV_TARGET
 {
 	UNITY_SETUP_INSTANCE_ID(input);
+	
+    ClipLOD(input.positionCS.xy, unity_LODFade.x);
 
 	InputConfig config = GetInputConfig(input.texcoord);
 
