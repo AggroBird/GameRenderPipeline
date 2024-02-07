@@ -69,7 +69,7 @@
 
 			HLSLPROGRAM
 			#pragma target 3.5
-			#pragma multi_compile_fragment _ _SHADOWS_CLIP _SHADOWS_DITHER
+			#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
 			#pragma vertex TerrainShadowCasterPassVertex
 			#pragma fragment TerrainShadowCasterPassFragment
 			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitInput.hlsl"
