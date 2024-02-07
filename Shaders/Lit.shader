@@ -31,7 +31,7 @@
 	{
 		HLSLINCLUDE
 		#pragma multi_compile_instancing
-		#pragma multi_compile _ LOD_FADE_CROSSFADE
+		#pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/LitInput.hlsl"
 		ENDHLSL
 
@@ -56,12 +56,12 @@
 			#pragma shader_feature _HAS_NORMAL_TEXTURE
 			#pragma shader_feature _RECEIVE_SHADOWS
 			#pragma multi_compile _ _FOG_LINEAR _FOG_EXP _FOG_EXP2
-			#pragma multi_compile _ _OUTPUT_NORMALS_ENABLED
-			#pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
-			#pragma multi_compile _ _OTHER_PCF3 _OTHER_PCF5 _OTHER_PCF7
-			#pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
-			#pragma multi_compile _ _LIGHTS_PER_OBJECT
-			#pragma multi_compile _ _CELL_SHADING_ENABLED
+			#pragma multi_compile_fragment _ _OUTPUT_NORMALS_ENABLED
+			#pragma multi_compile_fragment _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
+			#pragma multi_compile_fragment _ _OTHER_PCF3 _OTHER_PCF5 _OTHER_PCF7
+			#pragma multi_compile_fragment _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
+			#pragma multi_compile_fragment _ _LIGHTS_PER_OBJECT
+			#pragma multi_compile_fragment _ _CELL_SHADING_ENABLED
 			#pragma vertex LitPassVertex
 			#pragma fragment LitPassFragment
 			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/LitPass.hlsl"
@@ -81,7 +81,7 @@
 
 			HLSLPROGRAM
 			#pragma target 3.5
-			#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
+			#pragma multi_compile_fragment _ _SHADOWS_CLIP _SHADOWS_DITHER
 			#pragma vertex ShadowCasterPassVertex
 			#pragma fragment ShadowCasterPassFragment
 			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/ShadowCasterPass.hlsl"
