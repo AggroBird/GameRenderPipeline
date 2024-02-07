@@ -31,6 +31,7 @@
 		Tags
 		{
 			"Queue" = "Geometry-100"
+			"TerrainCompatible" = "True"
 		}
 
 		Pass
