@@ -2,7 +2,6 @@
 #define _GRP_LIT_PASS
 
 #include "Lighting.hlsl"
-#include "Tree.hlsl"
 
 struct Attributes
 {
@@ -34,11 +33,7 @@ Varyings LitPassVertex(Attributes input)
 
 	UNITY_SETUP_INSTANCE_ID(input);
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
-
-#if defined(_TREE_MATERIAL)
-	ApplyTreeProperties(input.positionOS);
-#endif
-
+	
 	VertexPositions vertexPositions = GetVertexPositions(input.positionOS);
 	output.positionWS = vertexPositions.positionWS;
 	output.positionCS = vertexPositions.positionCS;
@@ -51,11 +46,7 @@ Varyings LitPassVertex(Attributes input)
 	output.texcoord = input.texcoord;
 
 	output.color = input.color;
-
-#if defined(_TREE_MATERIAL)
-	ApplyTreeInstanceColor(output.color);
-#endif
-
+	
 	TRANSFER_FOG(output, vertexPositions);
 
 	return output;

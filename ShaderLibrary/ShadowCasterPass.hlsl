@@ -1,8 +1,6 @@
 #ifndef _GRP_SHADOW_CASTER_PASS
 #define _GRP_SHADOW_CASTER_PASS
 
-#include "Tree.hlsl"
-
 struct Attributes
 {
 	float4 positionOS : POSITION;
@@ -27,11 +25,7 @@ Varyings ShadowCasterPassVertex(Attributes input)
 
 	UNITY_SETUP_INSTANCE_ID(input);
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
-
-#if defined(_TREE_MATERIAL)
-	ApplyTreeProperties(input.positionOS);
-#endif
-
+	
 	VertexPositions vertexPositions = GetVertexPositions(input.positionOS);
 	output.positionCS = vertexPositions.positionCS;
 

@@ -45,7 +45,25 @@
 			ENDHLSL
 		}
 
-		UsePass "GRP/Lit/ShadowPass"
+		Pass
+		{
+			Name "ShadowPass"
+
+			Tags
+			{
+				"LightMode" = "ShadowCaster"
+			}
+
+			ColorMask 0
+
+			HLSLPROGRAM
+			#pragma target 3.5
+			#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
+			#pragma vertex ShadowCasterPassVertex
+			#pragma fragment ShadowCasterPassFragment
+			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/ShadowCasterPass.hlsl"
+			ENDHLSL
+		}
 	}
 	Dependency "BillboardShader" = "Diffuse"
 	CustomEditor "AggroBird.GameRenderPipeline.Editor.CustomShaderGUI"
