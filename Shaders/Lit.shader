@@ -26,10 +26,6 @@
 		[Enum(Off, 0, On, 1)] _ZWrite("Z Write", Float) = 1
 		[Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("Z Test", Float) = 4
 		[Enum(UnityEngine.Rendering.CullMode)] _Cull("Cull Mode", Float) = 2
-
-		[HideInInspector] _TreeInstanceColor("TreeInstanceColor", Vector) = (1,1,1,1)
-		[HideInInspector] _TreeInstanceScale("TreeInstanceScale", Vector) = (1,1,1,1)
-		[HideInInspector] _SquashAmount("Squash", Float) = 1
 	}
 	Subshader
 	{
