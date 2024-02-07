@@ -11,6 +11,7 @@
 
 #define TEXTURE2D_SAMPLER2D(textureName, samplerName) TEXTURE2D(textureName); SAMPLER(samplerName)
 
+#define PER_MATERIAL_PROP(name) UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, name)
 
 #if UNITY_REVERSED_Z
     #if SHADER_API_OPENGL || SHADER_API_GLES || SHADER_API_GLES3

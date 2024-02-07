@@ -38,7 +38,7 @@ Varyings ShadowCasterPassVertex(Attributes input)
 #endif
 	}
 
-	output.texcoord = TransformTexcoord(input.texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MainTex_ST));
+	output.texcoord = TransformTexcoord(input.texcoord, PER_MATERIAL_PROP(_MainTex_ST));
 
 	output.color = input.color;
 

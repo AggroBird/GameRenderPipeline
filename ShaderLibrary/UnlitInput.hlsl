@@ -33,7 +33,7 @@ InputConfig GetInputConfig(float2 texcoord)
 	InputConfig config;
 	config.texcoord = texcoord;
 #if defined(_HAS_EMISSION_TEXTURE)
-	config.emission_Texcoord = TransformTexcoord(texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionTex_ST));
+	config.emission_Texcoord = TransformTexcoord(texcoord, PER_MATERIAL_PROP(_EmissionTex_ST));
 #endif
 	return config;
 }
@@ -41,13 +41,13 @@ InputConfig GetInputConfig(float2 texcoord)
 float4 GetDiffuse(InputConfig config)
 {
 	float4 textureColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, config.texcoord);
-	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Color);
+	float4 color = PER_MATERIAL_PROP(_Color);
 	return textureColor * color;
 }
 
 float3 GetEmission(InputConfig config)
 {
-	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
+	float4 color = PER_MATERIAL_PROP(_EmissionColor);
 #if defined(_HAS_EMISSION_TEXTURE)
 	color *= SAMPLE_TEXTURE2D(_EmissionTex, sampler_MainTex, config.emission_Texcoord);
 #endif
@@ -61,12 +61,12 @@ float GetAlpha(InputConfig config)
 
 float GetFinalAlpha(float alpha)
 {
-	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ZWrite) ? 1.0 : alpha;
+	return PER_MATERIAL_PROP(_ZWrite) ? 1.0 : alpha;
 }
 
 float GetCutoff(InputConfig config)
 {
-	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff);
+	return PER_MATERIAL_PROP(_Cutoff);
 }
 
 void ClipAlpha(float alpha, InputConfig config)

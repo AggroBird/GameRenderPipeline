@@ -56,7 +56,7 @@
 				VertexPositions vertexPositions = GetVertexPositions(input.positionOS);
 				output.positionCS = vertexPositions.positionCS;
 
-				output.texcoord = TransformTexcoord(input.texcoord, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _MainTex_ST));
+				output.texcoord = TransformTexcoord(input.texcoord, PER_MATERIAL_PROP(_MainTex_ST));
 
 				return output;
 			}
@@ -66,7 +66,7 @@
 				UNITY_SETUP_INSTANCE_ID(input);
 
 				float4 textureColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
-				float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Color);
+				float4 color = PER_MATERIAL_PROP(_Color);
 
 				return textureColor * color;
 			}
