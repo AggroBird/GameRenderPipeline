@@ -1,18 +1,18 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
     internal partial class PostProcessStack
     {
-        private const string bufferName = "Post Process";
-        private readonly CommandBuffer buffer = new() { name = bufferName };
+        private CommandBuffer buffer;
 
         private Material postProcessMaterial = default;
         private Material smaaMaterial = default;
 
-        private ScriptableRenderContext context;
+        private RenderGraphContext context;
         private Camera camera;
 
         private PostProcessSettings settings = default;
@@ -74,30 +74,6 @@ namespace AggroBird.GameRenderPipeline
         private bool useHDR = false;
         internal RenderTextureFormat RenderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
-
-        public enum Pass
-        {
-            Copy,
-            BlurHorizontal,
-            BlurVertical,
-            BloomPrefilter,
-            BloomAdd,
-            BloomScatter,
-            BloomScatterFinal,
-            SSAO,
-            SSAOCombine,
-            DOFCalculateCOC,
-            DOFCalculateBokeh,
-            DOFPreFilter,
-            DOFPostFilter,
-            DOFCombine,
-            Outline,
-            ColorGradingNone,
-            ColorGradingACES,
-            ColorGradingNeutral,
-            ColorGradingReinhard,
-            Final,
-        }
 
         private static readonly int[] postProcessRenderTargetIds = new int[] { Shader.PropertyToID("_PostProcessRenderTarget0"), Shader.PropertyToID("_PostProcessRenderTarget1") };
         private readonly bool[] buffersAllocated = new bool[2] { false, false };
@@ -249,9 +225,8 @@ namespace AggroBird.GameRenderPipeline
             return postProcessComponent && postProcessComponent.enabled;
         }
 
-        public void Setup(ScriptableRenderContext context, Camera camera, bool useHDR, bool postProcessEnabled)
+        public void Setup(Camera camera, bool useHDR, bool postProcessEnabled)
         {
-            this.context = context;
             this.camera = camera;
             this.useHDR = useHDR;
 
@@ -338,8 +313,11 @@ namespace AggroBird.GameRenderPipeline
             ClearCustomEffectsList();
         }
 
-        public void ApplyPreTransparency(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
+        public void ApplyPreTransparency(RenderGraphContext context, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
         {
+            this.context = context;
+            buffer = context.cmd;
+
             if (postProcessEnabled)
             {
                 if (SSAOEnabled || OutlineEnabled)
@@ -377,8 +355,11 @@ namespace AggroBird.GameRenderPipeline
                 ExecuteBuffer();
             }
         }
-        public void ApplyPostTransparency(RenderTargetIdentifier src, RenderTargetIdentifier dst)
+        public void ApplyPostTransparency(RenderGraphContext context, RenderTargetIdentifier src, RenderTargetIdentifier dst)
         {
+            this.context = context;
+            buffer = context.cmd;
+
             if (postProcessEnabled)
             {
                 currentSourceBuffer = src;
@@ -417,12 +398,11 @@ namespace AggroBird.GameRenderPipeline
 
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeDisplay);
 
-                DrawFinal(currentSourceBuffer, dst);
+                Draw(currentSourceBuffer, dst, Pass.Copy);
             }
             else
             {
                 buffer.SetGlobalBool(colorGradingEnabledId, false);
-                DrawFinal(src, dst);
             }
 
             ExecuteBuffer();
@@ -430,7 +410,7 @@ namespace AggroBird.GameRenderPipeline
 
         private void ExecuteBuffer()
         {
-            context.ExecuteCommandBuffer(buffer);
+            context.renderContext.ExecuteCommandBuffer(buffer);
             buffer.Clear();
         }
 
@@ -722,25 +702,6 @@ namespace AggroBird.GameRenderPipeline
             ExecuteBuffer();
         }
 
-        private void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, Pass pass)
-        {
-            buffer.SetGlobalTexture(postProcessInputTexId, src);
-            buffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            buffer.DrawFullscreenEffect(postProcessMaterial, (int)pass);
-        }
-        private void DrawFinal(RenderTargetIdentifier src, RenderTargetIdentifier dst)
-        {
-            buffer.BeginSample("Final Blit");
-
-            buffer.SetGlobalFloat(finalSrcBlendId, (float)srcBlendMode);
-            buffer.SetGlobalFloat(finalDstBlendId, (float)dstBlendMode);
-            buffer.SetGlobalTexture(postProcessInputTexId, src);
-            buffer.SetRenderTarget(dst, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-            buffer.SetViewport(camera.pixelRect);
-            buffer.DrawFullscreenEffect(postProcessMaterial, (int)Pass.Copy);
-
-            buffer.EndSample("Final Blit");
-        }
 
 
         private List<PostProcessEffect> GetCustomEffectsList(PostProcessEffectOrder order) => customEffects[(int)order];
@@ -777,6 +738,13 @@ namespace AggroBird.GameRenderPipeline
                     SwapBuffers();
                 }
             }
+        }
+
+        private void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, Pass pass)
+        {
+            buffer.SetGlobalTexture(postProcessInputTexId, src);
+            buffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            buffer.DrawFullscreenEffect(postProcessMaterial, (int)pass);
         }
 
         private void ExecuteEditorEffectsList(RenderTargetIdentifier srcDepth)

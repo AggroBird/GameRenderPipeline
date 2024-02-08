@@ -1,13 +1,13 @@
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
     internal sealed class Lighting
     {
-        private const string bufferName = "Lighting";
-        private readonly CommandBuffer buffer = new() { name = bufferName };
+        private CommandBuffer buffer;
 
         private const int
             MaxDirectionalLightCount = 4,
@@ -62,18 +62,17 @@ namespace AggroBird.GameRenderPipeline
         public Color PrimaryLightColor { get; private set; }
 
 
-        public void Setup(Camera camera, ScriptableRenderContext context, CullingResults cullingResults, GameRenderPipelineSettings settings)
+        public void Setup(Camera camera, RenderGraphContext context, CullingResults cullingResults, GameRenderPipelineSettings settings)
         {
+            buffer = context.cmd;
             this.cullingResults = cullingResults;
 
-            buffer.BeginSample(bufferName);
             shadows.Setup(context, cullingResults, settings.shadows);
             SetupLights(settings.general.useLightsPerObject);
             SetupCellShading(settings.experimental.cellShading);
-            context.SetupCameraProperties(camera);
+            context.renderContext.SetupCameraProperties(camera);
             shadows.Render();
-            buffer.EndSample(bufferName);
-            context.ExecuteCommandBuffer(buffer);
+            context.renderContext.ExecuteCommandBuffer(buffer);
             buffer.Clear();
         }
 

@@ -1,12 +1,12 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
     internal sealed class Shadows
     {
-        private const string bufferName = "Shadows";
-        private readonly CommandBuffer buffer = new() { name = bufferName };
+        private CommandBuffer buffer;
 
         private const int
             MaxShadowedDirectionalLightCount = 4,
@@ -80,17 +80,19 @@ namespace AggroBird.GameRenderPipeline
 
         private Vector4 atlasSizes;
 
-        private ScriptableRenderContext context;
+        private RenderGraphContext context;
         private CullingResults cullingResults;
 
         private ShadowSettings settings;
 
 
-        public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings settings)
+        public void Setup(RenderGraphContext context, CullingResults cullingResults, ShadowSettings settings)
         {
             this.context = context;
             this.cullingResults = cullingResults;
             this.settings = settings;
+
+            buffer = context.cmd;
 
             shadowedDirectionalLightCount = shadowedOtherLightCount = 0;
         }
@@ -169,13 +171,11 @@ namespace AggroBird.GameRenderPipeline
                 RenderOtherShadows();
             }
 
-            buffer.BeginSample(bufferName);
             buffer.SetGlobalInt(cascadeCountId, shadowedDirectionalLightCount > 0 ? settings.directional.cascadeCount : 0);
             float f = 1f - settings.directional.cascadeFade;
             buffer.SetGlobalVector(shadowDistanceFadeId, new Vector4(1f / settings.maxDistance, 1f / settings.distanceFade, 1f / (1f - f * f)));
 
             buffer.SetGlobalVector(shadowAtlastSizeId, atlasSizes);
-            buffer.EndSample(bufferName);
             ExecuteBuffer();
         }
 
@@ -189,7 +189,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetRenderTarget(directionalShadowAtlasId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(true, false, Color.clear);
             buffer.SetGlobalBool(shadowPancakingId, true);
-            buffer.BeginSample(bufferName);
+            buffer.BeginSample("Directional Shadows");
             ExecuteBuffer();
 
             int tiles = shadowedDirectionalLightCount * settings.directional.cascadeCount;
@@ -207,7 +207,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
             buffer.SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
 
-            buffer.EndSample(bufferName);
+            buffer.EndSample("Directional Shadows");
             ExecuteBuffer();
         }
         private void RenderDirectionalShadows(int index, int split, int tileSize)
@@ -237,7 +237,7 @@ namespace AggroBird.GameRenderPipeline
                 buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                 buffer.SetGlobalDepthBias(0f, light.slopeScaleBias);
                 ExecuteBuffer();
-                context.DrawShadows(ref shadowSettings);
+                context.renderContext.DrawShadows(ref shadowSettings);
                 buffer.SetGlobalDepthBias(0f, 0f);
             }
         }
@@ -261,7 +261,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetRenderTarget(otherShadowAtlasId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(true, false, Color.clear);
             buffer.SetGlobalBool(shadowPancakingId, false);
-            buffer.BeginSample(bufferName);
+            buffer.BeginSample("Other Shadows");
             ExecuteBuffer();
 
             int tiles = shadowedOtherLightCount;
@@ -286,7 +286,7 @@ namespace AggroBird.GameRenderPipeline
 
             buffer.SetKeywords(otherFilterKeywords, (int)settings.other.filter - 1);
 
-            buffer.EndSample(bufferName);
+            buffer.EndSample("Other Shadows");
             ExecuteBuffer();
         }
         private void RenderSpotShadows(int index, int split, int tileSize)
@@ -307,7 +307,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
             buffer.SetGlobalDepthBias(0f, light.slopeScaleBias);
             ExecuteBuffer();
-            context.DrawShadows(ref shadowSettings);
+            context.renderContext.DrawShadows(ref shadowSettings);
             buffer.SetGlobalDepthBias(0f, 0f);
         }
         private void RenderPointShadows(int index, int split, int tileSize)
@@ -338,7 +338,7 @@ namespace AggroBird.GameRenderPipeline
                 buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                 buffer.SetGlobalDepthBias(0f, light.slopeScaleBias);
                 ExecuteBuffer();
-                context.DrawShadows(ref shadowSettings);
+                context.renderContext.DrawShadows(ref shadowSettings);
                 buffer.SetGlobalDepthBias(0f, 0f);
             }
         }
@@ -385,7 +385,7 @@ namespace AggroBird.GameRenderPipeline
 
         private void ExecuteBuffer()
         {
-            context.ExecuteCommandBuffer(buffer);
+            context.renderContext.ExecuteCommandBuffer(buffer);
             buffer.Clear();
         }
     }

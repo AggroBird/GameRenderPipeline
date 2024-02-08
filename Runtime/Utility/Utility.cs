@@ -199,24 +199,4 @@ namespace AggroBird.GameRenderPipeline
             return GameRenderPipeline.LinearColorSpace ? color.linear : color;
         }
     }
-
-    public readonly ref struct CommandBufferScope
-    {
-        public CommandBufferScope(string name)
-        {
-            commandBuffer = CommandBufferPool.Get(name);
-        }
-
-        public readonly CommandBuffer commandBuffer;
-
-        public static implicit operator CommandBuffer(CommandBufferScope scope)
-        {
-            return scope.commandBuffer;
-        }
-
-        public void Dispose()
-        {
-            CommandBufferPool.Release(commandBuffer);
-        }
-    }
 }
