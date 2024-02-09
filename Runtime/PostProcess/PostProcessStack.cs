@@ -20,7 +20,7 @@ namespace AggroBird.GameRenderPipeline
 
         private bool postProcessEnabled;
 
-        public bool RequireNormalTexture => settings.ambientOcclusion.enabled || settings.outline.enabled;
+        public bool RequireNormalTexture => postProcessEnabled && (settings.ambientOcclusion.enabled || settings.outline.enabled);
 
         public bool DofEnabled
         {
