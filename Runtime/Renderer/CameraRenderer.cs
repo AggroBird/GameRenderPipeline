@@ -143,6 +143,8 @@ namespace AggroBird.GameRenderPipeline
             var generalSettings = pipelineAsset.Settings.general;
             useHDR = generalSettings.allowHDR && camera.allowHDR;
 
+            postProcessStack.Setup(camera, useHDR, ShowPostProcess);
+
             OutputOpaque = generalSettings.outputOpaqueRenderTargets;
             OutputNormals = postProcessStack.SSAOEnabled || postProcessStack.OutlineEnabled || (OutputOpaque && generalSettings.outputOpaqueNormalBuffer);
 
@@ -162,8 +164,6 @@ namespace AggroBird.GameRenderPipeline
             {
                 using var _ = new RenderGraphProfilingScope(renderGraph, cameraSampler);
 
-                postProcessStack.Setup(camera, useHDR, ShowPostProcess);
-
                 LightingPass.Record(renderGraph, this, lighting, cullingResults, pipelineAsset.Settings);
 
                 SetupPass.Record(renderGraph, this);
@@ -173,12 +173,12 @@ namespace AggroBird.GameRenderPipeline
                 GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
                 SkyboxPass.Record(renderGraph, this, environmentSettings);
 
+                PreTransparencyPostProcessPass.Record(renderGraph, this);
+
                 if (OutputOpaque)
                 {
                     CopyOpaqueBuffersPass.Record(renderGraph, this);
                 }
-
-                PreTransparencyPostProcessPass.Record(renderGraph, this);
 
                 TransparentGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject);
 
@@ -195,9 +195,22 @@ namespace AggroBird.GameRenderPipeline
             Cleanup();
             Submit();
 
-            CommandBufferPool.Release(renderGraphParameters.commandBuffer);
+            CommandBufferPool.Release(buffer);
         }
 
+        public void RestoreRenderTargets()
+        {
+            buffer.SetKeyword(OutputNormalsKeyword, OutputNormals);
+            if (OutputNormals)
+            {
+                // Bind normal buffer as second output
+                buffer.SetRenderTarget(new RenderTargetIdentifier[] { rtColorBufferId, rtNormalBufferId }, rtDepthBufferId);
+            }
+            else
+            {
+                RestoreDefaultRenderTargets();
+            }
+        }
         public void RestoreDefaultRenderTargets()
         {
             buffer.SetRenderTarget(
@@ -386,16 +399,7 @@ namespace AggroBird.GameRenderPipeline
                 buffer.ClearRenderTarget(true, true, Color.clear);
             }
 
-            buffer.SetKeyword(OutputNormalsKeyword, OutputNormals);
-            if (OutputNormals)
-            {
-                // Bind normal buffer as second output
-                buffer.SetRenderTarget(new RenderTargetIdentifier[] { rtColorBufferId, rtNormalBufferId }, rtDepthBufferId);
-            }
-            else
-            {
-                RestoreDefaultRenderTargets();
-            }
+            RestoreRenderTargets();
 
             ExecuteBuffer();
         }

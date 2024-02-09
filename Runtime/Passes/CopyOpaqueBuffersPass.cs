@@ -23,11 +23,8 @@ namespace AggroBird.GameRenderPipeline
                 context.cmd.SetGlobalTexture(CameraRenderer.OpaqueNormalBufferId, CameraRenderer.NormalBufferId);
             }
             // Transparent does not output normals, use only the default render targets
-            if (renderer.OutputOpaque || renderer.OutputNormals)
-            {
-                context.cmd.SetKeyword(CameraRenderer.OutputNormalsKeyword, false);
-                renderer.RestoreDefaultRenderTargets();
-            }
+            context.cmd.SetKeyword(CameraRenderer.OutputNormalsKeyword, false);
+            renderer.RestoreDefaultRenderTargets();
             renderer.ExecuteBuffer();
         }
 
