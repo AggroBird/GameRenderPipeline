@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -6,7 +7,7 @@ namespace AggroBird.GameRenderPipeline
 {
     internal sealed partial class CameraRenderer
     {
-        [System.Flags]
+        [Flags]
         private enum ShowFlags
         {
             None = 0,

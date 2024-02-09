@@ -20,9 +20,9 @@ namespace AggroBird.GameRenderPipeline
             new("VertexLMRGBM"),
             new("VertexLM")
         };
-        
+
         private static Material errorMaterial;
-        
+
         private RendererListHandle list;
 
 
