@@ -28,9 +28,9 @@ namespace AggroBird.GameRenderPipeline
 #if UNITY_EDITOR
         partial void PrepareSceneWindow()
         {
-            if (Camera.cameraType == CameraType.SceneView)
+            if (camera.cameraType == CameraType.SceneView)
             {
-                ScriptableRenderContext.EmitWorldGeometryForSceneView(Camera);
+                ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 
                 SceneView.SceneViewState viewState = SceneView.currentDrawingSceneView.sceneViewState;
                 showFlags = ShowFlags.None;

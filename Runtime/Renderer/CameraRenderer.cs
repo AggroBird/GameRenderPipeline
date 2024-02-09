@@ -62,9 +62,7 @@ namespace AggroBird.GameRenderPipeline
     {
         private GameRenderPipelineAsset pipelineAsset;
         private ScriptableRenderContext context;
-        public Camera Camera { get; private set; }
-
-        private readonly Lighting lighting = new();
+        private Camera camera;
 
         private CommandBuffer buffer;
         public CommandBuffer Buffer => buffer;
@@ -109,13 +107,11 @@ namespace AggroBird.GameRenderPipeline
         public static int OpaqueNormalBufferId => opaqueNormalBufferId;
 
         private static readonly int
-            skyboxStaticCubemapId = Shader.PropertyToID("_SkyboxStaticCubemap"),
             skyboxGradientTextureId = Shader.PropertyToID("_SkyboxGradientTexture"),
             skyboxGroundColorId = Shader.PropertyToID("_SkyboxGroundColor"),
             skyboxAnimTimeId = Shader.PropertyToID("_SkyboxAnimTime");
 
         private Material defaultSkyboxMaterial;
-        public static int SkyboxStaticCubemapId => skyboxStaticCubemapId;
 
         private Material postProcessMaterial = null;
 
@@ -136,7 +132,7 @@ namespace AggroBird.GameRenderPipeline
         {
             this.pipelineAsset = pipelineAsset;
             this.context = context;
-            Camera = camera;
+            this.camera = camera;
 
             // Ensure there is a post process material
             if (!postProcessMaterial)
@@ -148,11 +144,11 @@ namespace AggroBird.GameRenderPipeline
             }
 
             PrepareSceneWindow();
-            if (!Camera.TryGetCullingParameters(out ScriptableCullingParameters scriptableCullingParameters))
+            if (!this.camera.TryGetCullingParameters(out ScriptableCullingParameters scriptableCullingParameters))
             {
                 return;
             }
-            scriptableCullingParameters.shadowDistance = Mathf.Min(pipelineAsset.Settings.shadows.maxDistance, Camera.farClipPlane);
+            scriptableCullingParameters.shadowDistance = Mathf.Min(pipelineAsset.Settings.shadows.maxDistance, this.camera.farClipPlane);
             CullingResults cullingResults = context.Cull(ref scriptableCullingParameters);
 
             var generalSettings = pipelineAsset.Settings.general;
@@ -183,7 +179,7 @@ namespace AggroBird.GameRenderPipeline
 
                 var cameraTextures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR);
 
-                OpaqueGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
+                OpaqueGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 
                 GetEnvironmentSettings(out EnvironmentSettings environmentSettings, primaryDirectionalLightInfo);
                 if (camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
@@ -198,7 +194,7 @@ namespace AggroBird.GameRenderPipeline
                     CopyOpaqueBuffersPass.Record(renderGraph, outputNormals, cameraTextures);
                 }
 
-                TransparentGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, outputOpaque, outputNormals, cameraTextures, shadowTextures);
+                TransparentGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, outputOpaque, outputNormals, cameraTextures, shadowTextures);
 
                 UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, cameraTextures);
 
@@ -265,7 +261,7 @@ namespace AggroBird.GameRenderPipeline
         }
         private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
-            if (TryGetEnvironmentComponent(Camera, out EnvironmentComponent environmentComponent))
+            if (TryGetEnvironmentComponent(camera, out EnvironmentComponent environmentComponent))
             {
                 var settings = environmentComponent.GetEnvironmentSettings();
                 if (settings != null)

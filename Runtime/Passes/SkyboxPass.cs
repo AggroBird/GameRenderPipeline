@@ -8,6 +8,8 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(SkyboxPass));
 
+        private static readonly int skyboxStaticCubemapId = Shader.PropertyToID("_SkyboxStaticCubemap");
+
         private Material defaultSkyboxMaterial;
         private EnvironmentSettings environmentSettings;
 
@@ -23,7 +25,7 @@ namespace AggroBird.GameRenderPipeline
                     buffer.DrawFullscreenEffect(mat, 0);
                     break;
                 case EnvironmentSettings.SkyboxSource.Cubemap:
-                    buffer.SetGlobalTexture(CameraRenderer.SkyboxStaticCubemapId, environmentSettings.skyboxSettings.skyboxCubemap);
+                    buffer.SetGlobalTexture(skyboxStaticCubemapId, environmentSettings.skyboxSettings.skyboxCubemap);
                     buffer.DrawFullscreenEffect(defaultSkyboxMaterial, 1);
                     break;
             }
