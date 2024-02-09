@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
@@ -7,6 +8,7 @@ namespace AggroBird.GameRenderPipeline
     internal sealed class GameRenderPipeline : RenderPipeline
     {
         public const string PipelineName = "GameRenderPipeline";
+        private readonly RenderGraph renderGraph = new("GRP Render Graph");
 
         internal static bool LinearColorSpace => QualitySettings.activeColorSpace == ColorSpace.Linear;
 
@@ -20,11 +22,11 @@ namespace AggroBird.GameRenderPipeline
             this.pipelineAsset = pipelineAsset;
 
             LODGroup.crossFadeAnimationDuration = pipelineAsset.Settings.general.crossFadeAnimationDuration;
-            GraphicsSettings.useScriptableRenderPipelineBatching = pipelineAsset.Settings.general.useSRPBatcher;
+            GraphicsSettings.useScriptableRenderPipelineBatching = true;
             GraphicsSettings.lightsUseLinearIntensity = LinearColorSpace;
         }
 
-        private void RenderCamera(ScriptableRenderContext context, Camera camera, int cameraIndex)
+        private void RenderCamera(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera, int cameraIndex)
         {
             BeginCameraRendering(context, camera);
 
@@ -32,7 +34,7 @@ namespace AggroBird.GameRenderPipeline
 
             try
             {
-                cameraRenderer.Render(context, camera, cameraIndex, pipelineAsset);
+                cameraRenderer.Render(renderGraph, context, camera, cameraIndex, pipelineAsset);
             }
             catch (System.Exception ex)
             {
@@ -49,21 +51,22 @@ namespace AggroBird.GameRenderPipeline
 
             for (int i = 0; i < cameras.Count; i++)
             {
-                RenderCamera(context, cameras[i], i);
+                RenderCamera(renderGraph, context, cameras[i], i);
             }
 
             EndContextRendering(context, cameras);
+            renderGraph.EndFrame();
         }
         protected override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            BeginFrameRendering(context, cameras);
 
-            for (int i = 0; i < cameras.Length; i++)
-            {
-                RenderCamera(context, cameras[i], i);
-            }
+        }
 
-            EndFrameRendering(context, cameras);
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            renderGraph.Cleanup();
         }
     }
 }

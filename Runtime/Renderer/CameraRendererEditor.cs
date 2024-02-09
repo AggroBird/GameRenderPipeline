@@ -1,19 +1,11 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
     internal sealed partial class CameraRenderer
     {
-        partial void PrepareBuffer();
-
-        partial void DrawEditorGizmosPreImageEffects();
-        partial void DrawEditorGizmosPostImageEffects();
-
-        partial void DrawUnsupportedShaders();
-
         [System.Flags]
         private enum ShowFlags
         {
@@ -33,71 +25,11 @@ namespace AggroBird.GameRenderPipeline
 
 
 #if UNITY_EDITOR
-        private string BufferName { get; set; }
-
-        private static readonly ShaderTagId[] legacyShaderTagIds =
-        {
-            new ShaderTagId("Always"),
-            new ShaderTagId("ForwardBase"),
-            new ShaderTagId("PrepassBase"),
-            new ShaderTagId("Vertex"),
-            new ShaderTagId("VertexLMRGBM"),
-            new ShaderTagId("VertexLM")
-        };
-        private static Material errorMaterial = default;
-
-
-        partial void PrepareBuffer()
-        {
-            Profiler.BeginSample("Allocate Buffer Name");
-            buffer.name = BufferName = camera.name;
-            Profiler.EndSample();
-        }
-
-        partial void DrawEditorGizmosPreImageEffects()
-        {
-            buffer.BlitDepthBuffer(rtDepthBufferId, BuiltinRenderTextureType.CameraTarget);
-            ExecuteBuffer();
-
-            if (Handles.ShouldRenderGizmos())
-            {
-                context.DrawGizmos(camera, GizmoSubset.PreImageEffects);
-            }
-        }
-        partial void DrawEditorGizmosPostImageEffects()
-        {
-            context.DrawWireOverlay(camera);
-
-            buffer.BlitDepthBuffer(rtDepthBufferId, BuiltinRenderTextureType.CameraTarget);
-            ExecuteBuffer();
-
-            if (Handles.ShouldRenderGizmos())
-            {
-                context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
-            }
-        }
-
-        partial void DrawUnsupportedShaders()
-        {
-            if (!errorMaterial)
-            {
-                errorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
-            }
-
-            var drawingSettings = new DrawingSettings(legacyShaderTagIds[0], new SortingSettings(camera)) { overrideMaterial = errorMaterial };
-            for (int i = 1; i < legacyShaderTagIds.Length; i++)
-            {
-                drawingSettings.SetShaderPassName(i, legacyShaderTagIds[i]);
-            }
-            var filteringSettings = FilteringSettings.defaultValue;
-            context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
-        }
-
         partial void PrepareSceneWindow()
         {
-            if (camera.cameraType == CameraType.SceneView)
+            if (Camera.cameraType == CameraType.SceneView)
             {
-                ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+                ScriptableRenderContext.EmitWorldGeometryForSceneView(Camera);
 
                 SceneView.SceneViewState viewState = SceneView.currentDrawingSceneView.sceneViewState;
                 showFlags = ShowFlags.None;
@@ -110,11 +42,6 @@ namespace AggroBird.GameRenderPipeline
                 showFlags = ShowFlags.All;
             }
         }
-
-#else
-
-        private const string BufferName = "GRP Render Camera";
-
 #endif
     }
 }

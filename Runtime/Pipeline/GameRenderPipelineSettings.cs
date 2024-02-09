@@ -17,9 +17,6 @@ namespace AggroBird.GameRenderPipeline
     [System.Serializable]
     internal sealed class GeneralSettings
     {
-        public bool useDynamicBatching = true;
-        public bool useGPUInstancing = true;
-        public bool useSRPBatcher = true;
         public bool useLightsPerObject = true;
 
         [Space, Min(0.01f)]

@@ -100,12 +100,12 @@ namespace AggroBird.GameRenderPipeline.Editor
                                 data.RemoveAt(i);
                                 goto Continue;
                             }
-                            if (CheckSkip(shader, data[i], Lighting.lightsPerObjectKeyword, settings.general.useLightsPerObject))
+                            if (CheckSkip(shader, data[i], LightingPass.lightsPerObjectKeyword, settings.general.useLightsPerObject))
                             {
                                 data.RemoveAt(i);
                                 goto Continue;
                             }
-                            if (CheckSkip(shader, data[i], Lighting.cellShadingKeyword, settings.experimental.cellShading.enabled))
+                            if (CheckSkip(shader, data[i], LightingPass.cellShadingKeyword, settings.experimental.cellShading.enabled))
                             {
                                 data.RemoveAt(i);
                                 goto Continue;
