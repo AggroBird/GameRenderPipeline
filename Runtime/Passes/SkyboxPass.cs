@@ -31,13 +31,13 @@ namespace AggroBird.GameRenderPipeline
             buffer.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, Material defaultSkyboxMaterial, EnvironmentSettings environmentSettings, in CameraRendererTextures textures)
+        public static void Record(RenderGraph renderGraph, Material defaultSkyboxMaterial, EnvironmentSettings environmentSettings, in CameraRendererTextures cameraTextures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out SkyboxPass pass, sampler);
             pass.defaultSkyboxMaterial = defaultSkyboxMaterial;
             pass.environmentSettings = environmentSettings;
-            builder.ReadWriteTexture(textures.rtColorBuffer);
-            builder.ReadTexture(textures.rtDepthBuffer);
+            builder.ReadWriteTexture(cameraTextures.rtColorBuffer);
+            builder.ReadTexture(cameraTextures.rtDepthBuffer);
             builder.SetRenderFunc<SkyboxPass>(static (pass, context) => pass.Render(context));
         }
     }

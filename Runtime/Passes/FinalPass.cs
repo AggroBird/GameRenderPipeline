@@ -37,10 +37,10 @@ namespace AggroBird.GameRenderPipeline
             buffer.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, Camera camera, Material postProcessMaterial, in CameraRendererTextures textures)
+        public static void Record(RenderGraph renderGraph, Camera camera, Material postProcessMaterial, in CameraRendererTextures cameraTextures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out FinalPass pass, sampler);
-            pass.rtColorBuffer = builder.ReadTexture(textures.rtColorBuffer);
+            pass.rtColorBuffer = builder.ReadTexture(cameraTextures.rtColorBuffer);
             pass.camera = camera;
             pass.postProcessMaterial = postProcessMaterial;
             //pass.finalBlendMode = finalBlendMode;

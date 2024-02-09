@@ -30,12 +30,12 @@ namespace AggroBird.GameRenderPipeline
 #endif
 
         [Conditional("UNITY_EDITOR")]
-        public static void Record(RenderGraph renderGraph, Camera camera, in CameraRendererTextures textures)
+        public static void Record(RenderGraph renderGraph, Camera camera, in CameraRendererTextures cameraTextures)
         {
 #if UNITY_EDITOR
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out GizmoPass pass, sampler);
             pass.camera = camera;
-            pass.rtDepthBuffer = builder.ReadTexture(textures.rtDepthBuffer);
+            pass.rtDepthBuffer = builder.ReadTexture(cameraTextures.rtDepthBuffer);
             builder.SetRenderFunc<GizmoPass>(static (pass, context) => pass.Render(context));
 #endif
         }

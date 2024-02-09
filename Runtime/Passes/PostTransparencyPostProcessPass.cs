@@ -15,11 +15,11 @@ namespace AggroBird.GameRenderPipeline
             postProcessStack.ApplyPostTransparency(context, rtColorBuffer, rtColorBuffer);
         }
 
-        public static void Record(RenderGraph renderGraph, PostProcessStack stack, in CameraRendererTextures textures)
+        public static void Record(RenderGraph renderGraph, PostProcessStack stack, in CameraRendererTextures cameraTextures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out PostTransparencyPostProcessPass pass, sampler);
             pass.postProcessStack = stack;
-            pass.rtColorBuffer = builder.ReadWriteTexture(textures.rtColorBuffer);
+            pass.rtColorBuffer = builder.ReadWriteTexture(cameraTextures.rtColorBuffer);
             builder.SetRenderFunc<PostTransparencyPostProcessPass>(static (pass, context) => pass.Render(context));
         }
     }

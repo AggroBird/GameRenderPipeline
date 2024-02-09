@@ -38,18 +38,18 @@ namespace AggroBird.GameRenderPipeline
             buffer.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, bool outputNormals, in CameraRendererTextures textures)
+        public static void Record(RenderGraph renderGraph, bool outputNormals, in CameraRendererTextures cameraTextures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out CopyOpaqueBuffersPass pass, sampler);
             pass.outputNormals = outputNormals;
-            pass.rtColorBuffer = builder.ReadTexture(textures.rtColorBuffer);
-            pass.rtDepthBuffer = builder.ReadTexture(textures.rtDepthBuffer);
+            pass.rtColorBuffer = builder.ReadTexture(cameraTextures.rtColorBuffer);
+            pass.rtDepthBuffer = builder.ReadTexture(cameraTextures.rtDepthBuffer);
             if (outputNormals)
             {
-                pass.rtNormalBuffer = builder.ReadTexture(textures.rtNormalBuffer);
+                pass.rtNormalBuffer = builder.ReadTexture(cameraTextures.rtNormalBuffer);
             }
-            pass.opaqueColorBuffer = builder.WriteTexture(textures.opaqueColorBuffer);
-            pass.opaqueDepthBuffer = builder.WriteTexture(textures.opaqueDepthBuffer);
+            pass.opaqueColorBuffer = builder.WriteTexture(cameraTextures.opaqueColorBuffer);
+            pass.opaqueDepthBuffer = builder.WriteTexture(cameraTextures.opaqueDepthBuffer);
             builder.SetRenderFunc<CopyOpaqueBuffersPass>(static (pass, context) => pass.Render(context));
         }
     }

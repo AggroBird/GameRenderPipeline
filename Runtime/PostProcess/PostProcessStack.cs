@@ -293,6 +293,8 @@ namespace AggroBird.GameRenderPipeline
 
             if (postProcessEnabled)
             {
+                // TODO: Change to render graph
+
                 currentSourceBuffer = srcColor;
 
                 if (settings.ambientOcclusion.enabled)

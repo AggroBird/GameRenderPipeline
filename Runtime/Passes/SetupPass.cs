@@ -5,24 +5,6 @@ using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
-    internal readonly ref struct CameraRendererTextures
-    {
-        public readonly TextureHandle rtColorBuffer;
-        public readonly TextureHandle rtDepthBuffer;
-        public readonly TextureHandle rtNormalBuffer;
-        public readonly TextureHandle opaqueColorBuffer;
-        public readonly TextureHandle opaqueDepthBuffer;
-
-        public CameraRendererTextures(TextureHandle rtColorBuffer, TextureHandle rtDepthBuffer, TextureHandle rtNormalBuffer, TextureHandle opaqueColorBuffer, TextureHandle opaqueDepthBuffer)
-        {
-            this.rtColorBuffer = rtColorBuffer;
-            this.rtDepthBuffer = rtDepthBuffer;
-            this.rtNormalBuffer = rtNormalBuffer;
-            this.opaqueColorBuffer = opaqueColorBuffer;
-            this.opaqueDepthBuffer = opaqueDepthBuffer;
-        }
-    }
-
     internal sealed class SetupPass
     {
         private static readonly ProfilingSampler sampler = new(nameof(SetupPass));

@@ -28,6 +28,9 @@ namespace AggroBird.GameRenderPipeline
             public bool isPoint;
         }
 
+        private TextureHandle directionalAtlas;
+        private TextureHandle otherAtlas;
+
         private static readonly int
             directionalShadowAtlasId = Shader.PropertyToID("_DirectionalShadowAtlas"),
             directionalShadowMatricesId = Shader.PropertyToID("_DirectionalShadowMatrices"),
@@ -86,29 +89,30 @@ namespace AggroBird.GameRenderPipeline
         private ShadowSettings settings;
 
 
-        public void Setup(RenderGraphContext context, CullingResults cullingResults, ShadowSettings settings)
+        public void Setup(CullingResults cullingResults, ShadowSettings settings)
         {
-            this.context = context;
             this.cullingResults = cullingResults;
             this.settings = settings;
-
-            buffer = context.cmd;
 
             shadowedDirectionalLightCount = shadowedOtherLightCount = 0;
         }
 
-        public void Cleanup()
+        public ShadowTextures GetRenderTextures(RenderGraph renderGraph, RenderGraphBuilder builder)
         {
-            if (shadowedDirectionalLightCount > 0)
+            int atlasSize = (int)settings.directional.atlasSize;
+            var desc = new TextureDesc(atlasSize, atlasSize)
             {
-                buffer.ReleaseTemporaryRT(directionalShadowAtlasId);
-                ExecuteBuffer();
-            }
-            if (shadowedOtherLightCount > 0)
-            {
-                buffer.ReleaseTemporaryRT(otherShadowAtlasId);
-                ExecuteBuffer();
-            }
+                depthBufferBits = DepthBits.Depth32,
+                isShadowMap = true,
+                name = "Directional Shadow Atlas"
+            };
+            directionalAtlas = shadowedDirectionalLightCount > 0 ? builder.WriteTexture(renderGraph.CreateTexture(desc)) : renderGraph.defaultResources.defaultShadowTexture;
+
+            atlasSize = (int)settings.other.atlasSize;
+            desc.width = desc.height = atlasSize;
+            desc.name = "Other Shadow Atlas";
+            otherAtlas = shadowedOtherLightCount > 0 ? builder.WriteTexture(renderGraph.CreateTexture(desc)) : renderGraph.defaultResources.defaultShadowTexture;
+            return new ShadowTextures(directionalAtlas, otherAtlas);
         }
 
         public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
@@ -160,8 +164,11 @@ namespace AggroBird.GameRenderPipeline
             return new Vector4(0f, 0f, 0f, -1f);
         }
 
-        public void Render()
+        public void Render(RenderGraphContext context)
         {
+            buffer = context.cmd;
+            this.context = context;
+
             if (shadowedDirectionalLightCount > 0)
             {
                 RenderDirectionalShadows();
@@ -170,6 +177,9 @@ namespace AggroBird.GameRenderPipeline
             {
                 RenderOtherShadows();
             }
+
+            buffer.SetGlobalTexture(directionalShadowAtlasId, directionalAtlas);
+            buffer.SetGlobalTexture(otherShadowAtlasId, otherAtlas);
 
             buffer.SetGlobalInt(cascadeCountId, shadowedDirectionalLightCount > 0 ? settings.directional.cascadeCount : 0);
             float f = 1f - settings.directional.cascadeFade;
@@ -185,8 +195,7 @@ namespace AggroBird.GameRenderPipeline
             atlasSizes.x = atlasSize;
             atlasSizes.y = 1f / atlasSize;
 
-            buffer.GetTemporaryRT(directionalShadowAtlasId, atlasSize, atlasSize, 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
-            buffer.SetRenderTarget(directionalShadowAtlasId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            buffer.SetRenderTarget(directionalAtlas, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(true, false, Color.clear);
             buffer.SetGlobalBool(shadowPancakingId, true);
             buffer.BeginSample("Directional Shadows");
@@ -257,8 +266,7 @@ namespace AggroBird.GameRenderPipeline
             atlasSizes.z = atlasSize;
             atlasSizes.w = 1f / atlasSize;
 
-            buffer.GetTemporaryRT(otherShadowAtlasId, atlasSize, atlasSize, 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
-            buffer.SetRenderTarget(otherShadowAtlasId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            buffer.SetRenderTarget(otherAtlas, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(true, false, Color.clear);
             buffer.SetGlobalBool(shadowPancakingId, false);
             buffer.BeginSample("Other Shadows");

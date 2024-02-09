@@ -28,6 +28,36 @@ namespace AggroBird.GameRenderPipeline
         Final,
     }
 
+    internal readonly ref struct CameraRendererTextures
+    {
+        public readonly TextureHandle rtColorBuffer;
+        public readonly TextureHandle rtDepthBuffer;
+        public readonly TextureHandle rtNormalBuffer;
+        public readonly TextureHandle opaqueColorBuffer;
+        public readonly TextureHandle opaqueDepthBuffer;
+
+        public CameraRendererTextures(TextureHandle rtColorBuffer, TextureHandle rtDepthBuffer, TextureHandle rtNormalBuffer, TextureHandle opaqueColorBuffer, TextureHandle opaqueDepthBuffer)
+        {
+            this.rtColorBuffer = rtColorBuffer;
+            this.rtDepthBuffer = rtDepthBuffer;
+            this.rtNormalBuffer = rtNormalBuffer;
+            this.opaqueColorBuffer = opaqueColorBuffer;
+            this.opaqueDepthBuffer = opaqueDepthBuffer;
+        }
+    }
+
+    internal readonly ref struct ShadowTextures
+    {
+        public readonly TextureHandle directionalAtlas;
+        public readonly TextureHandle otherAtlas;
+
+        public ShadowTextures(TextureHandle directionalAtlas, TextureHandle otherAtlas)
+        {
+            this.directionalAtlas = directionalAtlas;
+            this.otherAtlas = otherAtlas;
+        }
+    }
+
     internal sealed partial class CameraRenderer
     {
         private GameRenderPipelineAsset pipelineAsset;
@@ -149,37 +179,36 @@ namespace AggroBird.GameRenderPipeline
             {
                 using var _ = new RenderGraphProfilingScope(renderGraph, cameraSampler);
 
-                LightingPass.Record(renderGraph, this, lighting, cullingResults, pipelineAsset.Settings);
+                var shadowTextures = LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo);
 
-                var textures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR);
+                var cameraTextures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR);
 
-                OpaqueGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, textures);
+                OpaqueGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 
+                GetEnvironmentSettings(out EnvironmentSettings environmentSettings, primaryDirectionalLightInfo);
                 if (camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
                 {
-                    GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
-                    SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, textures);
+                    SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, cameraTextures);
                 }
 
-                PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, outputNormals, textures);
+                PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, outputNormals, cameraTextures);
 
                 if (outputOpaque)
                 {
-                    CopyOpaqueBuffersPass.Record(renderGraph, outputNormals, textures);
+                    CopyOpaqueBuffersPass.Record(renderGraph, outputNormals, cameraTextures);
                 }
 
-                TransparentGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, outputOpaque, outputNormals, textures);
+                TransparentGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, outputOpaque, outputNormals, cameraTextures, shadowTextures);
 
-                UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, textures);
+                UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, cameraTextures);
 
-                PostTransparencyPostProcessPass.Record(renderGraph, postProcessStack, textures);
+                PostTransparencyPostProcessPass.Record(renderGraph, postProcessStack, cameraTextures);
 
-                FinalPass.Record(renderGraph, camera, postProcessMaterial, textures);
+                FinalPass.Record(renderGraph, camera, postProcessMaterial, cameraTextures);
 
-                GizmoPass.Record(renderGraph, camera, textures);
+                GizmoPass.Record(renderGraph, camera, cameraTextures);
             }
 
-            lighting.Cleanup();
             postProcessStack.Cleanup();
 
             context.ExecuteCommandBuffer(buffer);
@@ -234,7 +263,7 @@ namespace AggroBird.GameRenderPipeline
             environmentComponent = EnvironmentComponent.activeSceneEnvironment;
             return environmentComponent && environmentComponent.enabled;
         }
-        private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings)
+        private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             if (TryGetEnvironmentComponent(Camera, out EnvironmentComponent environmentComponent))
             {
@@ -242,22 +271,22 @@ namespace AggroBird.GameRenderPipeline
                 if (settings != null)
                 {
                     environmentSettings = settings;
-                    SetupEnvironment(environmentSettings, environmentComponent.modified);
+                    SetupEnvironment(environmentSettings, environmentComponent.modified, primaryDirectionalLightInfo);
                     environmentComponent.modified = false;
                     return;
                 }
             }
 
             environmentSettings = defaultEnvironmentSettings;
-            SetupEnvironment(environmentSettings, false);
+            SetupEnvironment(environmentSettings, false, primaryDirectionalLightInfo);
         }
 
-        private void SetupEnvironment(EnvironmentSettings settings, bool environmentModified)
+        private void SetupEnvironment(EnvironmentSettings settings, bool environmentModified, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             settings.UpdateEnvironment();
 
-            buffer.SetGlobalVector(primaryLightDirectionId, lighting.PrimaryLightDirection);
-            buffer.SetGlobalVector(primaryLightColorId, lighting.PrimaryLightColor);
+            buffer.SetGlobalVector(primaryLightDirectionId, primaryDirectionalLightInfo.direction);
+            buffer.SetGlobalVector(primaryLightColorId, primaryDirectionalLightInfo.color);
 
             // Fog
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
@@ -272,7 +301,7 @@ namespace AggroBird.GameRenderPipeline
                 if (fogSettings.overrideLightDirection)
                     buffer.SetGlobalVector(fogLightDirectionId, fogSettings.lightDirection);
                 else
-                    buffer.SetGlobalVector(fogLightDirectionId, lighting.PrimaryLightDirection);
+                    buffer.SetGlobalVector(fogLightDirectionId, primaryDirectionalLightInfo.direction);
 
                 Vector4 fogParam = Vector4.zero;
                 switch (fogSettings.fogMode)

@@ -35,7 +35,7 @@ namespace AggroBird.GameRenderPipeline
 #endif
 
         [Conditional("UNITY_EDITOR")]
-        public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, in CameraRendererTextures textures)
+        public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, in CameraRendererTextures cameraTextures)
         {
 #if UNITY_EDITOR
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out UnsupportedShadersPass pass, sampler);
