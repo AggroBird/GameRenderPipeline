@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
@@ -11,28 +7,50 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(CopyOpaqueBuffersPass));
 
-        private CameraRenderer renderer;
+        private bool outputNormals;
+        private TextureHandle rtColorBuffer;
+        private TextureHandle rtDepthBuffer;
+        private TextureHandle rtNormalBuffer;
+        private TextureHandle opaqueColorBuffer;
+        private TextureHandle opaqueDepthBuffer;
 
         private void Render(RenderGraphContext context)
         {
-            context.cmd.BlitFrameBuffer(CameraRenderer.ColorBufferId, CameraRenderer.DepthBufferId, CameraRenderer.OpaqueColorBufferId, CameraRenderer.OpaqueDepthBufferId);
-            context.cmd.SetGlobalTexture(CameraRenderer.OpaqueColorBufferId, CameraRenderer.OpaqueColorBufferId);
-            context.cmd.SetGlobalTexture(CameraRenderer.OpaqueDepthBufferId, CameraRenderer.OpaqueDepthBufferId);
-            if (renderer.OutputNormals)
+            // TODO: Use buffer.CopyTexture
+
+            var buffer = context.cmd;
+
+            context.cmd.BlitFrameBuffer(rtColorBuffer, rtDepthBuffer, opaqueColorBuffer, opaqueDepthBuffer);
+            context.cmd.SetGlobalTexture(CameraRenderer.OpaqueColorBufferId, opaqueColorBuffer);
+            context.cmd.SetGlobalTexture(CameraRenderer.OpaqueDepthBufferId, opaqueDepthBuffer);
+            if (outputNormals)
             {
-                context.cmd.SetGlobalTexture(CameraRenderer.OpaqueNormalBufferId, CameraRenderer.NormalBufferId);
+                context.cmd.SetGlobalTexture(CameraRenderer.OpaqueNormalBufferId, rtNormalBuffer);
             }
+
             // Transparent does not output normals, use only the default render targets
             context.cmd.SetKeyword(CameraRenderer.OutputNormalsKeyword, false);
-            renderer.RestoreDefaultRenderTargets();
-            renderer.ExecuteBuffer();
+            buffer.SetRenderTarget(
+                rtColorBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
+                rtDepthBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+
+            context.renderContext.ExecuteCommandBuffer(buffer);
+            buffer.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, CameraRenderer renderer)
+        public static void Record(RenderGraph renderGraph, bool outputNormals, in CameraRendererTextures textures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out CopyOpaqueBuffersPass pass, sampler);
-            pass.renderer = renderer;
-            builder.SetRenderFunc<CopyOpaqueBuffersPass>((pass, context) => pass.Render(context));
+            pass.outputNormals = outputNormals;
+            pass.rtColorBuffer = builder.ReadTexture(textures.rtColorBuffer);
+            pass.rtDepthBuffer = builder.ReadTexture(textures.rtDepthBuffer);
+            if (outputNormals)
+            {
+                pass.rtNormalBuffer = builder.ReadTexture(textures.rtNormalBuffer);
+            }
+            pass.opaqueColorBuffer = builder.WriteTexture(textures.opaqueColorBuffer);
+            pass.opaqueDepthBuffer = builder.WriteTexture(textures.opaqueDepthBuffer);
+            builder.SetRenderFunc<CopyOpaqueBuffersPass>(static (pass, context) => pass.Render(context));
         }
     }
 }

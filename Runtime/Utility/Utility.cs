@@ -24,7 +24,7 @@ namespace AggroBird.GameRenderPipeline
     public static class CommandBufferUtility
     {
         private static Material blitDepthMaterialInstance = default;
-        private static Material BlitDepthMaterial
+        internal static Material BlitDepthMaterial
         {
             get
             {

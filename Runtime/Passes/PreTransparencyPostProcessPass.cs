@@ -7,18 +7,27 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(PreTransparencyPostProcessPass));
 
-        private CameraRenderer renderer;
+        private PostProcessStack postProcessStack;
+        private TextureHandle rtColorBuffer;
+        private TextureHandle rtDepthBuffer;
+        private TextureHandle rtNormalBuffer;
 
         private void Render(RenderGraphContext context)
         {
-            renderer.PostProcessStack.ApplyPreTransparency(context, CameraRenderer.ColorBufferId, CameraRenderer.NormalBufferId, CameraRenderer.DepthBufferId, CameraRenderer.ColorBufferId);
+            postProcessStack.ApplyPreTransparency(context, rtColorBuffer, rtDepthBuffer, rtNormalBuffer, rtColorBuffer);
         }
 
-        public static void Record(RenderGraph renderGraph, CameraRenderer renderer)
+        public static void Record(RenderGraph renderGraph, PostProcessStack stack, bool outputNormals, in CameraRendererTextures textures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out PreTransparencyPostProcessPass pass, sampler);
-            pass.renderer = renderer;
-            builder.SetRenderFunc<PreTransparencyPostProcessPass>((pass, context) => pass.Render(context));
+            pass.postProcessStack = stack;
+            pass.rtColorBuffer = builder.ReadWriteTexture(textures.rtColorBuffer);
+            pass.rtDepthBuffer = builder.ReadTexture(textures.rtDepthBuffer);
+            if (outputNormals)
+            {
+                pass.rtNormalBuffer = builder.ReadTexture(textures.rtNormalBuffer);
+            }
+            builder.SetRenderFunc<PreTransparencyPostProcessPass>(static (pass, context) => pass.Render(context));
         }
     }
 }

@@ -22,7 +22,7 @@ namespace AggroBird.GameRenderPipeline
             context.cmd.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, bool useLightsPerObject)
+        public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, bool useLightsPerObject, in CameraRendererTextures textures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out OpaqueGeometryPass pass, sampler);
             PerObjectData lightsPerObjectFlags = useLightsPerObject ? (PerObjectData.LightData | PerObjectData.LightIndices) : PerObjectData.None;
@@ -32,7 +32,9 @@ namespace AggroBird.GameRenderPipeline
                 sortingCriteria = SortingCriteria.CommonOpaque,
                 rendererConfiguration = PerObjectData.ReflectionProbes | lightsPerObjectFlags,
             }));
-            builder.SetRenderFunc<OpaqueGeometryPass>((pass, context) => pass.Render(context));
+            builder.ReadWriteTexture(textures.rtColorBuffer);
+            builder.ReadWriteTexture(textures.rtDepthBuffer);
+            builder.SetRenderFunc<OpaqueGeometryPass>(static (pass, context) => pass.Render(context));
         }
     }
 }

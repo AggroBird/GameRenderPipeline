@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
-    internal enum Pass
+    internal enum PostProcessPass
     {
         Copy,
         BlurHorizontal,
@@ -38,13 +38,9 @@ namespace AggroBird.GameRenderPipeline
 
         private CommandBuffer buffer;
         public CommandBuffer Buffer => buffer;
-        private CullingResults cullingResults;
 
         private readonly PostProcessStack postProcessStack = new();
         public PostProcessStack PostProcessStack => postProcessStack;
-
-        private bool useHDR = false;
-        internal RenderTextureFormat RenderTextureFormat => useHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
 
 
         private static readonly GlobalKeyword orthographicKeyword = GlobalKeyword.Create("_PROJECTION_ORTHOGRAPHIC");
@@ -73,17 +69,11 @@ namespace AggroBird.GameRenderPipeline
             fogParamId = Shader.PropertyToID("_FogParam");
 
         private static readonly int
-            rtColorBufferId = Shader.PropertyToID("_RTColorBuffer"),
-            rtDepthBufferId = Shader.PropertyToID("_RTDepthBuffer"),
-            rtNormalBufferId = Shader.PropertyToID("_RTNormalBuffer"),
             opaqueColorBufferId = Shader.PropertyToID("_OpaqueColorBuffer"),
             opaqueDepthBufferId = Shader.PropertyToID("_OpaqueDepthBuffer"),
             opaqueNormalBufferId = Shader.PropertyToID("_OpaqueNormalBuffer"),
             ambientLightColorId = Shader.PropertyToID("_AmbientLightColor");
 
-        public static int ColorBufferId => rtColorBufferId;
-        public static int DepthBufferId => rtDepthBufferId;
-        public static int NormalBufferId => rtNormalBufferId;
         public static int OpaqueColorBufferId => opaqueColorBufferId;
         public static int OpaqueDepthBufferId => opaqueDepthBufferId;
         public static int OpaqueNormalBufferId => opaqueNormalBufferId;
@@ -94,20 +84,13 @@ namespace AggroBird.GameRenderPipeline
             skyboxGroundColorId = Shader.PropertyToID("_SkyboxGroundColor"),
             skyboxAnimTimeId = Shader.PropertyToID("_SkyboxAnimTime");
 
-        public Material DefaultSkyboxMaterial { get; private set; }
+        private Material defaultSkyboxMaterial;
         public static int SkyboxStaticCubemapId => skyboxStaticCubemapId;
-
-        private static readonly int
-            postProcessInputTexId = Shader.PropertyToID("_PostProcessInputTex"),
-            finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
-            finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
-
-        private static readonly Rect fullViewRect = new(0f, 0f, 1f, 1f);
 
         private Material postProcessMaterial = null;
 
-        public bool OutputNormals { get; private set; }
-        public bool OutputOpaque { get; private set; }
+        private bool outputNormals;
+        private bool outputOpaque;
 
         private float skyboxAnimTimeOffset;
 
@@ -135,18 +118,20 @@ namespace AggroBird.GameRenderPipeline
             }
 
             PrepareSceneWindow();
-            if (!Cull(pipelineAsset.Settings.shadows.maxDistance))
+            if (!Camera.TryGetCullingParameters(out ScriptableCullingParameters scriptableCullingParameters))
             {
                 return;
             }
+            scriptableCullingParameters.shadowDistance = Mathf.Min(pipelineAsset.Settings.shadows.maxDistance, Camera.farClipPlane);
+            CullingResults cullingResults = context.Cull(ref scriptableCullingParameters);
 
             var generalSettings = pipelineAsset.Settings.general;
-            useHDR = generalSettings.allowHDR && camera.allowHDR;
+            bool useHDR = generalSettings.allowHDR && camera.allowHDR;
 
             postProcessStack.Setup(camera, useHDR, ShowPostProcess);
 
-            OutputOpaque = generalSettings.outputOpaqueRenderTargets;
-            OutputNormals = postProcessStack.SSAOEnabled || postProcessStack.OutlineEnabled || (OutputOpaque && generalSettings.outputOpaqueNormalBuffer);
+            outputOpaque = generalSettings.outputOpaqueRenderTargets;
+            outputNormals = postProcessStack.RequireNormalTexture || (outputOpaque && generalSettings.outputOpaqueNormalBuffer);
 
             buffer = CommandBufferPool.Get();
             buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.LinearColorSpace);
@@ -166,57 +151,43 @@ namespace AggroBird.GameRenderPipeline
 
                 LightingPass.Record(renderGraph, this, lighting, cullingResults, pipelineAsset.Settings);
 
-                SetupPass.Record(renderGraph, this);
+                var textures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR);
 
-                OpaqueGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject);
+                OpaqueGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, textures);
 
-                GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
-                SkyboxPass.Record(renderGraph, this, environmentSettings);
-
-                PreTransparencyPostProcessPass.Record(renderGraph, this);
-
-                if (OutputOpaque)
+                if (camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
                 {
-                    CopyOpaqueBuffersPass.Record(renderGraph, this);
+                    GetEnvironmentSettings(out EnvironmentSettings environmentSettings);
+                    SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, textures);
                 }
 
-                TransparentGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject);
+                PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, outputNormals, textures);
 
-                UnsupportedShadersPass.Record(renderGraph, this, camera, cullingResults);
+                if (outputOpaque)
+                {
+                    CopyOpaqueBuffersPass.Record(renderGraph, outputNormals, textures);
+                }
 
-                PostTransparencyPostProcessPass.Record(renderGraph, this);
+                TransparentGeometryPass.Record(renderGraph, Camera, cullingResults, generalSettings.useLightsPerObject, outputOpaque, outputNormals, textures);
 
-                FinalPass.Record(renderGraph, this);
+                UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, textures);
 
-                PreFXGizmoPass.Record(renderGraph, this);
-                PostFXGizmoPass.Record(renderGraph, this);
+                PostTransparencyPostProcessPass.Record(renderGraph, postProcessStack, textures);
+
+                FinalPass.Record(renderGraph, camera, postProcessMaterial, textures);
+
+                GizmoPass.Record(renderGraph, camera, textures);
             }
 
-            Cleanup();
-            Submit();
+            lighting.Cleanup();
+            postProcessStack.Cleanup();
+
+            context.ExecuteCommandBuffer(buffer);
+            context.Submit();
 
             CommandBufferPool.Release(buffer);
         }
 
-        public void RestoreRenderTargets()
-        {
-            buffer.SetKeyword(OutputNormalsKeyword, OutputNormals);
-            if (OutputNormals)
-            {
-                // Bind normal buffer as second output
-                buffer.SetRenderTarget(new RenderTargetIdentifier[] { rtColorBufferId, rtNormalBufferId }, rtDepthBufferId);
-            }
-            else
-            {
-                RestoreDefaultRenderTargets();
-            }
-        }
-        public void RestoreDefaultRenderTargets()
-        {
-            buffer.SetRenderTarget(
-                rtColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
-                rtDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-        }
 
         private bool TryGetEnvironmentComponent(Camera camera, out EnvironmentComponent environmentComponent)
         {
@@ -281,17 +252,6 @@ namespace AggroBird.GameRenderPipeline
             SetupEnvironment(environmentSettings, false);
         }
 
-        private bool Cull(float maxShadowDistance)
-        {
-            if (Camera.TryGetCullingParameters(out ScriptableCullingParameters scriptableCullingParameters))
-            {
-                scriptableCullingParameters.shadowDistance = Mathf.Min(maxShadowDistance, Camera.farClipPlane);
-                cullingResults = context.Cull(ref scriptableCullingParameters);
-                return true;
-            }
-            return false;
-        }
-
         private void SetupEnvironment(EnvironmentSettings settings, bool environmentModified)
         {
             settings.UpdateEnvironment();
@@ -334,9 +294,9 @@ namespace AggroBird.GameRenderPipeline
             }
 
             // Skybox
-            if (!DefaultSkyboxMaterial)
+            if (!defaultSkyboxMaterial)
             {
-                DefaultSkyboxMaterial = new(pipelineAsset.Resources.skyboxRenderShader)
+                defaultSkyboxMaterial = new(pipelineAsset.Resources.skyboxRenderShader)
                 {
                     hideFlags = HideFlags.HideAndDontSave
                 };
@@ -364,69 +324,6 @@ namespace AggroBird.GameRenderPipeline
             ExecuteBuffer();
         }
 
-        public void Setup()
-        {
-            context.SetupCameraProperties(Camera);
-            CameraClearFlags clearFlags = (Camera.cameraType == CameraType.Preview || Camera.cameraType == CameraType.SceneView) ? CameraClearFlags.SolidColor : Camera.clearFlags;
-            bool clearDepth = clearFlags <= CameraClearFlags.Depth;
-            bool clearColor = clearFlags == CameraClearFlags.Color;
-            Color backgroundColor = clearFlags == CameraClearFlags.Color ? Camera.backgroundColor.ColorSpaceAdjusted() : Color.clear;
-
-            // Render targets
-            buffer.GetTemporaryRT(rtColorBufferId, Camera.pixelWidth, Camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
-            buffer.GetTemporaryRT(rtDepthBufferId, Camera.pixelWidth, Camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-            buffer.SetRenderTarget(
-                rtColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                rtDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            buffer.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
-
-            if (OutputNormals)
-            {
-                // Normal buffer
-                buffer.GetTemporaryRT(rtNormalBufferId, Camera.pixelWidth, Camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.RGHalf);
-                buffer.SetRenderTarget(rtNormalBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                buffer.ClearRenderTarget(true, true, Color.clear);
-            }
-
-            // Opaque render target
-            if (OutputOpaque)
-            {
-                buffer.GetTemporaryRT(opaqueColorBufferId, Camera.pixelWidth, Camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat);
-                buffer.GetTemporaryRT(opaqueDepthBufferId, Camera.pixelWidth, Camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-                buffer.SetRenderTarget(
-                    opaqueColorBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    opaqueDepthBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                buffer.ClearRenderTarget(true, true, Color.clear);
-            }
-
-            RestoreRenderTargets();
-
-            ExecuteBuffer();
-        }
-        private void Cleanup()
-        {
-            lighting.Cleanup();
-            postProcessStack.Cleanup();
-
-            buffer.ReleaseTemporaryRT(rtColorBufferId);
-            buffer.ReleaseTemporaryRT(rtDepthBufferId);
-            if (OutputNormals)
-            {
-                buffer.ReleaseTemporaryRT(rtNormalBufferId);
-            }
-            if (OutputOpaque)
-            {
-                buffer.ReleaseTemporaryRT(opaqueColorBufferId);
-                buffer.ReleaseTemporaryRT(opaqueDepthBufferId);
-            }
-        }
-
-        private void Submit()
-        {
-            ExecuteBuffer();
-            context.Submit();
-        }
-
         private void ExecuteBuffer(CommandBuffer commandBuffer)
         {
             context.ExecuteCommandBuffer(commandBuffer);
@@ -435,21 +332,6 @@ namespace AggroBird.GameRenderPipeline
         public void ExecuteBuffer()
         {
             ExecuteBuffer(buffer);
-        }
-
-        public void DrawFinal(RenderTargetIdentifier src, RenderTargetIdentifier dst)
-        {
-            var srcBlend = BlendMode.One;
-            var dstBlend = BlendMode.Zero;
-
-            buffer.SetGlobalFloat(finalSrcBlendId, (float)srcBlend);
-            buffer.SetGlobalFloat(finalDstBlendId, (float)dstBlend);
-            buffer.SetGlobalTexture(postProcessInputTexId, src);
-            buffer.SetRenderTarget(dst, dstBlend == BlendMode.Zero && Camera.rect == fullViewRect ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-            buffer.SetViewport(Camera.pixelRect);
-            buffer.DrawFullscreenEffect(postProcessMaterial, (int)Pass.Copy);
-            buffer.SetGlobalFloat(finalSrcBlendId, 1);
-            buffer.SetGlobalFloat(finalDstBlendId, 0);
         }
     }
 }

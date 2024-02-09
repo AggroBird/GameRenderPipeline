@@ -20,28 +20,12 @@ namespace AggroBird.GameRenderPipeline
 
         private bool postProcessEnabled;
 
-        public bool SSAOEnabled
-        {
-            get
-            {
-                if (!postProcessEnabled) return false;
-                return settings.ambientOcclusion.enabled;
-            }
-        }
-        public bool OutlineEnabled
-        {
-            get
-            {
-                if (!postProcessEnabled) return false;
-                return settings.outline.enabled;
-            }
-        }
+        public bool RequireNormalTexture => settings.ambientOcclusion.enabled || settings.outline.enabled;
+
         public bool DofEnabled
         {
             get
             {
-                if (!postProcessEnabled) return false;
-
                 PostProcessSettings.DepthOfField dof = settings.depthOfField;
                 if (!dof.enabled) return false;
 
@@ -52,21 +36,11 @@ namespace AggroBird.GameRenderPipeline
         {
             get
             {
-                if (!postProcessEnabled) return false;
-
                 PostProcessSettings.Bloom bloom = settings.bloom;
                 if (!bloom.enabled) return false;
 
                 int width = camera.pixelWidth / 2, height = camera.pixelHeight / 2;
                 return bloom.intensity > 0 && width >= bloom.downscaleLimit * 2 && height >= bloom.downscaleLimit * 2;
-            }
-        }
-        public bool SMAAEnabled
-        {
-            get
-            {
-                if (!postProcessEnabled) return false;
-                return settings.smaa.enabled;
             }
         }
         private bool DrawGizmoEffects => camera.cameraType == CameraType.SceneView && editorGizmoEffects.Count > 0;
@@ -91,7 +65,6 @@ namespace AggroBird.GameRenderPipeline
             dofFocusDistanceId = Shader.PropertyToID("_DOFFocusDistance"),
             dofFocusRangeId = Shader.PropertyToID("_DOFFocusRange"),
             dofBokehRadiusId = Shader.PropertyToID("_DOFBokehRadius"),
-            dofConstantScaleId = Shader.PropertyToID("_DOFConstantScale"),
             outlineColorId = Shader.PropertyToID("_OutlineColor"),
             outlineParamId = Shader.PropertyToID("_OutlineParam"),
             outlineDepthFadeId = Shader.PropertyToID("_OutlineDepthFade"),
@@ -313,37 +286,34 @@ namespace AggroBird.GameRenderPipeline
             ClearCustomEffectsList();
         }
 
-        public void ApplyPreTransparency(RenderGraphContext context, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
+        public void ApplyPreTransparency(RenderGraphContext context, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier srcNormal, RenderTargetIdentifier dstColor)
         {
             this.context = context;
             buffer = context.cmd;
 
             if (postProcessEnabled)
             {
-                if (SSAOEnabled || OutlineEnabled)
+                currentSourceBuffer = srcColor;
+
+                if (settings.ambientOcclusion.enabled)
                 {
-                    currentSourceBuffer = srcColor;
-
-                    if (SSAOEnabled)
-                    {
-                        ApplySSAO(currentSourceBuffer, srcNormal, srcDepth, GetNextBuffer());
-                        SwapBuffers();
-                    }
-
-                    if (OutlineEnabled)
-                    {
-                        ApplyOutline(currentSourceBuffer, srcNormal, srcDepth, GetNextBuffer());
-                        SwapBuffers();
-                    }
-
-                    if (DrawGizmoEffects)
-                    {
-                        ExecuteEditorEffectsList(srcDepth);
-                    }
-
-                    Draw(currentSourceBuffer, dstColor, Pass.Copy);
-                    ExecuteBuffer();
+                    ApplySSAO(currentSourceBuffer, srcDepth, srcNormal, GetNextBuffer());
+                    SwapBuffers();
                 }
+
+                if (settings.outline.enabled)
+                {
+                    ApplyOutline(currentSourceBuffer, srcDepth, srcNormal, GetNextBuffer());
+                    SwapBuffers();
+                }
+
+                if (DrawGizmoEffects)
+                {
+                    ExecuteEditorEffectsList(srcDepth);
+                }
+
+                Draw(currentSourceBuffer, dstColor, PostProcessPass.Copy);
+                ExecuteBuffer();
             }
             else if (DrawGizmoEffects)
             {
@@ -351,7 +321,7 @@ namespace AggroBird.GameRenderPipeline
 
                 ExecuteEditorEffectsList(srcDepth);
 
-                Draw(currentSourceBuffer, dstColor, Pass.Copy);
+                Draw(currentSourceBuffer, dstColor, PostProcessPass.Copy);
                 ExecuteBuffer();
             }
         }
@@ -390,7 +360,7 @@ namespace AggroBird.GameRenderPipeline
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeAntiAlias);
 
                 // SMAA
-                if (SMAAEnabled)
+                if (settings.smaa.enabled)
                 {
                     ApplySMAA(currentSourceBuffer, GetNextBuffer());
                     SwapBuffers();
@@ -398,7 +368,7 @@ namespace AggroBird.GameRenderPipeline
 
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeDisplay);
 
-                Draw(currentSourceBuffer, dst, Pass.Copy);
+                Draw(currentSourceBuffer, dst, PostProcessPass.Copy);
             }
             else
             {
@@ -414,7 +384,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.Clear();
         }
 
-        private void ApplySSAO(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
+        private void ApplySSAO(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier srcNormal, RenderTargetIdentifier dstColor)
         {
             buffer.BeginSample("SSAO");
 
@@ -428,15 +398,15 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
             buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
             buffer.SetRenderTarget(ssaoBufferIds[0], RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            buffer.DrawFullscreenEffect(postProcessMaterial, (int)Pass.SSAO);
+            buffer.DrawFullscreenEffect(postProcessMaterial, (int)PostProcessPass.SSAO);
 
             // Blur
-            Draw(ssaoBufferIds[0], ssaoBufferIds[1], Pass.BlurHorizontal);
-            Draw(ssaoBufferIds[1], ssaoBufferIds[0], Pass.BlurVertical);
+            Draw(ssaoBufferIds[0], ssaoBufferIds[1], PostProcessPass.BlurHorizontal);
+            Draw(ssaoBufferIds[1], ssaoBufferIds[0], PostProcessPass.BlurVertical);
 
             // Combine
             buffer.SetGlobalTexture(postProcessCombineTexId, ssaoBufferIds[0]);
-            Draw(srcColor, dstColor, Pass.SSAOCombine);
+            Draw(srcColor, dstColor, PostProcessPass.SSAOCombine);
 
             buffer.ReleaseTemporaryRT(ssaoBufferIds[0]);
             buffer.ReleaseTemporaryRT(ssaoBufferIds[1]);
@@ -446,7 +416,7 @@ namespace AggroBird.GameRenderPipeline
             ExecuteBuffer();
         }
 
-        private void ApplyOutline(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcNormal, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor)
+        private void ApplyOutline(RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier srcNormal, RenderTargetIdentifier dstColor)
         {
             buffer.BeginSample("Outline");
 
@@ -464,7 +434,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetGlobalTexture(postProcessDepthTexId, srcDepth);
             buffer.SetGlobalTexture(postProcessNormalTexId, srcNormal);
 
-            Draw(srcColor, dstColor, Pass.Outline);
+            Draw(srcColor, dstColor, PostProcessPass.Outline);
 
             buffer.EndSample("Outline");
 
@@ -492,12 +462,12 @@ namespace AggroBird.GameRenderPipeline
             buffer.GetTemporaryRT(dofBokeh1Id, width, height, 0, FilterMode.Bilinear, format);
 
             buffer.SetGlobalTexture(dofCOCBufferId, dofCOCBufferId);
-            Draw(src, dofCOCBufferId, Pass.DOFCalculateCOC);
-            Draw(src, dofBokeh0Id, Pass.DOFPreFilter);
-            Draw(dofBokeh0Id, dofBokeh1Id, Pass.DOFCalculateBokeh);
-            Draw(dofBokeh1Id, dofBokeh0Id, Pass.DOFPostFilter);
+            Draw(src, dofCOCBufferId, PostProcessPass.DOFCalculateCOC);
+            Draw(src, dofBokeh0Id, PostProcessPass.DOFPreFilter);
+            Draw(dofBokeh0Id, dofBokeh1Id, PostProcessPass.DOFCalculateBokeh);
+            Draw(dofBokeh1Id, dofBokeh0Id, PostProcessPass.DOFPostFilter);
             buffer.SetGlobalTexture(dofResultId, dofBokeh0Id);
-            Draw(src, dst, Pass.DOFCombine);
+            Draw(src, dst, PostProcessPass.DOFCombine);
 
             buffer.ReleaseTemporaryRT(dofBokeh0Id);
             buffer.ReleaseTemporaryRT(dofBokeh1Id);
@@ -527,7 +497,7 @@ namespace AggroBird.GameRenderPipeline
             // Prefilter
             RenderTextureFormat format = RenderTextureFormat;
             buffer.GetTemporaryRT(bloomPrefilterId, width, height, 0, FilterMode.Bilinear, format);
-            Draw(src, bloomPrefilterId, Pass.BloomPrefilter);
+            Draw(src, bloomPrefilterId, PostProcessPass.BloomPrefilter);
             width /= 2;
             height /= 2;
 
@@ -544,8 +514,8 @@ namespace AggroBird.GameRenderPipeline
                 int midId = toId - 1;
                 buffer.GetTemporaryRT(midId, width, height, 0, FilterMode.Bilinear, format);
                 buffer.GetTemporaryRT(toId, width, height, 0, FilterMode.Bilinear, format);
-                Draw(fromId, midId, Pass.BlurHorizontal);
-                Draw(midId, toId, Pass.BlurVertical);
+                Draw(fromId, midId, PostProcessPass.BlurHorizontal);
+                Draw(midId, toId, PostProcessPass.BlurVertical);
                 fromId = toId;
                 toId += 2;
                 width /= 2;
@@ -557,20 +527,20 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetGlobalBool(bloomBucibicUpsamplingId, bloom.bicubicUpsampling);
 
             // Select final pass
-            Pass combinePass, finalPass;
+            PostProcessPass combinePass, finalPass;
             float finalIntensity;
             if (bloom.mode == PostProcessSettings.Bloom.Mode.Additive)
             {
                 // Additive
-                combinePass = finalPass = Pass.BloomAdd;
+                combinePass = finalPass = PostProcessPass.BloomAdd;
                 buffer.SetGlobalFloat(bloomIntensityId, 1f);
                 finalIntensity = bloom.intensity;
             }
             else
             {
                 // Scatter
-                combinePass = Pass.BloomScatter;
-                finalPass = Pass.BloomScatterFinal;
+                combinePass = PostProcessPass.BloomScatter;
+                finalPass = PostProcessPass.BloomScatterFinal;
                 buffer.SetGlobalFloat(bloomIntensityId, bloom.scatter);
                 finalIntensity = Mathf.Min(bloom.intensity, 0.95f);
             }
@@ -653,8 +623,8 @@ namespace AggroBird.GameRenderPipeline
                 buffer.GetTemporaryRT(colorGradingLUTId, lutWidth, lutHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
                 buffer.SetGlobalVector(colorGradingLUTParametersId, new(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)));
                 PostProcessSettings.ToneMapping.Mode mode = settings.toneMapping.mode;
-                Pass pass = Pass.ColorGradingNone + (int)mode;
-                buffer.SetGlobalBool(colorGradingLUTInLogCId, useHDR && pass != Pass.ColorGradingNone);
+                PostProcessPass pass = PostProcessPass.ColorGradingNone + (int)mode;
+                buffer.SetGlobalBool(colorGradingLUTInLogCId, useHDR && pass != PostProcessPass.ColorGradingNone);
                 Draw(src, colorGradingLUTId, pass);
             }
             buffer.EndSample("Render Color Grading LUT");
@@ -662,7 +632,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.BeginSample("Apply Color Grading LUT");
             {
                 buffer.SetGlobalVector(colorGradingLUTParametersId, new(1f / lutWidth, 1f / lutHeight, lutHeight - 1f));
-                Draw(src, dst, Pass.Final);
+                Draw(src, dst, PostProcessPass.Final);
                 buffer.ReleaseTemporaryRT(colorGradingLUTId);
             }
             buffer.EndSample("Apply Color Grading LUT");
@@ -740,7 +710,7 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
-        private void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, Pass pass)
+        private void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, PostProcessPass pass)
         {
             buffer.SetGlobalTexture(postProcessInputTexId, src);
             buffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);

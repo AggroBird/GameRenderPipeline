@@ -21,7 +21,7 @@ namespace AggroBird.GameRenderPipeline
             pass.lighting = lighting;
             pass.cullingResults = cullingResults;
             pass.settings = settings;
-            builder.SetRenderFunc<LightingPass>((pass, context) => pass.Render(context));
+            builder.SetRenderFunc<LightingPass>(static (pass, context) => pass.Render(context));
         }
     }
 }

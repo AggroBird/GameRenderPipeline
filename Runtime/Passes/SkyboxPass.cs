@@ -8,36 +8,37 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(SkyboxPass));
 
-        private CameraRenderer renderer;
+        private Material defaultSkyboxMaterial;
         private EnvironmentSettings environmentSettings;
 
         private void Render(RenderGraphContext context)
         {
-            if (renderer.Camera.clearFlags == CameraClearFlags.Skybox)
+            var buffer = context.cmd;
+            switch (environmentSettings.skyboxSettings.skyboxSource)
             {
-                switch (environmentSettings.skyboxSettings.skyboxSource)
-                {
-                    case EnvironmentSettings.SkyboxSource.Material:
-                    case EnvironmentSettings.SkyboxSource.Gradient:
-                        bool useDefault = environmentSettings.skyboxSettings.skyboxSource == EnvironmentSettings.SkyboxSource.Gradient || !environmentSettings.skyboxSettings.skyboxMaterial;
-                        Material mat = useDefault ? renderer.DefaultSkyboxMaterial : environmentSettings.skyboxSettings.skyboxMaterial;
-                        context.cmd.DrawFullscreenEffect(mat, 0);
-                        break;
-                    case EnvironmentSettings.SkyboxSource.Cubemap:
-                        context.cmd.SetGlobalTexture(CameraRenderer.SkyboxStaticCubemapId, environmentSettings.skyboxSettings.skyboxCubemap);
-                        context.cmd.DrawFullscreenEffect(renderer.DefaultSkyboxMaterial, 1);
-                        break;
-                }
-                renderer.ExecuteBuffer();
+                case EnvironmentSettings.SkyboxSource.Material:
+                case EnvironmentSettings.SkyboxSource.Gradient:
+                    bool useDefault = environmentSettings.skyboxSettings.skyboxSource == EnvironmentSettings.SkyboxSource.Gradient || !environmentSettings.skyboxSettings.skyboxMaterial;
+                    Material mat = useDefault ? defaultSkyboxMaterial : environmentSettings.skyboxSettings.skyboxMaterial;
+                    buffer.DrawFullscreenEffect(mat, 0);
+                    break;
+                case EnvironmentSettings.SkyboxSource.Cubemap:
+                    buffer.SetGlobalTexture(CameraRenderer.SkyboxStaticCubemapId, environmentSettings.skyboxSettings.skyboxCubemap);
+                    buffer.DrawFullscreenEffect(defaultSkyboxMaterial, 1);
+                    break;
             }
+            context.renderContext.ExecuteCommandBuffer(buffer);
+            buffer.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, CameraRenderer renderer, EnvironmentSettings environmentSettings)
+        public static void Record(RenderGraph renderGraph, Material defaultSkyboxMaterial, EnvironmentSettings environmentSettings, in CameraRendererTextures textures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out SkyboxPass pass, sampler);
-            pass.renderer = renderer;
+            pass.defaultSkyboxMaterial = defaultSkyboxMaterial;
             pass.environmentSettings = environmentSettings;
-            builder.SetRenderFunc<SkyboxPass>((pass, context) => pass.Render(context));
+            builder.ReadWriteTexture(textures.rtColorBuffer);
+            builder.ReadTexture(textures.rtDepthBuffer);
+            builder.SetRenderFunc<SkyboxPass>(static (pass, context) => pass.Render(context));
         }
     }
 }
