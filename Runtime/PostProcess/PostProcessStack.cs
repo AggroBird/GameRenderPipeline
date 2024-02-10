@@ -704,7 +704,7 @@ namespace AggroBird.GameRenderPipeline
 
         private void ApplyFXAA(RenderTargetIdentifier src, RenderTargetIdentifier dst)
         {
-            buffer.BeginSample("SMAA");
+            buffer.BeginSample("FXAA");
 
             if (!fxaaMaterial)
             {
