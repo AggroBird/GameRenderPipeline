@@ -157,7 +157,7 @@ namespace AggroBird.GameRenderPipeline
             postProcessStack.Setup(camera, useHDR, ShowPostProcess);
 
             outputOpaque = generalSettings.outputOpaqueRenderTargets;
-            outputNormals = postProcessStack.RequireNormalTexture || (outputOpaque && generalSettings.outputOpaqueNormalBuffer);
+            outputNormals = outputOpaque && generalSettings.outputOpaqueNormalBuffer;
 
             buffer = CommandBufferPool.Get();
             buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.LinearColorSpace);

@@ -20,8 +20,6 @@ namespace AggroBird.GameRenderPipeline
 
         private bool postProcessEnabled;
 
-        public bool RequireNormalTexture => postProcessEnabled && (settings.ambientOcclusion.enabled || settings.outline.enabled);
-
         public bool DofEnabled
         {
             get
@@ -198,6 +196,23 @@ namespace AggroBird.GameRenderPipeline
             return postProcessComponent && postProcessComponent.enabled;
         }
 
+        private static bool normalBufferInvalidWarningEmitted = false;
+        private void ValidateNormalBuffer(RenderTargetIdentifier buffer)
+        {
+            if (buffer == default)
+            {
+                if (!normalBufferInvalidWarningEmitted)
+                {
+                    normalBufferInvalidWarningEmitted = true;
+                    Debug.LogWarning("Pre transparency post process requires the geometry normal output buffer");
+                }
+            }
+            else
+            {
+                normalBufferInvalidWarningEmitted = false;
+            }
+        }
+
         public void Setup(Camera camera, bool useHDR, bool postProcessEnabled)
         {
             this.camera = camera;
@@ -294,6 +309,7 @@ namespace AggroBird.GameRenderPipeline
             if (postProcessEnabled)
             {
                 // TODO: Change to render graph
+                ValidateNormalBuffer(srcNormal);
 
                 currentSourceBuffer = srcColor;
 
