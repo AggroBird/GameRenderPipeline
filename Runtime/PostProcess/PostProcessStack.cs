@@ -11,6 +11,7 @@ namespace AggroBird.GameRenderPipeline
 
         private Material postProcessMaterial = default;
         private Material smaaMaterial = default;
+        private Material fxaaMaterial = default;
 
         private RenderGraphContext context;
         private Camera camera;
@@ -101,12 +102,15 @@ namespace AggroBird.GameRenderPipeline
         }
 
         private static readonly int
-            rtMetrics = Shader.PropertyToID("_SMAA_RTMetrics"),
-            flipId = Shader.PropertyToID("_SMAA_Flip"),
-            flopId = Shader.PropertyToID("_SMAA_Flop"),
-            areaTexId = Shader.PropertyToID("_SMAA_AreaTex"),
-            searchTexId = Shader.PropertyToID("_SMAA_SearchTex"),
-            blendTexId = Shader.PropertyToID("_SMAA_BlendTex");
+            smaaRtMetrics = Shader.PropertyToID("_SMAA_RTMetrics"),
+            smaaFlipId = Shader.PropertyToID("_SMAA_Flip"),
+            smaaFlopId = Shader.PropertyToID("_SMAA_Flop"),
+            smaaAreaTexId = Shader.PropertyToID("_SMAA_AreaTex"),
+            smaaSearchTexId = Shader.PropertyToID("_SMAA_SearchTex"),
+            smaaBlendTexId = Shader.PropertyToID("_SMAA_BlendTex");
+
+        private static readonly int fxaaInverseScreenSizeId =
+            Shader.PropertyToID("_FXAA_InverseScreenSize");
 
 
         private RenderTargetIdentifier currentSourceBuffer;
@@ -378,9 +382,17 @@ namespace AggroBird.GameRenderPipeline
                 ExecuteCustomEffectsList(PostProcessEffectOrder.BeforeAntiAlias);
 
                 // SMAA
-                if (settings.smaa.enabled)
+                if (settings.antiAlias.enabled)
                 {
-                    ApplySMAA(currentSourceBuffer, GetNextBuffer());
+                    switch (settings.antiAlias.algorithm)
+                    {
+                        case PostProcessSettings.AntiAlias.Algorithm.FXAA:
+                            ApplyFXAA(currentSourceBuffer, GetNextBuffer());
+                            break;
+                        default:
+                            ApplySMAA(currentSourceBuffer, GetNextBuffer());
+                            break;
+                    }
                     SwapBuffers();
                 }
 
@@ -670,26 +682,46 @@ namespace AggroBird.GameRenderPipeline
                 };
             }
 
-            buffer.GetTemporaryRT(flipId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);//, RenderTextureReadWrite.Linear, 1, false, RenderTextureMemoryless.None, camera.allowDynamicResolution);
-            buffer.GetTemporaryRT(flopId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);//, RenderTextureReadWrite.Linear, 1, false, RenderTextureMemoryless.None, camera.allowDynamicResolution);
+            buffer.GetTemporaryRT(smaaFlipId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);//, RenderTextureReadWrite.Linear, 1, false, RenderTextureMemoryless.None, camera.allowDynamicResolution);
+            buffer.GetTemporaryRT(smaaFlopId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.ARGB32);//, RenderTextureReadWrite.Linear, 1, false, RenderTextureMemoryless.None, camera.allowDynamicResolution);
 
-            buffer.SetGlobalTexture(areaTexId, GameRenderPipelineAsset.Instance.Resources.smaaAreaTexture);
-            buffer.SetGlobalTexture(searchTexId, GameRenderPipelineAsset.Instance.Resources.smaaSearchTexture);
-            buffer.SetGlobalVector(rtMetrics, new Vector4(1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
+            buffer.SetGlobalTexture(smaaAreaTexId, GameRenderPipelineAsset.Instance.Resources.smaaAreaTexture);
+            buffer.SetGlobalTexture(smaaSearchTexId, GameRenderPipelineAsset.Instance.Resources.smaaSearchTexture);
+            buffer.SetGlobalVector(smaaRtMetrics, new Vector4(1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
 
-            buffer.BlitFrameBuffer(src, flipId, smaaMaterial, (int)SMAAPass.EdgeDetection + (int)settings.smaa.quality, true);
-            buffer.BlitFrameBuffer(flipId, flopId, smaaMaterial, (int)SMAAPass.BlendWeights + (int)settings.smaa.quality, true);
-            buffer.SetGlobalTexture(blendTexId, flopId);
+            buffer.BlitFrameBuffer(src, smaaFlipId, smaaMaterial, (int)SMAAPass.EdgeDetection + (int)settings.antiAlias.quality, true);
+            buffer.BlitFrameBuffer(smaaFlipId, smaaFlopId, smaaMaterial, (int)SMAAPass.BlendWeights + (int)settings.antiAlias.quality, true);
+            buffer.SetGlobalTexture(smaaBlendTexId, smaaFlopId);
             buffer.BlitFrameBuffer(src, dst, smaaMaterial, (int)SMAAPass.NeighborhoodBlending);
 
-            buffer.ReleaseTemporaryRT(flipId);
-            buffer.ReleaseTemporaryRT(flopId);
+            buffer.ReleaseTemporaryRT(smaaFlipId);
+            buffer.ReleaseTemporaryRT(smaaFlopId);
 
             buffer.EndSample("SMAA");
 
             ExecuteBuffer();
         }
 
+        private void ApplyFXAA(RenderTargetIdentifier src, RenderTargetIdentifier dst)
+        {
+            buffer.BeginSample("SMAA");
+
+            if (!fxaaMaterial)
+            {
+                fxaaMaterial = new(GameRenderPipelineAsset.Instance.Resources.fxaaShader)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
+
+            buffer.SetGlobalVector(fxaaInverseScreenSizeId, new Vector4(1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight));
+
+            buffer.BlitFrameBuffer(src, dst, fxaaMaterial, (int)settings.antiAlias.quality);
+
+            buffer.EndSample("FXAA");
+
+            ExecuteBuffer();
+        }
 
 
         private List<PostProcessEffect> GetCustomEffectsList(PostProcessEffectOrder order) => customEffects[(int)order];

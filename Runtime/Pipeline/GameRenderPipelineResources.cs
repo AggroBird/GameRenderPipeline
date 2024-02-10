@@ -14,6 +14,7 @@ namespace AggroBird.GameRenderPipeline
         public Shader blitRenderTargetShader = default;
         public Shader postProcessShader = default;
         public Shader smaaShader = default;
+        public Shader fxaaShader = default;
         public Texture2D smaaAreaTexture = default;
         public Texture2D smaaSearchTexture = default;
     }

@@ -25,24 +25,32 @@ namespace AggroBird.GameRenderPipeline
         };
 
         [Serializable]
-        public struct SMAA
+        public struct AntiAlias
         {
+            public enum Algorithm
+            {
+                FXAA,
+                SMAA,
+            }
+
             public enum Quality
             {
-                Low = 0,
-                Medium = 1,
-                High = 2,
+                Low,
+                Medium,
+                High,
             }
 
             public bool enabled;
 
+            public Algorithm algorithm;
             public Quality quality;
         }
 
-        public SMAA smaa = new()
+        public AntiAlias antiAlias = new()
         {
             enabled = false,
-            quality = SMAA.Quality.High,
+            algorithm = AntiAlias.Algorithm.FXAA,
+            quality = AntiAlias.Quality.High,
         };
 
         [Serializable]

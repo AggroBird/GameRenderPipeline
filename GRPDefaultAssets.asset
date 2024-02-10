@@ -16,12 +16,11 @@ MonoBehaviour:
   defaultTerrainLit: {fileID: 2100000, guid: 1742a5ed6da3ce2469681350b56d26e9, type: 2}
   terrainDetailLit: {fileID: 4800000, guid: f5ccd101b40ae334d9f6abd564ea6fdf, type: 3}
   terrainDetailGrass: {fileID: 4800000, guid: 8fa474e325c17a042a3bbc29f0a63cfb, type: 3}
-  detailGrassBillboardShader: {fileID: 4800000, guid: c99bff43c10fa3c45a5e3845eecdce41,
-    type: 3}
+  detailGrassBillboardShader: {fileID: 4800000, guid: c99bff43c10fa3c45a5e3845eecdce41, type: 3}
   skyboxRenderShader: {fileID: 4800000, guid: e93d06d8622d72b419ff242847cae8d9, type: 3}
-  blitRenderTargetShader: {fileID: 4800000, guid: 9d916d10a45965f4098de43bffac5fe3,
-    type: 3}
+  blitRenderTargetShader: {fileID: 4800000, guid: 9d916d10a45965f4098de43bffac5fe3, type: 3}
   postProcessShader: {fileID: 4800000, guid: 9f7cf035f7369774cacfdbc662af1587, type: 3}
   smaaShader: {fileID: 4800000, guid: e107454670320ef4c97871571f39e401, type: 3}
+  fxaaShader: {fileID: 4800000, guid: fa0f347c4023def4cb58ae46b2555346, type: 3}
   smaaAreaTexture: {fileID: 2800000, guid: 73ec4ae984a0a0f44a2be737e41a6f2f, type: 3}
   smaaSearchTexture: {fileID: 2800000, guid: d99701099481a2f489610e977df6dcbc, type: 3}
