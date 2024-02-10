@@ -9,6 +9,8 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(SetupPass));
 
+        private static readonly RenderTargetIdentifier[] rtArray = new RenderTargetIdentifier[2];
+
         private bool outputOpaque;
         private bool outputNormals;
         private TextureHandle rtColorBuffer;
@@ -48,7 +50,9 @@ namespace AggroBird.GameRenderPipeline
                 // Also create normal buffer and add as render target
                 buffer.SetRenderTarget(rtNormalBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 buffer.ClearRenderTarget(true, true, Color.clear);
-                buffer.SetRenderTarget(new RenderTargetIdentifier[] { rtColorBuffer, rtNormalBuffer }, rtDepthBuffer);
+                rtArray[0] = rtColorBuffer;
+                rtArray[1] = rtDepthBuffer;
+                buffer.SetRenderTarget(rtArray, rtDepthBuffer);
             }
         }
 
