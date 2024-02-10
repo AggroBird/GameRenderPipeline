@@ -51,7 +51,7 @@ namespace AggroBird.GameRenderPipeline
                 buffer.SetRenderTarget(rtNormalBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 buffer.ClearRenderTarget(true, true, Color.clear);
                 rtArray[0] = rtColorBuffer;
-                rtArray[1] = rtDepthBuffer;
+                rtArray[1] = rtNormalBuffer;
                 buffer.SetRenderTarget(rtArray, rtDepthBuffer);
             }
         }
