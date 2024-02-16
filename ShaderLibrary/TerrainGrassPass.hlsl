@@ -59,7 +59,11 @@ Varyings GrassVertex(Attributes input)
 	output.texcoord = input.texcoord;
 
 	output.color = input.color;
-	ApplyLinearColorCorrection(output.color.rgb);
+#if defined(_COLOR_SPACE_LINEAR)
+	output.color = float4(SRGBToLinear(input.color.rgb), input.color.a);
+#else
+	output.color = input.color;
+#endif
 	
 	float3 offset = input.positionOS.xyz - _CameraPosition.xyz;
 	output.color.a = saturate(2 * (_WaveAndDistance.w - dot(offset, offset)) * _CameraPosition.w);

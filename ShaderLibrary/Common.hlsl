@@ -136,41 +136,6 @@ void AlphaDiscard(float alpha, float cutoff, float offset = 0.0h)
 #endif
 }
 
-
-
-////////////////////////////////
-// COLOR CORRECTION
-////////////////////////////////
-
-float3 RGBToLinear(float3 color)
-{
-	float3 sRGBLo = color * 12.92;
-	float3 sRGBHi = (pow(max(abs(color), 1.192092896e-07), float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-	return float3(color <= 0.0031308) ? sRGBLo : sRGBHi;
-}
-
-float3 LinearToRGB(float3 color)
-{
-	float3 linearRGBLo = color / 12.92;
-	float3 linearRGBHi = pow(max(abs((color + 0.055) / 1.055), 1.192092896e-07), float3(2.4, 2.4, 2.4));
-	return float3(color <= 0.04045) ? linearRGBLo : linearRGBHi;
-}
-
-void ApplyLinearColorCorrection(inout float3 rgb)
-{
-#if defined(_COLOR_SPACE_LINEAR)
-	rgb = LinearToRGB(rgb);
-#endif
-}
-float3 CorrectLinearColor(float3 rgb)
-{
-#if defined(_COLOR_SPACE_LINEAR)
-    rgb = LinearToRGB(rgb);
-#endif
-    return rgb;
-}
-
-
 ////////////////////////////////
 // DEPTH/TRACE UTILITY
 ////////////////////////////////
