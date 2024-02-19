@@ -176,7 +176,6 @@ namespace AggroBird.GameRenderPipeline
             }
 
             public bool enabled;
-            [Min(1)]
             public Gradient falloff;
         }
 
