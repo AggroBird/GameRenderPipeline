@@ -3,13 +3,18 @@
 
 #include "Common.hlsl"
 
-TEXTURE2D(_Control);
-SAMPLER(sampler_Control);
-TEXTURE2D(_Splat0);
+TEXTURE2D(_Control);    SAMPLER(sampler_Control);
+TEXTURE2D(_Splat0);     SAMPLER(sampler_Splat0);
 TEXTURE2D(_Splat1);
 TEXTURE2D(_Splat2);
 TEXTURE2D(_Splat3);
-SAMPLER(sampler_Splat0);
+
+#ifdef _NORMALMAP
+TEXTURE2D(_Normal0);     SAMPLER(sampler_Normal0);
+TEXTURE2D(_Normal1);
+TEXTURE2D(_Normal2);
+TEXTURE2D(_Normal3);
+#endif
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
