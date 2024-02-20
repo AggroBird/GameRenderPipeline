@@ -5,17 +5,17 @@ using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
+    [Flags]
+    internal enum ShowFlags
+    {
+        None = 0,
+        Fog = 1,
+        Skybox = 2,
+        PostProcess = 4,
+        All = Fog | Skybox | PostProcess,
+    }
     internal sealed partial class CameraRenderer
     {
-        [Flags]
-        private enum ShowFlags
-        {
-            None = 0,
-            Fog = 1,
-            Skybox = 2,
-            PostProcess = 4,
-            All = Fog | Skybox | PostProcess,
-        }
         private ShowFlags showFlags = ShowFlags.All;
 
         private bool ShowFog => (showFlags & ShowFlags.Fog) != ShowFlags.None;

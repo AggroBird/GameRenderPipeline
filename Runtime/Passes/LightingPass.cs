@@ -74,6 +74,7 @@ namespace AggroBird.GameRenderPipeline
         private int directionalLightCount;
         private int otherLightCount;
         private ExperimentalSettings.CellShading cellShadingSettings;
+        private ShowFlags showFlags;
 
         private readonly Shadows shadows = new();
 
@@ -81,11 +82,12 @@ namespace AggroBird.GameRenderPipeline
         private Color primaryLightColor;
 
 
-        public void Setup(CullingResults cullingResults, GameRenderPipelineSettings settings, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
+        public void Setup(CullingResults cullingResults, GameRenderPipelineSettings settings, ShowFlags showFlags, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             this.cullingResults = cullingResults;
             useLightsPerObject = settings.general.useLightsPerObject;
             cellShadingSettings = settings.experimental.cellShading;
+            this.showFlags = showFlags;
 
             shadows.Setup(cullingResults, settings.shadows);
             SetupLights();
@@ -114,8 +116,9 @@ namespace AggroBird.GameRenderPipeline
                 buffer.SetGlobalVectorArray(otherLightShadowDataId, otherLightShadowData);
             }
 
-            buffer.SetKeyword(cellShadingKeyword, cellShadingSettings.enabled);
-            if (cellShadingSettings.enabled)
+            bool useCellShading = cellShadingSettings.enabled && (showFlags & ShowFlags.PostProcess) != ShowFlags.None;
+            buffer.SetKeyword(cellShadingKeyword, useCellShading);
+            if (useCellShading)
             {
                 TextureUtility.RenderGradientToTexture(ref cellShadingFalloffTexture, cellShadingSettings.falloff);
                 buffer.SetGlobalTexture(cellShadingFalloffId, cellShadingFalloffTexture);
@@ -219,11 +222,11 @@ namespace AggroBird.GameRenderPipeline
             otherLightShadowData[index] = shadows.ReserveOtherShadows(visibleLight.light, visibleIndex);
         }
 
-        public static ShadowTextures Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, GameRenderPipelineSettings settings, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
+        public static ShadowTextures Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, GameRenderPipelineSettings settings, ShowFlags showFlags, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out LightingPass pass, sampler);
             pass.camera = camera;
-            pass.Setup(cullingResults, settings, out primaryDirectionalLightInfo);
+            pass.Setup(cullingResults, settings, showFlags, out primaryDirectionalLightInfo);
             pass.settings = settings;
             builder.SetRenderFunc<LightingPass>(static (pass, context) => pass.Render(context));
             builder.AllowPassCulling(false);
