@@ -74,7 +74,7 @@ void ApplyFog(inout float3 rgb, FOG_ATTRIBUTE_TYPE fogAttribute)
 
 void BlendFog(inout float3 rgb, FOG_ATTRIBUTE_TYPE fogAttribute)
 {
-    rgb *= ComputeFogIntensity(fogAttribute);
+    rgb = lerp(rgb, float3(0, 0, 0), ComputeFogIntensity(fogAttribute));
 }
 
 #define FOG_ATTRIBUTE(idx) FOG_ATTRIBUTE_TYPE fogAttribute : TEXCOORD##idx;
