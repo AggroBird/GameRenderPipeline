@@ -94,11 +94,12 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 
 #if defined(TERRAIN_SPLAT_ADDPASS)
 	BLEND_FOG(input, lit.rgb);
+	return MakeFragmentOutput(float4(lit, 1), float3(0, 0, 0));
 #else
 	APPLY_FOG(input, lit.rgb);
+	return MakeFragmentOutput(float4(lit, 1), surface.normal);
 #endif
 
-	return MakeFragmentOutput(float4(lit, 1), surface.normal);
 }
 
 
