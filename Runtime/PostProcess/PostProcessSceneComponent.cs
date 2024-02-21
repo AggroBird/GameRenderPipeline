@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AggroBird.GameRenderPipeline
@@ -7,7 +8,11 @@ namespace AggroBird.GameRenderPipeline
     {
         protected override void OnEnable()
         {
-            activeScenePostProcess = this;
+            activePostProcessComponents.Add(this);
+        }
+        protected override void OnDisable()
+        {
+            activePostProcessComponents.Remove(this);
         }
     }
 }

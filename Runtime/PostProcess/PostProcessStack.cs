@@ -166,11 +166,12 @@ namespace AggroBird.GameRenderPipeline
             else if (camera.cameraType == CameraType.SceneView)
             {
 #if UNITY_EDITOR
-                // Try to get current main camera component
+                // Try to get current main camera component for editor scene view
                 var activeCameraComponents = PostProcessCameraComponent.activeCameraComponents;
                 for (int i = 0; i < activeCameraComponents.Count;)
                 {
-                    if (!activeCameraComponents[i])
+                    var postProcessCameraComponent = activeCameraComponents[i];
+                    if (!postProcessCameraComponent)
                     {
                         int last = activeCameraComponents.Count - 1;
                         if (i == last)
@@ -179,15 +180,15 @@ namespace AggroBird.GameRenderPipeline
                         }
                         else
                         {
-                            activeCameraComponents[i] = activeCameraComponents[last];
+                            postProcessCameraComponent = activeCameraComponents[last];
                             activeCameraComponents.RemoveAt(last);
                         }
                         continue;
                     }
 
-                    if (activeCameraComponents[i].enabled && activeCameraComponents[i].TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                    if (postProcessCameraComponent.TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
                     {
-                        postProcessComponent = activeCameraComponents[i];
+                        postProcessComponent = postProcessCameraComponent;
                         return true;
                     }
 
@@ -196,8 +197,28 @@ namespace AggroBird.GameRenderPipeline
 #endif
             }
 
-            postProcessComponent = PostProcessComponent.activeScenePostProcess;
-            return postProcessComponent && postProcessComponent.enabled;
+            // Find active post process
+            var activePostProcessComponents = PostProcessComponent.activePostProcessComponents;
+            for (int i = 0; i < activePostProcessComponents.Count;)
+            {
+                postProcessComponent = activePostProcessComponents[i];
+                if (!postProcessComponent)
+                {
+                    int last = activePostProcessComponents.Count - 1;
+                    if (i == last)
+                    {
+                        activePostProcessComponents.RemoveAt(i);
+                    }
+                    else
+                    {
+                        postProcessComponent = activePostProcessComponents[last];
+                        activePostProcessComponents.RemoveAt(last);
+                    }
+                    continue;
+                }
+                break;
+            }
+            return postProcessComponent;
         }
 
         private static bool normalBufferInvalidWarningEmitted = false;

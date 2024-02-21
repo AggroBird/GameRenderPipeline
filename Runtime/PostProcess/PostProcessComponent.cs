@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -32,7 +33,7 @@ namespace AggroBird.GameRenderPipeline
         }
 
 
-        internal static PostProcessComponent activeScenePostProcess;
+        internal static readonly List<PostProcessComponent> activePostProcessComponents = new();
 
         protected virtual void OnEnable()
         {
