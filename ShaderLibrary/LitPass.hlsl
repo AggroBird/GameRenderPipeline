@@ -63,10 +63,8 @@ FragmentOutput LitPassFragment(Varyings input)
 	float4 diffuse = GetDiffuse(config) * input.color;
 	ClipAlpha(diffuse.a, config);
 
-	float metallic = GetMetallic(config);
-	float smoothness = GetSmoothness(config);
-	float fresnel = GetFresnel(config);
-	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, metallic, smoothness, fresnel, input.positionCS.xy);
+	SurfaceInfo surfaceInfo = GetSurfaceInfo(config);
+	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, surfaceInfo.metallic, surfaceInfo.smoothness, surfaceInfo.fresnel, input.positionCS.xy);
 
 #if defined(_HAS_NORMAL_TEXTURE)
 	surface.normal = NormalTangentToWorld(GetNormal(config), input.normalWS, input.tangentWS);

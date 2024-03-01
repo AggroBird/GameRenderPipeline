@@ -41,6 +41,7 @@ namespace AggroBird.GameRenderPipeline.Editor
 
             EnableTextureToggle("_EmissionTex", "_HAS_EMISSION_TEXTURE");
             EnableTextureToggle("_NormalTex", "_HAS_NORMAL_TEXTURE");
+            EnableTextureToggle("_SurfaceTex", "_HAS_SURFACE_TEXTURE");
         }
 
         private void EnableTextureToggle(string textureName, string featureName)

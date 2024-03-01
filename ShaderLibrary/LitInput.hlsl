@@ -6,6 +6,7 @@
 TEXTURE2D(_MainTex);
 TEXTURE2D(_EmissionTex);
 TEXTURE2D(_NormalTex);
+TEXTURE2D(_SurfaceTex);
 SAMPLER(sampler_MainTex);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
@@ -13,6 +14,7 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionTex_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _NormalTex_ST)
+	UNITY_DEFINE_INSTANCED_PROP(float4, _SurfaceTex_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
 	UNITY_DEFINE_INSTANCED_PROP(float, _NormalScale)
 	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
@@ -35,6 +37,9 @@ struct InputConfig
 #if defined(_HAS_NORMAL_TEXTURE)
 	float2 normal_Texcoord;
 #endif
+#if defined(_HAS_SURFACE_TEXTURE)
+	float2 surface_Texcoord;
+#endif
 };
 
 InputConfig GetInputConfig(float2 texcoord)
@@ -46,6 +51,9 @@ InputConfig GetInputConfig(float2 texcoord)
 #endif
 #if defined(_HAS_NORMAL_TEXTURE)
 	config.normal_Texcoord = TransformTexcoord(texcoord, PER_MATERIAL_PROP(_NormalTex_ST));
+#endif
+#if defined(_HAS_SURFACE_TEXTURE)
+	config.surface_Texcoord = TransformTexcoord(texcoord, PER_MATERIAL_PROP(_SurfaceTex_ST));
 #endif
 	return config;
 }
@@ -92,19 +100,26 @@ float GetCutoff(InputConfig config)
 	return PER_MATERIAL_PROP(_Cutoff);
 }
 
-float GetMetallic(InputConfig config)
+struct SurfaceInfo
 {
-	return PER_MATERIAL_PROP(_Metallic);
-}
+	float metallic;
+	float smoothness;
+	float fresnel;
+};
 
-float GetSmoothness(InputConfig config)
+SurfaceInfo GetSurfaceInfo(InputConfig config)
 {
-	return PER_MATERIAL_PROP(_Smoothness);
-}
-
-float GetFresnel(InputConfig config)
-{
-	return PER_MATERIAL_PROP(_Fresnel);
+	SurfaceInfo result;
+	result.metallic = PER_MATERIAL_PROP(_Metallic);
+	result.smoothness = PER_MATERIAL_PROP(_Smoothness);
+	result.fresnel = PER_MATERIAL_PROP(_Fresnel);
+#if defined(_HAS_SURFACE_TEXTURE)
+	float3 msf = SAMPLE_TEXTURE2D(_SurfaceTex, sampler_MainTex, config.surface_Texcoord).xyz;
+	result.metallic *= msf.x;
+	result.smoothness *= msf.y;
+	result.fresnel *= msf.z;
+#endif
+	return result;
 }
 
 void ClipAlpha(float alpha, InputConfig config)

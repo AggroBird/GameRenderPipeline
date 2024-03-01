@@ -11,6 +11,7 @@
 		_NormalTex("Normal Texture", 2D) = "normal" {}
 		_NormalScale("Normal Scale", Range(0, 1)) = 1
 		[Space]
+		_SurfaceTex("Surface Texture", 2D) = "black" {}
 		_Metallic("Metallic", Range(0, 1)) = 0
 		_Smoothness("Smoothness", Range(0, 1)) = 0.2
 		_Fresnel("Fresnel", Range(0, 1)) = 1
@@ -54,6 +55,7 @@
 			#pragma shader_feature _ALPHATEST_ON
 			#pragma shader_feature _HAS_EMISSION_TEXTURE
 			#pragma shader_feature _HAS_NORMAL_TEXTURE
+			#pragma shader_feature _HAS_SURFACE_TEXTURE
 			#pragma shader_feature _RECEIVE_SHADOWS
 			#pragma multi_compile _ _FOG_LINEAR _FOG_EXP _FOG_EXP2
 			#pragma multi_compile _ _OUTPUT_NORMALS_ENABLED
