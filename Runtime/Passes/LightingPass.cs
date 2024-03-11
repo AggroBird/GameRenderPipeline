@@ -47,6 +47,8 @@ namespace AggroBird.GameRenderPipeline
             otherLightSpotAnglesId = Shader.PropertyToID("_OtherLightSpotAngles"),
             otherLightShadowDataId = Shader.PropertyToID("_OtherLightShadowData");
 
+        private static readonly int globalShadowStrengthId = Shader.PropertyToID("_GlobalShadowStrength");
+
         private readonly static Vector4[]
             otherLightColors = new Vector4[MaxOtherLightCount],
             otherLightPositions = new Vector4[MaxOtherLightCount],
@@ -75,6 +77,7 @@ namespace AggroBird.GameRenderPipeline
         private int otherLightCount;
         private ExperimentalSettings.CellShading cellShadingSettings;
         private ShowFlags showFlags;
+        private float globalShadowStrength;
 
         private readonly Shadows shadows = new();
 
@@ -88,6 +91,7 @@ namespace AggroBird.GameRenderPipeline
             useLightsPerObject = settings.general.useLightsPerObject;
             cellShadingSettings = settings.experimental.cellShading;
             this.showFlags = showFlags;
+            globalShadowStrength = settings.shadows.globalShadowStrength;
 
             shadows.Setup(cullingResults, settings.shadows);
             SetupLights();
@@ -123,6 +127,8 @@ namespace AggroBird.GameRenderPipeline
                 TextureUtility.RenderGradientToTexture(ref cellShadingFalloffTexture, cellShadingSettings.falloff);
                 buffer.SetGlobalTexture(cellShadingFalloffId, cellShadingFalloffTexture);
             }
+
+            buffer.SetGlobalFloat(globalShadowStrengthId, globalShadowStrength);
 
             context.renderContext.SetupCameraProperties(camera);
             shadows.Render(context);

@@ -65,6 +65,7 @@ FragmentOutput LitPassFragment(Varyings input)
 
 	SurfaceInfo surfaceInfo = GetSurfaceInfo(config);
 	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, surfaceInfo.metallic, surfaceInfo.smoothness, surfaceInfo.fresnel, input.positionCS.xy);
+    surface.shadowStrength *= _IndividualShadowStrength;
 
 #if defined(_HAS_NORMAL_TEXTURE)
 	surface.normal = NormalTangentToWorld(GetNormal(config), input.normalWS, input.tangentWS);

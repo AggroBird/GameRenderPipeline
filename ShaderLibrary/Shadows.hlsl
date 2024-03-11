@@ -181,7 +181,7 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData directional, ShadowD
 		shadow = lerp(FilterDirectionalShadow(positionSTS), shadow, global.cascadeBlend);
 	}
 
-	return lerp(1.0, shadow, directional.strength);
+	return lerp(1.0, shadow, directional.strength * surface.shadowStrength);
 }
 float GetDirectionalShadowValue(DirectionalShadowData directional, ShadowData global, float3 positionWS)
 {

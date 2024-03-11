@@ -1,6 +1,8 @@
 #ifndef _GRP_SURFACE
 #define _GRP_SURFACE
 
+float _GlobalShadowStrength;
+
 struct Surface
 {
 	float3 position;
@@ -14,6 +16,7 @@ struct Surface
 	float smoothness;
 	float fresnel;
 	float dither;
+    float shadowStrength;
 };
 
 Surface MakeSurface(float4 diffuse, float3 positionWS, float3 interpolatedNormalWS, float metallic, float smoothness, float fresnel)
@@ -30,6 +33,7 @@ Surface MakeSurface(float4 diffuse, float3 positionWS, float3 interpolatedNormal
 	surface.smoothness = smoothness;
 	surface.fresnel = fresnel;
 	surface.dither = 0;
+    surface.shadowStrength = _GlobalShadowStrength;
 	return surface;
 }
 

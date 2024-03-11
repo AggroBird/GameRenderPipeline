@@ -58,6 +58,9 @@ namespace AggroBird.GameRenderPipeline
         [Range(0.001f, 1f)]
         public float distanceFade = 0.1f;
 
+        [Space, Range(0, 1)]
+        public float globalShadowStrength = 1;
+
         [System.Serializable]
         public struct Directional
         {
@@ -167,8 +170,8 @@ namespace AggroBird.GameRenderPipeline
                 GradientAlphaKey[] gradientAlphaKeys =
                 {
                     new(1, 0),
-                    new(1, 0.33333f),
-                    new(1, 0.66666f),
+                    new(1, 0.2f),
+                    new(1, 0.4f),
                     new(1, 1),
                 };
                 gradient.SetKeys(gradientColorKeys, gradientAlphaKeys);
