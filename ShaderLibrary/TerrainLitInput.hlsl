@@ -100,6 +100,8 @@ InputConfig GetInputConfig(float2 texcoord)
 	return GetTerrainInputConfig(texcoord, float4(0, 0, 0, 0), float4(0, 0, 0, 0));
 }
 
+#ifndef TERRAIN_SPLAT_BASEPASS
+
 void SplatmapMix(inout InputConfig config)
 {
 	float4 diffuseTex[4];
@@ -121,7 +123,10 @@ void SplatmapMix(inout InputConfig config)
 #if defined(TERRAIN_SPLAT_ADDPASS)
 	clip(weight <= 0.005 ? -1.0 : 1.0);
 #endif
+	
+#ifndef _TERRAIN_BASEMAP_GEN
 	config.splatControl /= (weight + HALF_MIN);
+#endif
 
 	config.splatDiffuse += diffuseTex[0] * half4(_DiffuseRemapScale0.rgb * config.splatControl.rrr, 1.0);
 	config.splatDiffuse += diffuseTex[1] * half4(_DiffuseRemapScale1.rgb * config.splatControl.ggg, 1.0);
@@ -133,6 +138,8 @@ void SplatmapMix(inout InputConfig config)
 
 	config.splatDiffuse.a = weight;
 }
+
+#endif
 
 float4 GetDiffuse(InputConfig config)
 {

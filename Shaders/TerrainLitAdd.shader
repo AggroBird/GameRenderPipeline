@@ -1,10 +1,7 @@
-﻿Shader "Hidden/GRP/TerrainLitAdd"
+﻿Shader "Hidden/GRP/Terrain/LitAdd"
 {
 	Properties
 	{
-		[KeywordEnum(On, Clip, Dither, Off)] _Shadows("Cast Shadows", Float) = 0
-		[Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows("Receive Shadows", Float) = 1
-
         // set by terrain engine
         [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
         [HideInInspector] _Splat3("Layer 3 (A)", 2D) = "white" {}
@@ -69,5 +66,4 @@
 			ENDHLSL
 		}
 	}
-	CustomEditor "AggroBird.GameRenderPipeline.Editor.CustomShaderGUI"
 }

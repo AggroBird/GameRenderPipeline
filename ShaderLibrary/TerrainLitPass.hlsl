@@ -17,8 +17,10 @@ struct Varyings
 	float3 positionWS : TEXCOORD0;
 	float3 normalWS : NORMAL;
 	float2 texcoord : TEXCOORD1;
+#ifndef TERRAIN_SPLAT_BASEPASS
 	float4 texSplat01 : TEXCOORD2;
 	float4 texSplat23 : TEXCOORD3;
+#endif
 	FOG_ATTRIBUTE(4)
 };
 
@@ -61,10 +63,12 @@ Varyings TerrainLitPassVertex(Attributes input)
 
 	output.texcoord = input.texcoord;
 
+#ifndef TERRAIN_SPLAT_BASEPASS
 	output.texSplat01.xy = TransformTexcoord(input.texcoord, _Splat0_ST);
 	output.texSplat01.zw = TransformTexcoord(input.texcoord, _Splat1_ST);
 	output.texSplat23.xy = TransformTexcoord(input.texcoord, _Splat2_ST);
 	output.texSplat23.zw = TransformTexcoord(input.texcoord, _Splat3_ST);
+#endif
 
 	TRANSFER_FOG(output, vertexPositions);
 
@@ -73,15 +77,22 @@ Varyings TerrainLitPassVertex(Attributes input)
 
 FragmentOutput TerrainLitPassFragment(Varyings input)
 {
-	ClipHoles(input.texcoord);
+    ClipHoles(input.texcoord);
 
+#ifdef TERRAIN_SPLAT_BASEPASS
+	float4 diffuse = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
+	float metallic = 0;
+	float smoothness = 0;
+#else
 	InputConfig config = GetTerrainInputConfig(input.texcoord, input.texSplat01, input.texSplat23);
 
 	SplatmapMix(config);
 
 	float4 diffuse = GetDiffuse(config);
 	float metallic = GetMetallic(config);
-	float smoothness = GetSmoothness(config);
+    float smoothness = GetSmoothness(config);
+#endif
+	
 	float fresnel = 1;
 	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, metallic, smoothness, fresnel, input.positionCS.xy);
 
@@ -91,6 +102,7 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 	
 	// Terrain additive
 	lit *= diffuse.a;
+	
 
 #if defined(TERRAIN_SPLAT_ADDPASS)
 	BLEND_FOG(input, lit.rgb);
@@ -99,7 +111,6 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 	APPLY_FOG(input, lit.rgb);
 	return MakeFragmentOutput(float4(lit, 1), surface.normal);
 #endif
-
 }
 
 
