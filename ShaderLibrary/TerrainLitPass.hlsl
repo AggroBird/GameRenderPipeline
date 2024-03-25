@@ -25,7 +25,7 @@ struct Varyings
 };
 
 
-void TerrainInstancing(inout float4 positionOS, inout half3 normal, inout float2 uv)
+void TerrainInstancing(inout float4 positionOS, inout float3 normal, inout float2 uv)
 {
 #if defined(UNITY_INSTANCING_ENABLED)
 	float2 patchVertex = positionOS.xy;
@@ -38,7 +38,7 @@ void TerrainInstancing(inout float4 positionOS, inout half3 normal, inout float2
 	positionOS.y = height * _TerrainHeightmapScale.y;
 
 #if defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-	normal = half3(0, 1, 0);
+	normal = float3(0, 1, 0);
 #else
 	normal = _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
 #endif
@@ -80,25 +80,25 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
     ClipHoles(input.texcoord);
 
 #ifdef TERRAIN_SPLAT_BASEPASS
-	half4 diffuse = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
-	half metallic = 0;
-	half smoothness = 0;
+	float4 diffuse = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
+	float metallic = 0;
+	float smoothness = 0;
 #else
 	InputConfig config = GetTerrainInputConfig(input.texcoord, input.texSplat01, input.texSplat23);
 
 	SplatmapMix(config);
 
-	half4 diffuse = GetDiffuse(config);
-	half metallic = GetMetallic(config);
-    half smoothness = GetSmoothness(config);
+	float4 diffuse = GetDiffuse(config);
+	float metallic = GetMetallic(config);
+    float smoothness = GetSmoothness(config);
 #endif
 	
-    half fresnel = 1;
+	float fresnel = 1;
 	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, metallic, smoothness, fresnel, input.positionCS.xy);
 
 	BRDF brdf = GetBRDF(surface);
 	GlobalIllumination gi = GetGlobalIllumination(surface, brdf);
-    half3 lit = GRP_LIGHT_GET_TOTAL_FUNC(surface, brdf, gi);
+	float3 lit = GRP_LIGHT_GET_TOTAL_FUNC(surface, brdf, gi);
 	
 	// Terrain additive
 	lit *= diffuse.a;
@@ -106,10 +106,10 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 
 #if defined(TERRAIN_SPLAT_ADDPASS)
 	BLEND_FOG(input, lit.rgb);
-	return MakeFragmentOutput(half4(lit, 1), half3(0, 0, 0));
+	return MakeFragmentOutput(float4(lit, 1), float3(0, 0, 0));
 #else
 	APPLY_FOG(input, lit.rgb);
-    return MakeFragmentOutput(half4(lit, 1), surface.normal);
+	return MakeFragmentOutput(float4(lit, 1), surface.normal);
 #endif
 }
 

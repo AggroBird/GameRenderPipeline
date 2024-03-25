@@ -4,17 +4,17 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Environment.hlsl"
 
-half4 _AmbientLightColor;
+float4 _AmbientLightColor;
 
 struct GlobalIllumination
 {
-	half3 specular;
-    half3 ambient;
+	float3 specular;
+	float3 ambient;
 };
 
-half3 SampleEnvironment(Surface surface, BRDF brdf)
+float3 SampleEnvironment(Surface surface, BRDF brdf)
 {
-    half3 dir = reflect(-surface.viewDirection, surface.normal);
+	float3 dir = reflect(-surface.viewDirection, surface.normal);
 	float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness, 6);
 	return SampleSkyboxCubemap(dir, mip).rgb;
 }

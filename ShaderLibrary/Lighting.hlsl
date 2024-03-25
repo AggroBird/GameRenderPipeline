@@ -21,25 +21,25 @@ SAMPLER(sampler_CellShading_Falloff);
 #define GRP_LIGHT_GET_TOTAL_FUNC DefaultGetLightTotal
 #endif
 
-half3 DefaultLightAttenuation(Surface surface, Light light)
+float3 DefaultLightAttenuation(Surface surface, Light light)
 {
-    half d = dot(surface.normal, light.direction);
+	float d = dot(surface.normal, light.direction);
 #if defined(_CELL_SHADING_ENABLED)
 	d = SAMPLE_TEXTURE2D(_CellShading_Falloff, sampler_CellShading_Falloff, float2(d, 0.5)).r;
 #endif
-    half a = lerp(1, saturate(d * light.attenuation), surface.shadowStrength);
+    float a = lerp(1, saturate(d * light.attenuation), surface.shadowStrength);
 	return light.color * a;
 }
 
-half3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
+float3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination globalIllumination)
 {
 	ShadowData shadowData = GetShadowData(surface);
 	
 	// Metallic, smoothness and fresnel
-    half3 indirect = IndirectBRDF(surface, brdf, globalIllumination.specular);
+	float3 indirect = IndirectBRDF(surface, brdf, globalIllumination.specular);
 	
 	// Direct lights
-    half3 result = indirect;
+	float3 result = indirect;
 	for (int i = 0; i < GetDirectionalLightCount(); i++)
 	{
 		Light light = GetDirectionalLight(i, surface, shadowData);
@@ -68,7 +68,7 @@ half3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination global
 	return result;
 }
 
-half GetPrimaryDirectionalShadow(float3 positionWS)
+float GetPrimaryDirectionalShadow(float3 positionWS)
 {
 	ShadowData global = GetShadowData(positionWS, -TransformWorldToView(positionWS).z, 0);
 
