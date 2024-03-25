@@ -108,8 +108,7 @@ namespace AggroBird.GameRenderPipeline
 
         private static readonly int
             skyboxGradientTextureId = Shader.PropertyToID("_SkyboxGradientTexture"),
-            skyboxGroundColorId = Shader.PropertyToID("_SkyboxGroundColor"),
-            skyboxAnimTimeId = Shader.PropertyToID("_SkyboxAnimTime");
+            skyboxGroundColorId = Shader.PropertyToID("_SkyboxGroundColor");
 
         private Material defaultSkyboxMaterial;
 
@@ -329,8 +328,6 @@ namespace AggroBird.GameRenderPipeline
 
             buffer.SetGlobalTexture(skyboxGradientTextureId, settings.SkyboxGradientTexture);
             buffer.SetGlobalVector(skyboxGroundColorId, settings.skyboxSettings.groundColor.ColorSpaceAdjusted());
-
-            buffer.SetGlobalFloat(skyboxAnimTimeId, Time.time + skyboxAnimTimeOffset);
 
 #if UNITY_EDITOR
             if (environmentModified)
