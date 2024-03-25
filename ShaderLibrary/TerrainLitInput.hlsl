@@ -43,8 +43,8 @@ UNITY_INSTANCING_BUFFER_START(Terrain)
 UNITY_INSTANCING_BUFFER_END(Terrain)
 
 CBUFFER_START(_Terrain)
-	float _Metallic0, _Metallic1, _Metallic2, _Metallic3;
-	float _Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3;
+	half _Metallic0, _Metallic1, _Metallic2, _Metallic3;
+	half _Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3;
 	float4 _DiffuseRemapScale0, _DiffuseRemapScale1, _DiffuseRemapScale2, _DiffuseRemapScale3;
 
 	float4 _Control_ST;
@@ -73,9 +73,9 @@ struct InputConfig
 	float4 texSplat01;
 	float4 texSplat23;
 
-	float4 splatDiffuse;
-	float splatSmoothness;
-	float splatMetallic;
+	half4 splatDiffuse;
+	half splatSmoothness;
+    half splatMetallic;
 };
 
 InputConfig GetTerrainInputConfig(float2 texcoord, float4 texSplat01, float4 texSplat23)
@@ -89,7 +89,7 @@ InputConfig GetTerrainInputConfig(float2 texcoord, float4 texSplat01, float4 tex
 	config.texSplat01 = texSplat01;
 	config.texSplat23 = texSplat23;
 
-	config.splatDiffuse = float4(0, 0, 0, 0);
+    config.splatDiffuse = half4(0, 0, 0, 0);
 	config.splatSmoothness = 0;
 	config.splatMetallic = 0;
 
@@ -104,22 +104,22 @@ InputConfig GetInputConfig(float2 texcoord)
 
 void SplatmapMix(inout InputConfig config)
 {
-	float4 diffuseTex[4];
+    half4 diffuseTex[4];
 	diffuseTex[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, config.texSplat01.xy);
 	diffuseTex[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, config.texSplat01.zw);
 	diffuseTex[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, config.texSplat23.xy);
 	diffuseTex[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, config.texSplat23.zw);
 
-	float4 splatAlpha = half4(diffuseTex[0].a, diffuseTex[1].a, diffuseTex[2].a, diffuseTex[3].a);
-	float4 defaultSmoothness = splatAlpha * float4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
-	float4 defaultMetallic = float4(_Metallic0, _Metallic1, _Metallic2, _Metallic3);
+	half4 splatAlpha = half4(diffuseTex[0].a, diffuseTex[1].a, diffuseTex[2].a, diffuseTex[3].a);
+    half4 defaultSmoothness = splatAlpha * half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
+    half4 defaultMetallic = half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3);
 
-	float4 opacityAsDensity = saturate((splatAlpha - (float4(1.0, 1.0, 1.0, 1.0) - config.splatControl)) * 20.0);
+    half4 opacityAsDensity = saturate((splatAlpha - (half4(1.0, 1.0, 1.0, 1.0) - config.splatControl)) * 20.0);
 	opacityAsDensity += 0.001 * config.splatControl;
-	float4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w };
+    half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w };
 	config.splatControl = lerp(opacityAsDensity, config.splatControl, useOpacityAsDensityParam);
 
-	float weight = dot(config.splatControl, 1.0);
+    half weight = dot(config.splatControl, 1.0);
 #if defined(TERRAIN_SPLAT_ADDPASS)
 	clip(weight <= 0.005 ? -1.0 : 1.0);
 #endif
@@ -141,27 +141,27 @@ void SplatmapMix(inout InputConfig config)
 
 #endif
 
-float4 GetDiffuse(InputConfig config)
+half4 GetDiffuse(InputConfig config)
 {
 	return config.splatDiffuse;
 }
 
-float GetAlpha(InputConfig config)
+half GetAlpha(InputConfig config)
 {
 	return 1;
 }
 
-float GetCutoff(InputConfig config)
+half GetCutoff(InputConfig config)
 {
 	return 1;
 }
 
-float GetMetallic(InputConfig config)
+half GetMetallic(InputConfig config)
 {
 	return config.splatMetallic;
 }
 
-float GetSmoothness(InputConfig config)
+half GetSmoothness(InputConfig config)
 {
 	return config.splatSmoothness;
 }

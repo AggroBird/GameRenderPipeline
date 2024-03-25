@@ -20,9 +20,9 @@ CBUFFER_END
 
 struct Light
 {
-	float3 color;
-	float3 direction;
-	float attenuation;
+	half3 color;
+	half3 direction;
+    half attenuation;
 };
 
 int GetDirectionalLightCount()
@@ -62,9 +62,9 @@ OtherShadowData GetOtherShadowData(int lightIndex)
 	data.strength = _OtherLightShadowData[lightIndex].x;
 	data.tileIndex = _OtherLightShadowData[lightIndex].y;
 	data.isPoint = _OtherLightShadowData[lightIndex].z == 1.0;
-	data.lightPosition = float3(0, 0, 0);
-	data.lightDirection = float3(0, 0, 0);
-	data.spotDirection = float3(0, 0, 0);
+    data.lightPosition = half3(0, 0, 0);
+    data.lightDirection = half3(0, 0, 0);
+    data.spotDirection = half3(0, 0, 0);
 	return data;
 }
 

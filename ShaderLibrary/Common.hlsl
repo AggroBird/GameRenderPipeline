@@ -76,7 +76,7 @@ float2 TransformTexcoord(float2 texcoord, float4 ST)
 }
 
 
-float3 DecodeNormal(float4 sample, float scale)
+half3 DecodeNormal(float4 sample, half scale)
 {
 #if defined(UNITY_NO_DXT5nm)
 	return normalize(UnpackNormalRGB(sample, scale));
@@ -85,9 +85,9 @@ float3 DecodeNormal(float4 sample, float scale)
 #endif
 }
 
-float3 NormalTangentToWorld(float3 normalTS, float3 normalWS, float4 tangentWS)
+half3 NormalTangentToWorld(half3 normalTS, half3 normalWS, half4 tangentWS)
 {
-	float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
+    half3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
 	return TransformTangentToWorld(normalTS, tangentToWorld);
 }
 
@@ -100,18 +100,18 @@ float3 NormalTangentToWorld(float3 normalTS, float3 normalWS, float4 tangentWS)
 
 struct FragmentOutput
 {
-	float4 color : SV_TARGET0;
+    half4 color : SV_TARGET0;
 #if defined(_OUTPUT_NORMALS_ENABLED)
-	float4 normal : SV_TARGET1;
+	half2 normal : SV_TARGET1;
 #endif
 };
 
-FragmentOutput MakeFragmentOutput(float4 color, float3 normal)
+FragmentOutput MakeFragmentOutput(half4 color, half3 normal)
 {
 	FragmentOutput result;
 	result.color = color;
 #if defined(_OUTPUT_NORMALS_ENABLED)
-	result.normal = float4(PackNormalOctRectEncode(normalize(mul((float3x3)GetWorldToViewMatrix(), normal).xyz)), 0.0, 0.0);
+	result.normal = PackNormalOctRectEncode(normalize(mul((half3x3)GetWorldToViewMatrix(), normal).xyz));
 #endif
 	return result;
 }
@@ -121,15 +121,15 @@ FragmentOutput MakeFragmentOutput(float4 color, float3 normal)
 ////////////////////////////////
 // CLIPPING
 ////////////////////////////////
-void ClipLOD(float2 clipSpacePosition, float fade)
+void ClipLOD(half2 clipSpacePosition, half fade)
 {
 #if defined(LOD_FADE_CROSSFADE)
-	float dither = InterleavedGradientNoise(clipSpacePosition.xy, 0);
+	half dither = InterleavedGradientNoise(clipSpacePosition.xy, 0);
 	clip(fade + (fade < 0.0 ? dither : -dither));
 #endif
 }
 
-void AlphaDiscard(float alpha, float cutoff, float offset = 0.0h)
+void AlphaDiscard(half alpha, half cutoff, half offset = 0.0h)
 {
 #if defined(_ALPHATEST_ON)
 	clip(alpha - cutoff + offset);

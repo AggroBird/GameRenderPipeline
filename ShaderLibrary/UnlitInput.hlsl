@@ -8,12 +8,12 @@ TEXTURE2D(_EmissionTex);
 SAMPLER(sampler_MainTex);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
+	UNITY_DEFINE_INSTANCED_PROP(half4, _Color)
+	UNITY_DEFINE_INSTANCED_PROP(half4, _EmissionColor)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionTex_ST)
-	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
-	UNITY_DEFINE_INSTANCED_PROP(float, _ZWrite)
+	UNITY_DEFINE_INSTANCED_PROP(half, _Cutoff)
+	UNITY_DEFINE_INSTANCED_PROP(half, _ZWrite)
 #if defined(GRP_UNLIT_ADDITIONAL_PER_MATERIAL_PROPERTIES)
 	GRP_UNLIT_ADDITIONAL_PER_MATERIAL_PROPERTIES
 #endif
@@ -38,38 +38,38 @@ InputConfig GetInputConfig(float2 texcoord)
 	return config;
 }
 
-float4 GetDiffuse(InputConfig config)
+half4 GetDiffuse(InputConfig config)
 {
-	float4 textureColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, config.texcoord);
-	float4 color = PER_MATERIAL_PROP(_Color);
+	half4 textureColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, config.texcoord);
+    half4 color = PER_MATERIAL_PROP(_Color);
 	return textureColor * color;
 }
 
-float3 GetEmission(InputConfig config)
+half3 GetEmission(InputConfig config)
 {
-	float4 color = PER_MATERIAL_PROP(_EmissionColor);
+    half4 color = PER_MATERIAL_PROP(_EmissionColor);
 #if defined(_HAS_EMISSION_TEXTURE)
 	color *= SAMPLE_TEXTURE2D(_EmissionTex, sampler_MainTex, config.emission_Texcoord);
 #endif
 	return color.rgb;
 }
 
-float GetAlpha(InputConfig config)
+half GetAlpha(InputConfig config)
 {
 	return GetDiffuse(config).a;
 }
 
-float GetFinalAlpha(float alpha)
+half GetFinalAlpha(half alpha)
 {
 	return PER_MATERIAL_PROP(_ZWrite) ? 1.0 : alpha;
 }
 
-float GetCutoff(InputConfig config)
+half GetCutoff(InputConfig config)
 {
 	return PER_MATERIAL_PROP(_Cutoff);
 }
 
-void ClipAlpha(float alpha, InputConfig config)
+void ClipAlpha(half alpha, InputConfig config)
 {
 	AlphaDiscard(alpha, GetCutoff(config));
 }

@@ -5,7 +5,7 @@ struct Attributes
 {
 	float4 positionOS : POSITION;
 	float2 texcoord : TEXCOORD0;
-	float4 color : COLOR;
+    half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -13,7 +13,7 @@ struct Varyings
 {
 	float4 positionCS : SV_POSITION;
 	float2 texcoord : TEXCOORD0;
-	float4 color : COLOR;
+    half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -53,12 +53,12 @@ void ShadowCasterPassFragment(Varyings input)
 
 	InputConfig config = GetInputConfig(input.texcoord);
 	
-	float alpha = GetAlpha(config) * input.color.a;
+    half alpha = GetAlpha(config) * input.color.a;
 
 #if defined(_SHADOWS_CLIP)
 	clip(alpha - GetCutoff(config));
 #elif defined(_SHADOWS_DITHER)
-	float dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+	half dither = InterleavedGradientNoise(input.positionCS.xy, 0);
 	clip(alpha - dither);
 #endif
 }
