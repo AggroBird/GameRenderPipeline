@@ -6,7 +6,7 @@
 struct Attributes
 {
 	float4 positionOS : POSITION;
-	float3 normalOS : NORMAL;
+    half3 normalOS : NORMAL;
 	float2 texcoord : TEXCOORD0;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -15,7 +15,7 @@ struct Varyings
 {
 	float4 positionCS : SV_POSITION;
 	float3 positionWS : TEXCOORD0;
-	float3 normalWS : NORMAL;
+    half3 normalWS : NORMAL;
 	float2 texcoord : TEXCOORD1;
 #ifndef TERRAIN_SPLAT_BASEPASS
 	float4 texSplat01 : TEXCOORD2;
@@ -80,20 +80,20 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
     ClipHoles(input.texcoord);
 
 #ifdef TERRAIN_SPLAT_BASEPASS
-	float4 diffuse = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
-	float metallic = 0;
-	float smoothness = 0;
+	half4 diffuse = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
+	half metallic = 0;
+	half smoothness = 0;
 #else
 	InputConfig config = GetTerrainInputConfig(input.texcoord, input.texSplat01, input.texSplat23);
 
 	SplatmapMix(config);
 
-	float4 diffuse = GetDiffuse(config);
-	float metallic = GetMetallic(config);
-    float smoothness = GetSmoothness(config);
+	half4 diffuse = GetDiffuse(config);
+	half metallic = GetMetallic(config);
+    half smoothness = GetSmoothness(config);
 #endif
 	
-	float fresnel = 1;
+    half fresnel = 1;
 	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, metallic, smoothness, fresnel, input.positionCS.xy);
 
 	BRDF brdf = GetBRDF(surface);
@@ -106,10 +106,10 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 
 #if defined(TERRAIN_SPLAT_ADDPASS)
 	BLEND_FOG(input, lit.rgb);
-	return MakeFragmentOutput(float4(lit, 1), float3(0, 0, 0));
+	return MakeFragmentOutput(half4(lit, 1), half3(0, 0, 0));
 #else
 	APPLY_FOG(input, lit.rgb);
-	return MakeFragmentOutput(float4(lit, 1), surface.normal);
+    return MakeFragmentOutput(half4(lit, 1), surface.normal);
 #endif
 }
 
@@ -117,7 +117,7 @@ FragmentOutput TerrainLitPassFragment(Varyings input)
 struct AttributesLean
 {
 	float4 positionOS : POSITION;
-	float3 normalOS : NORMAL;
+    half3 normalOS : NORMAL;
 	float2 texcoord : TEXCOORD0;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };

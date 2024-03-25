@@ -13,9 +13,9 @@ struct Attributes
 {
 	float4 positionOS : POSITION;
 	float2 texcoord : TEXCOORD0;
-	float3 normalOS : NORMAL;
-	float4 tangentOS : TANGENT;
-	float4 color : COLOR;
+    half3 normalOS : NORMAL;
+	half4 tangentOS : TANGENT;
+	half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -23,9 +23,9 @@ struct Varyings
 {
 	float4 positionCS : SV_POSITION;
 	float3 positionWS : TEXCOORD0;
-	float3 normalWS : NORMAL;
+    half3 normalWS : NORMAL;
 	float2 texcoord : TEXCOORD1;
-	float4 color : COLOR;
+    half4 color : COLOR;
 	FOG_ATTRIBUTE(2)
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -77,24 +77,24 @@ FragmentOutput GrassFragment(Varyings input)
 {
 	UNITY_SETUP_INSTANCE_ID(input);
 
-	float4 diffuse = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
+    half4 diffuse = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
 
 	diffuse.a *= input.color.a;
 	AlphaDiscard(diffuse.a, _Cutoff);
 	diffuse.rgb *= input.color.rgb;
 
-	float metallic = 0;
-	float smoothness = 0;
-	float fresnel = 0;
+	half metallic = 0;
+	half smoothness = 0;
+    half fresnel = 0;
 	Surface surface = MakeSurface(diffuse, input.positionWS, input.normalWS, metallic, smoothness, fresnel, input.positionCS.xy);
 
 	BRDF brdf = GetBRDF(surface);
 	GlobalIllumination gi = GetGlobalIllumination(surface, brdf);
-	float3 lit = GRP_LIGHT_GET_TOTAL_FUNC(surface, brdf, gi);
+    half3 lit = GRP_LIGHT_GET_TOTAL_FUNC(surface, brdf, gi);
 
 	APPLY_FOG(input, lit);
 
-	return MakeFragmentOutput(float4(lit, surface.alpha), surface.normal);
+    return MakeFragmentOutput(half4(lit, surface.alpha), surface.normal);
 }
 
 #endif

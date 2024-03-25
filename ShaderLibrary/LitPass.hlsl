@@ -6,10 +6,10 @@
 struct Attributes
 {
 	float4 positionOS : POSITION;
-	float3 normalOS : NORMAL;
-	float4 tangentOS : TANGENT;
+    half3 normalOS : NORMAL;
+    half4 tangentOS : TANGENT;
 	float2 texcoord : TEXCOORD0;
-	float4 color : COLOR;
+	half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -17,11 +17,11 @@ struct Varyings
 {
 	float4 positionCS : SV_POSITION;
 	float3 positionWS : TEXCOORD0;
-	float3 normalWS : NORMAL;
+    half3 normalWS : NORMAL;
 	float2 texcoord : TEXCOORD1;
-	float4 color : COLOR;
+    half4 color : COLOR;
 #if defined(_HAS_NORMAL_TEXTURE)
-	float4 tangentWS : TANGENT;
+	half4 tangentWS : TANGENT;
 #endif
 	FOG_ATTRIBUTE(2)
 	UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -40,7 +40,7 @@ Varyings LitPassVertex(Attributes input)
 
 	output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 #if defined(_HAS_NORMAL_TEXTURE)
-	output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+	output.tangentWS = half4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
 	output.texcoord = input.texcoord;
@@ -60,7 +60,7 @@ FragmentOutput LitPassFragment(Varyings input)
 
 	InputConfig config = GetInputConfig(input.texcoord);
 
-	float4 diffuse = GetDiffuse(config) * input.color;
+    half4 diffuse = GetDiffuse(config) * input.color;
 	ClipAlpha(diffuse.a, config);
 
 	SurfaceInfo surfaceInfo = GetSurfaceInfo(config);
@@ -73,11 +73,11 @@ FragmentOutput LitPassFragment(Varyings input)
 
 	BRDF brdf = GetBRDF(surface);
 	GlobalIllumination gi = GetGlobalIllumination(surface, brdf);
-	float3 lit = GRP_LIGHT_GET_TOTAL_FUNC(surface, brdf, gi) + GetEmission(config);
+    half3 lit = GRP_LIGHT_GET_TOTAL_FUNC(surface, brdf, gi) + GetEmission(config);
 	
 	APPLY_FOG(input, lit);
 
-	float4 result = float4(lit, GetFinalAlpha(surface.alpha));
+    half4 result = half4(lit, GetFinalAlpha(surface.alpha));
 
 	return MakeFragmentOutput(result, surface.normal);
 }

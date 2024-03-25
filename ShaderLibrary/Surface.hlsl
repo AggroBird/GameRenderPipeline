@@ -6,20 +6,20 @@ float _GlobalShadowStrength;
 struct Surface
 {
 	float3 position;
-	float3 normal;
-	float3 interpolatedNormal;
-	float3 viewDirection;
-	float depth;
-	float3 color;
-	float alpha;
-	float metallic;
-	float smoothness;
-	float fresnel;
-	float dither;
-    float shadowStrength;
+	half3 normal;
+	half3 interpolatedNormal;
+	half3 viewDirection;
+	half depth;
+	half3 color;
+	half alpha;
+	half metallic;
+	half smoothness;
+	half fresnel;
+	half dither;
+    half shadowStrength;
 };
 
-Surface MakeSurface(float4 diffuse, float3 positionWS, float3 interpolatedNormalWS, float metallic, float smoothness, float fresnel)
+Surface MakeSurface(half4 diffuse, float3 positionWS, half3 interpolatedNormalWS, half metallic, half smoothness, half fresnel)
 {
 	Surface surface;
 	surface.position = positionWS;
@@ -37,7 +37,7 @@ Surface MakeSurface(float4 diffuse, float3 positionWS, float3 interpolatedNormal
 	return surface;
 }
 
-Surface MakeSurface(float4 diffuse, float3 positionWS, float3 interpolatedNormalWS, float metallic, float smoothness, float fresnel, float2 ditherUV)
+Surface MakeSurface(half4 diffuse, float3 positionWS, half3 interpolatedNormalWS, half metallic, half smoothness, half fresnel, float2 ditherUV)
 {
 	Surface surface = MakeSurface(diffuse, positionWS, interpolatedNormalWS, metallic, smoothness, fresnel);
 	surface.dither = InterleavedGradientNoise(ditherUV, 0);

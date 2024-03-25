@@ -28,7 +28,7 @@
 			SAMPLER(sampler_MainTex);
 
 			UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-				UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
+				UNITY_DEFINE_INSTANCED_PROP(half4, _Color)
 				UNITY_DEFINE_INSTANCED_PROP(float4, _MainTex_ST)
 			UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 			
@@ -61,12 +61,12 @@
 				return output;
 			}
 
-			float4 Fragment(Varyings input) : SV_TARGET
+			half4 Fragment(Varyings input) : SV_TARGET
 			{
 				UNITY_SETUP_INSTANCE_ID(input);
 
-				float4 textureColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
-				float4 color = PER_MATERIAL_PROP(_Color);
+				half4 textureColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texcoord);
+				half4 color = PER_MATERIAL_PROP(_Color);
 
 				return textureColor * color;
 			}

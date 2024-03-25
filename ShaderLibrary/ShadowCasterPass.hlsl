@@ -5,7 +5,7 @@ struct Attributes
 {
 	float4 positionOS : POSITION;
 	float2 texcoord : TEXCOORD0;
-	float4 color : COLOR;
+    half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -13,7 +13,7 @@ struct Varyings
 {
 	float4 positionCS : SV_POSITION;
 	float2 texcoord : TEXCOORD0;
-	float4 color : COLOR;
+    half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 

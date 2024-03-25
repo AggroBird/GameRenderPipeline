@@ -5,7 +5,7 @@ struct Attributes
 {
 	float4 positionOS : POSITION;
 	float2 texcoord : TEXCOORD0;
-	float4 color : COLOR;
+    half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -13,7 +13,7 @@ struct Varyings
 {
 	float4 positionCS : SV_POSITION;
 	float2 texcoord : TEXCOORD0;
-	float4 color : COLOR;
+    half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -34,7 +34,7 @@ Varyings UnlitPassVertex(Attributes input)
 	return output;
 }
 
-float4 UnlitPassFragment(Varyings input) : SV_TARGET
+half4 UnlitPassFragment(Varyings input) : SV_TARGET
 {
 	UNITY_SETUP_INSTANCE_ID(input);
 	
@@ -42,11 +42,11 @@ float4 UnlitPassFragment(Varyings input) : SV_TARGET
 
 	InputConfig config = GetInputConfig(input.texcoord);
 
-	float4 diffuse = GetDiffuse(config) * input.color;
+    half4 diffuse = GetDiffuse(config) * input.color;
 	diffuse.rgb += GetEmission(config);
 	ClipAlpha(diffuse.a, config);
 
-	return float4(diffuse.rgb, GetFinalAlpha(diffuse.a));
+    return half4(diffuse.rgb, GetFinalAlpha(diffuse.a));
 }
 
 
