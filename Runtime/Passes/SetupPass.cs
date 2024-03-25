@@ -56,7 +56,7 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
-        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, bool outputOpaque, bool outputNormals, bool useHDR)
+        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, bool outputOpaque, bool outputNormals, bool useHDR, DepthBits depthBufferBits)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out SetupPass pass, sampler);
 
@@ -78,7 +78,7 @@ namespace AggroBird.GameRenderPipeline
             {
                 name = "Render Target (Depth)",
                 colorFormat = GraphicsFormat.None,
-                depthBufferBits = DepthBits.Depth32,
+                depthBufferBits = depthBufferBits,
             };
             pass.rtDepthBuffer = builder.WriteTexture(renderGraph.CreateTexture(depthTextureDesc));
 

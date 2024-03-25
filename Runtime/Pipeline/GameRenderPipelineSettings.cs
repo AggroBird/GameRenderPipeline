@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
@@ -24,6 +25,9 @@ namespace AggroBird.GameRenderPipeline
 
         [Space]
         public bool allowHDR = true;
+
+        [Space]
+        public DepthBits depthBufferBits = DepthBits.Depth32;
 
         [Space]
         public bool outputOpaqueRenderTargets = false;

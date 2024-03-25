@@ -177,7 +177,7 @@ namespace AggroBird.GameRenderPipeline
 
                 var shadowTextures = LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, showFlags, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo);
 
-                var cameraTextures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR);
+                var cameraTextures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR, generalSettings.depthBufferBits);
 
                 OpaqueGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 
