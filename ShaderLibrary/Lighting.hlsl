@@ -27,7 +27,8 @@ float3 DefaultLightAttenuation(Surface surface, Light light)
 #if defined(_CELL_SHADING_ENABLED)
 	d = SAMPLE_TEXTURE2D(_CellShading_Falloff, sampler_CellShading_Falloff, float2(d, 0.5)).r;
 #endif
-    float a = lerp(1, saturate(d * light.attenuation), surface.shadowStrength);
+    //float a = lerp(1, saturate(d * light.attenuation), surface.shadowStrength);
+    float a = saturate(d * light.attenuation);
 	return light.color * a;
 }
 
