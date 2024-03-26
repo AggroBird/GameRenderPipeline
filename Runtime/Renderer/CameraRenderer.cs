@@ -4,6 +4,16 @@ using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
+    [System.Flags]
+    internal enum ShowFlags
+    {
+        None = 0,
+        Fog = 1,
+        Skybox = 2,
+        PostProcess = 4,
+        All = Fog | Skybox | PostProcess,
+    }
+
     internal enum PostProcessPass
     {
         Copy,
@@ -117,14 +127,17 @@ namespace AggroBird.GameRenderPipeline
         private bool outputNormals;
         private bool outputOpaque;
 
-        private float skyboxAnimTimeOffset;
-
         private readonly EnvironmentSettings defaultEnvironmentSettings = new();
+
+        private ShowFlags showFlags;
+        private bool ShowFog => (showFlags & ShowFlags.Fog) != ShowFlags.None;
+        private bool ShowSkybox => (showFlags & ShowFlags.Skybox) != ShowFlags.None;
+        private bool ShowPostProcess => (showFlags & ShowFlags.PostProcess) != ShowFlags.None;
 
 
         public CameraRenderer()
         {
-            skyboxAnimTimeOffset = Random.Range(0f, 1000f);
+
         }
 
         public void Render(RenderGraph renderGraph, ScriptableRenderContext context, Camera camera, int cameraIndex, GameRenderPipelineAsset pipelineAsset)
@@ -142,7 +155,20 @@ namespace AggroBird.GameRenderPipeline
                 };
             }
 
-            PrepareSceneWindow();
+            var cameraType = camera.cameraType;
+            showFlags = cameraType == CameraType.Game ? ShowFlags.All : ShowFlags.None;
+#if UNITY_EDITOR
+            if (cameraType == CameraType.SceneView)
+            {
+                ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+                UnityEditor.SceneView.SceneViewState viewState = UnityEditor.SceneView.currentDrawingSceneView.sceneViewState;
+                showFlags = ShowFlags.None;
+                if (viewState.showFog) showFlags |= ShowFlags.Fog;
+                if (viewState.showSkybox) showFlags |= ShowFlags.Skybox;
+                if (viewState.imageEffectsEnabled) showFlags |= ShowFlags.PostProcess;
+            }
+#endif
+
             if (!this.camera.TryGetCullingParameters(out ScriptableCullingParameters scriptableCullingParameters))
             {
                 return;
