@@ -3,7 +3,8 @@
 
 struct Attributes
 {
-	float4 positionOS : POSITION;
+    float4 positionOS : POSITION;
+    half3 normalOS : NORMAL;
 	float2 texcoord : TEXCOORD0;
     half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -11,8 +12,9 @@ struct Attributes
 
 struct Varyings
 {
-	float4 positionCS : SV_POSITION;
-	float2 texcoord : TEXCOORD0;
+    float4 positionCS : SV_POSITION;
+    half3 normalWS : NORMAL;
+    float2 texcoord : TEXCOORD0;
     half4 color : COLOR;
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -26,7 +28,9 @@ Varyings UnlitPassVertex(Attributes input)
 
 	VertexPositions vertexPositions = GetVertexPositions(input.positionOS);
 	output.positionCS = vertexPositions.positionCS;
-
+	
+    output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+	
 	output.texcoord = TransformTexcoord(input.texcoord, PER_MATERIAL_PROP(_MainTex_ST));
 
 	output.color = input.color;
@@ -34,7 +38,7 @@ Varyings UnlitPassVertex(Attributes input)
 	return output;
 }
 
-half4 UnlitPassFragment(Varyings input) : SV_TARGET
+FragmentOutput UnlitPassFragment(Varyings input) : SV_TARGET
 {
 	UNITY_SETUP_INSTANCE_ID(input);
 	
@@ -45,8 +49,10 @@ half4 UnlitPassFragment(Varyings input) : SV_TARGET
     half4 diffuse = GetDiffuse(config) * input.color;
 	diffuse.rgb += GetEmission(config);
 	ClipAlpha(diffuse.a, config);
+	
+    half4 result = half4(diffuse.rgb, GetFinalAlpha(diffuse.a));
 
-    return half4(diffuse.rgb, GetFinalAlpha(diffuse.a));
+    return MakeFragmentOutput(result, input.normalWS);
 }
 
 

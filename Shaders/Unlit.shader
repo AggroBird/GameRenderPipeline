@@ -40,6 +40,7 @@
 			#pragma target 3.5
 			#pragma shader_feature _ALPHATEST_ON
 			#pragma shader_feature _HAS_EMISSION_TEXTURE
+			#pragma multi_compile _ _OUTPUT_NORMALS_ENABLED
 			#pragma vertex UnlitPassVertex
 			#pragma fragment UnlitPassFragment
 			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/UnlitPass.hlsl"
