@@ -5,7 +5,177 @@ using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
-    internal partial class PostProcessStack
+    internal sealed class PostProcessStack
+    {
+        public Camera camera;
+        public bool useHDR = false;
+
+        public PostProcessSettings settings = default;
+        public BlendMode srcBlendMode, dstBlendMode;
+
+        public bool postProcessEnabled;
+
+        public Material PostProcessMaterial { get; private set; }
+        public Material FXAAMaterial { get; private set; }
+
+        internal interface IEditorGizmoEffect
+        {
+            bool Enabled { get; }
+            int Priority { get; }
+
+            void Execute(CommandBuffer buffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor);
+        }
+        internal static readonly List<IEditorGizmoEffect> editorGizmoEffects = new();
+
+
+        private static readonly int
+            postProcessInputTexId = Shader.PropertyToID("_PostProcessInputTex"),
+            finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
+            finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
+
+        private static readonly Rect fullViewRect = new(0f, 0f, 1f, 1f);
+
+
+        public void Setup(Camera camera, bool useHDR, bool postProcessEnabled, ref float renderScale)
+        {
+            this.camera = camera;
+            this.useHDR = useHDR;
+
+            if (TryGetPostProcessComponent(camera, out PostProcessComponent postProcessComponent))
+            {
+                var blendMode = postProcessComponent.GetFinalBlendMode();
+                srcBlendMode = blendMode.source;
+                dstBlendMode = blendMode.destination;
+                settings = postProcessComponent.GetPostProcessSettings();
+                if (settings == null) postProcessEnabled = false;
+                renderScale = postProcessComponent.GetRenderScale(renderScale);
+
+                if (settings.antiAlias.enabled && settings.antiAlias.algorithm == PostProcessSettings.AntiAlias.Algorithm.FXAA && !FXAAMaterial)
+                {
+                    FXAAMaterial = new(GameRenderPipelineAsset.Instance.Resources.fxaaShader)
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    };
+                }
+            }
+            else
+            {
+                srcBlendMode = BlendMode.One;
+                dstBlendMode = BlendMode.Zero;
+                postProcessEnabled = false;
+            }
+
+            if (!PostProcessMaterial)
+            {
+                PostProcessMaterial = new(GameRenderPipelineAsset.Instance.Resources.postProcessShader)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
+
+            this.postProcessEnabled = postProcessEnabled;
+        }
+        public void Cleanup()
+        {
+
+        }
+
+
+        public void Draw(RenderGraphContext context, RenderTargetIdentifier src, RenderTargetIdentifier dst, Material material, int pass)
+        {
+            var buffer = context.cmd;
+            buffer.SetGlobalTexture(postProcessInputTexId, src);
+            buffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            buffer.DrawFullscreenEffect(material, pass);
+        }
+        public void Draw(RenderGraphContext context, RenderTargetIdentifier src, RenderTargetIdentifier dst, PostProcessPass pass)
+        {
+            Draw(context, src, dst, PostProcessMaterial, (int)pass);
+        }
+        public void DrawFinal(RenderGraphContext context, TextureHandle src, Material material, int pass)
+        {
+            var buffer = context.cmd;
+            buffer.SetGlobalFloat(finalSrcBlendId, (float)srcBlendMode);
+            buffer.SetGlobalFloat(finalDstBlendId, (float)dstBlendMode);
+            buffer.SetGlobalTexture(postProcessInputTexId, src);
+            buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, dstBlendMode == BlendMode.Zero && camera.rect == fullViewRect ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+            buffer.SetViewport(camera.pixelRect);
+            buffer.DrawFullscreenEffect(material, pass);
+        }
+        public void DrawFinal(RenderGraphContext context, TextureHandle rtColorBuffer, PostProcessPass pass)
+        {
+            DrawFinal(context, rtColorBuffer, PostProcessMaterial, (int)pass);
+        }
+
+
+        private bool TryGetPostProcessComponent(Camera camera, out PostProcessComponent postProcessComponent)
+        {
+            if (camera.TryGetComponent(out PostProcessCameraComponent postProcessCameraComponent) && postProcessCameraComponent.enabled)
+            {
+                postProcessComponent = postProcessCameraComponent;
+                return true;
+            }
+            else if (camera.cameraType == CameraType.SceneView)
+            {
+#if UNITY_EDITOR
+                // Try to get current main camera component for editor scene view
+                var activeCameraComponents = PostProcessCameraComponent.activeCameraComponents;
+                for (int i = 0; i < activeCameraComponents.Count;)
+                {
+                    postProcessCameraComponent = activeCameraComponents[i];
+                    if (!postProcessCameraComponent)
+                    {
+                        int last = activeCameraComponents.Count - 1;
+                        if (i == last)
+                        {
+                            activeCameraComponents.RemoveAt(i);
+                        }
+                        else
+                        {
+                            postProcessCameraComponent = activeCameraComponents[last];
+                            activeCameraComponents.RemoveAt(last);
+                        }
+                        continue;
+                    }
+
+                    if (postProcessCameraComponent.TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                    {
+                        postProcessComponent = postProcessCameraComponent;
+                        return true;
+                    }
+
+                    i++;
+                }
+#endif
+            }
+
+            // Find active post process
+            postProcessComponent = default;
+            var activePostProcessComponents = PostProcessComponent.activePostProcessComponents;
+            for (int i = 0; i < activePostProcessComponents.Count;)
+            {
+                postProcessComponent = activePostProcessComponents[i];
+                if (!postProcessComponent)
+                {
+                    int last = activePostProcessComponents.Count - 1;
+                    if (i == last)
+                    {
+                        activePostProcessComponents.RemoveAt(i);
+                    }
+                    else
+                    {
+                        postProcessComponent = activePostProcessComponents[last];
+                        activePostProcessComponents.RemoveAt(last);
+                    }
+                    continue;
+                }
+                break;
+            }
+            return postProcessComponent;
+        }
+    }
+
+    /*internal partial class PostProcessStack
     {
         private CommandBuffer buffer;
 
@@ -109,8 +279,6 @@ namespace AggroBird.GameRenderPipeline
             smaaSearchTexId = Shader.PropertyToID("_SMAA_SearchTex"),
             smaaBlendTexId = Shader.PropertyToID("_SMAA_BlendTex");
 
-        private static readonly int fxaaInverseScreenSizeId =
-            Shader.PropertyToID("_FXAA_InverseScreenSize");
 
 
         private RenderTargetIdentifier currentSourceBuffer;
@@ -137,14 +305,6 @@ namespace AggroBird.GameRenderPipeline
         private List<PostProcessEffect>[] customEffects = default;
         private readonly List<PostProcessEffect> effectComponentBuffer = new();
 
-        internal interface IEditorGizmoEffect
-        {
-            bool Enabled { get; }
-            int Priority { get; }
-
-            void Execute(CommandBuffer buffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor);
-        }
-        internal static readonly List<IEditorGizmoEffect> editorGizmoEffects = new();
 
 
         public PostProcessStack()
@@ -295,14 +455,6 @@ namespace AggroBird.GameRenderPipeline
 
             editorGizmoEffects.Sort((x, y) => x.Priority.CompareTo(y.Priority));
 
-            // Ensure there is a post process material
-            if (!postProcessMaterial)
-            {
-                postProcessMaterial = new(GameRenderPipelineAsset.Instance.Resources.postProcessShader)
-                {
-                    hideFlags = HideFlags.HideAndDontSave
-                };
-            }
 
             currentBufferIndex = 0;
         }
@@ -628,70 +780,6 @@ namespace AggroBird.GameRenderPipeline
             ExecuteBuffer();
         }
 
-        private void ApplyColorGrading(RenderTargetIdentifier src, RenderTargetIdentifier dst)
-        {
-            int lutHeight = (int)settings.general.colorLUTResolution;
-            int lutWidth = lutHeight * lutHeight;
-
-            buffer.BeginSample("Render Color Grading LUT");
-            {
-                // Color adjustment
-                PostProcessSettings.ColorAdjustments colorAdjustments = settings.colorAdjustments;
-                buffer.SetGlobalVector(colorAdjustmentsId, new(
-                    Mathf.Pow(2f, colorAdjustments.postExposure),
-                    colorAdjustments.contrast * 0.01f + 1f,
-                    colorAdjustments.hueShift * (1f / 360f),
-                    colorAdjustments.saturation * 0.01f + 1f
-                ));
-                buffer.SetGlobalColor(colorFilterId, colorAdjustments.colorFilter.linear);
-
-                // White balance
-                PostProcessSettings.WhiteBalance whiteBalance = settings.whiteBalance;
-                buffer.SetGlobalVector(whiteBalanceId, ColorUtils.ColorBalanceToLMSCoeffs(whiteBalance.temperature, whiteBalance.tint));
-
-                // Split toning
-                PostProcessSettings.SplitToning splitToning = settings.splitToning;
-                Color splitColor = splitToning.shadows;
-                splitColor.a = splitToning.balance * 0.01f;
-                buffer.SetGlobalColor(splitToningShadowsId, splitColor);
-                buffer.SetGlobalColor(splitToningHighlightsId, splitToning.highlights);
-
-                // Channel mixer
-                PostProcessSettings.ChannelMixer channelMixer = settings.channelMixer;
-                buffer.SetGlobalVector(channelMixerRedId, channelMixer.red);
-                buffer.SetGlobalVector(channelMixerGreenId, channelMixer.green);
-                buffer.SetGlobalVector(channelMixerBlueId, channelMixer.blue);
-
-                // Shadow midtones
-                PostProcessSettings.ShadowsMidtonesHighlights smh = settings.shadowsMidtonesHighlights;
-                buffer.SetGlobalColor(smhShadowsId, smh.shadows.linear);
-                buffer.SetGlobalColor(smhMidtonesId, smh.midtones.linear);
-                buffer.SetGlobalColor(smhHighlightsId, smh.highlights.linear);
-                buffer.SetGlobalVector(smhRangeId, new(smh.shadowsStart, smh.shadowsEnd, smh.highlightsStart, smh.highLightsEnd));
-
-                // Vignette
-                buffer.SetGlobalVector(vignetteParamId, new(settings.vignette.enabled ? 1f : 0f, camera.aspect, settings.vignette.falloff));
-
-                buffer.GetTemporaryRT(colorGradingLUTId, lutWidth, lutHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
-                buffer.SetGlobalVector(colorGradingLUTParametersId, new(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f)));
-                PostProcessSettings.ToneMapping.Mode mode = settings.toneMapping.mode;
-                PostProcessPass pass = PostProcessPass.ColorGradingNone + (int)mode;
-                buffer.SetGlobalBool(colorGradingLUTInLogCId, useHDR && pass != PostProcessPass.ColorGradingNone);
-                Draw(src, colorGradingLUTId, pass);
-            }
-            buffer.EndSample("Render Color Grading LUT");
-
-            buffer.BeginSample("Apply Color Grading LUT");
-            {
-                buffer.SetGlobalVector(colorGradingLUTParametersId, new(1f / lutWidth, 1f / lutHeight, lutHeight - 1f));
-                Draw(src, dst, PostProcessPass.Final);
-                buffer.ReleaseTemporaryRT(colorGradingLUTId);
-            }
-            buffer.EndSample("Apply Color Grading LUT");
-
-            ExecuteBuffer();
-        }
-
         private void ApplySMAA(RenderTargetIdentifier src, RenderTargetIdentifier dst)
         {
             buffer.BeginSample("SMAA");
@@ -782,12 +870,6 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
-        private void Draw(RenderTargetIdentifier src, RenderTargetIdentifier dst, PostProcessPass pass)
-        {
-            buffer.SetGlobalTexture(postProcessInputTexId, src);
-            buffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            buffer.DrawFullscreenEffect(postProcessMaterial, (int)pass);
-        }
 
         private void ExecuteEditorEffectsList(RenderTargetIdentifier srcDepth)
         {
@@ -811,5 +893,5 @@ namespace AggroBird.GameRenderPipeline
                 SwapBuffers();
             }
         }
-    }
+    }*/
 }

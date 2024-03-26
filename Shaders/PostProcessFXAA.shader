@@ -11,6 +11,10 @@
         // 0 - Low quality
         Pass
         {
+			Name "FXAA Low quality"
+
+			Blend [_FinalSrcBlend] [_FinalDstBlend]
+
             HLSLPROGRAM
             #pragma vertex BlitVertex
             #pragma fragment FXAAFrag
@@ -22,6 +26,10 @@
         // 1 - Medium quality
         Pass
         {
+			Name "FXAA Medium quality"
+
+			Blend [_FinalSrcBlend] [_FinalDstBlend]
+
             HLSLPROGRAM
             #pragma vertex BlitVertex
             #pragma fragment FXAAFrag
@@ -33,6 +41,10 @@
         // 2 - High quality
         Pass
         {
+			Name "FXAA High quality"
+
+			Blend [_FinalSrcBlend] [_FinalDstBlend]
+
             HLSLPROGRAM
             #pragma vertex BlitVertex
             #pragma fragment FXAAFrag

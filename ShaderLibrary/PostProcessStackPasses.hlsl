@@ -728,6 +728,7 @@ float4 ColorGradingReinhardPassFragment(BlitVaryings input) : SV_TARGET
 ////////////////////////////////
 // COLOR GRADING LUT
 ////////////////////////////////
+
 TEXTURE2D(_ColorGradingLUT);
 bool _ColorGradingEnabled;
 
@@ -759,10 +760,10 @@ float4 FinalPassFragment(BlitVaryings input) : SV_TARGET
 	{
 		color.rgb = ApplyColorGradingLUT(color.rgb);
 	}
-	if (_VignetteParam.x > 0)
-	{
-		color.rgb = ApplyVignette(color.rgb, input.texcoord);
-	}
+	//if (_VignetteParam.x > 0)
+	//{
+	//	color.rgb = ApplyVignette(color.rgb, input.texcoord);
+	//}
 	return color;
 }
 

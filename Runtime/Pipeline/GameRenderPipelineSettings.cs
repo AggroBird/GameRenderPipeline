@@ -18,6 +18,9 @@ namespace AggroBird.GameRenderPipeline
     [System.Serializable]
     internal sealed class GeneralSettings
     {
+        public const float RenderScaleMin = 0.1f;
+        public const float RenderScaleMax = 2;
+
         public bool useLightsPerObject = true;
 
         [Space, Min(0.01f)]
@@ -25,6 +28,9 @@ namespace AggroBird.GameRenderPipeline
 
         [Space]
         public bool allowHDR = true;
+
+        [Space, Range(RenderScaleMin, RenderScaleMax)]
+        public float renderScale = 1;
 
         [Space]
         public DepthBits depthBufferBits = DepthBits.Depth32;

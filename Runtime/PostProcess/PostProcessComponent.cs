@@ -20,6 +20,7 @@ namespace AggroBird.GameRenderPipeline
             public BlendMode source, destination;
         }
 
+        public virtual float GetRenderScale(float renderScale) => renderScale;
         public virtual FinalBlendMode GetFinalBlendMode() => FinalBlendMode.Default;
 
         [Space]

@@ -83,6 +83,7 @@ namespace AggroBird.GameRenderPipeline
             public float scatter;
         }
 
+        [HideInInspector]
         public Bloom bloom = new()
         {
             enabled = false,
@@ -148,6 +149,7 @@ namespace AggroBird.GameRenderPipeline
             public float depthFadeEnd;
         }
 
+        [HideInInspector]
         public Outline outline = new()
         {
             color = new Color(0, 0, 0, 1),
@@ -175,6 +177,7 @@ namespace AggroBird.GameRenderPipeline
             public float intensity;
         }
 
+        [HideInInspector]
         public AmbientOcclusion ambientOcclusion = new()
         {
             enabled = false,
@@ -281,6 +284,7 @@ namespace AggroBird.GameRenderPipeline
             public float falloff;
         }
 
+        [HideInInspector]
         public Vignette vignette = new()
         {
             enabled = false,

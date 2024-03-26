@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 
 namespace AggroBird.GameRenderPipeline.Editor
@@ -72,16 +73,20 @@ namespace AggroBird.GameRenderPipeline.Editor
             EditorGUI.indentLevel--;
             EditorGUILayout.EndVertical();
         }
-        protected void CollapsablePropertyField(SerializedProperty target, string propertyName)
+        protected void CollapsablePropertyField(SerializedProperty target, MemberInfo member)
         {
-            SerializedProperty property = target.FindPropertyRelative(propertyName);
-            if (property == null)
+            if (member.GetCustomAttribute<HideInInspector>() == null)
             {
-                GUILayout.Label($"<Missing property '{propertyName}'>");
-                return;
-            }
+                string propertyName = member.Name;
+                SerializedProperty property = target.FindPropertyRelative(propertyName);
+                if (property == null)
+                {
+                    GUILayout.Label($"<Missing property '{propertyName}'>");
+                    return;
+                }
 
-            CollapsablePropertyField(property);
+                CollapsablePropertyField(property);
+            }
         }
     }
 
@@ -93,10 +98,10 @@ namespace AggroBird.GameRenderPipeline.Editor
             serializedObject.Update();
             SerializedProperty settings = serializedObject.FindProperty("postProcessSettings");
             {
-                var flags = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance;
+                var flags = BindingFlags.Public | BindingFlags.Instance;
                 foreach (var member in typeof(PostProcessSettings).GetFields(flags))
                 {
-                    CollapsablePropertyField(settings, member.Name);
+                    CollapsablePropertyField(settings, member);
                 }
             }
             serializedObject.ApplyModifiedProperties();

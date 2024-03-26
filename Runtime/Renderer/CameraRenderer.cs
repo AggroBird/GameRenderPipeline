@@ -45,14 +45,16 @@ namespace AggroBird.GameRenderPipeline
         public readonly TextureHandle rtNormalBuffer;
         public readonly TextureHandle opaqueColorBuffer;
         public readonly TextureHandle opaqueDepthBuffer;
+        public readonly Vector2Int bufferSize;
 
-        public CameraRendererTextures(TextureHandle rtColorBuffer, TextureHandle rtDepthBuffer, TextureHandle rtNormalBuffer, TextureHandle opaqueColorBuffer, TextureHandle opaqueDepthBuffer)
+        public CameraRendererTextures(TextureHandle rtColorBuffer, TextureHandle rtDepthBuffer, TextureHandle rtNormalBuffer, TextureHandle opaqueColorBuffer, TextureHandle opaqueDepthBuffer, Vector2Int bufferSize)
         {
             this.rtColorBuffer = rtColorBuffer;
             this.rtDepthBuffer = rtDepthBuffer;
             this.rtNormalBuffer = rtNormalBuffer;
             this.opaqueColorBuffer = opaqueColorBuffer;
             this.opaqueDepthBuffer = opaqueDepthBuffer;
+            this.bufferSize = bufferSize;
         }
     }
 
@@ -122,8 +124,6 @@ namespace AggroBird.GameRenderPipeline
 
         private Material defaultSkyboxMaterial;
 
-        private Material postProcessMaterial = null;
-
         private bool outputNormals;
         private bool outputOpaque;
 
@@ -145,15 +145,6 @@ namespace AggroBird.GameRenderPipeline
             this.pipelineAsset = pipelineAsset;
             this.context = context;
             this.camera = camera;
-
-            // Ensure there is a post process material
-            if (!postProcessMaterial)
-            {
-                postProcessMaterial = new(GameRenderPipelineAsset.Instance.Resources.postProcessShader)
-                {
-                    hideFlags = HideFlags.HideAndDontSave
-                };
-            }
 
             var cameraType = camera.cameraType;
             showFlags = cameraType == CameraType.Game ? ShowFlags.All : ShowFlags.None;
@@ -179,7 +170,22 @@ namespace AggroBird.GameRenderPipeline
             var generalSettings = pipelineAsset.Settings.general;
             bool useHDR = generalSettings.allowHDR && camera.allowHDR;
 
-            postProcessStack.Setup(camera, useHDR, ShowPostProcess);
+            float renderScale = generalSettings.renderScale;
+            postProcessStack.Setup(camera, useHDR, ShowPostProcess, ref renderScale);
+            bool hasRenderScale = renderScale < 0.999f || renderScale > 1.001f;
+
+            Vector2Int bufferSize = default;
+            if (hasRenderScale)
+            {
+                renderScale = Mathf.Clamp(renderScale, GeneralSettings.RenderScaleMin, GeneralSettings.RenderScaleMax);
+                bufferSize.x = Mathf.FloorToInt(camera.pixelWidth * renderScale);
+                bufferSize.y = Mathf.FloorToInt(camera.pixelHeight * renderScale);
+            }
+            else
+            {
+                bufferSize.x = camera.pixelWidth;
+                bufferSize.y = camera.pixelHeight;
+            }
 
             outputOpaque = generalSettings.outputOpaqueRenderTargets;
             outputNormals = outputOpaque && generalSettings.outputOpaqueNormalBuffer;
@@ -202,7 +208,7 @@ namespace AggroBird.GameRenderPipeline
 
                 var shadowTextures = LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, showFlags, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo);
 
-                var cameraTextures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR, generalSettings.depthBufferBits);
+                var cameraTextures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR, bufferSize, generalSettings.depthBufferBits);
 
                 OpaqueGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 
@@ -224,8 +230,6 @@ namespace AggroBird.GameRenderPipeline
                 UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, cameraTextures);
 
                 PostTransparencyPostProcessPass.Record(renderGraph, postProcessStack, cameraTextures);
-
-                FinalPass.Record(renderGraph, camera, postProcessMaterial, cameraTextures);
 
                 GizmoPass.Record(renderGraph, camera, cameraTextures);
             }
@@ -380,6 +384,12 @@ namespace AggroBird.GameRenderPipeline
         public void ExecuteBuffer()
         {
             ExecuteBuffer(buffer);
+        }
+
+
+        private void SetupShowFlags()
+        {
+
         }
     }
 }

@@ -56,25 +56,23 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
-        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, bool outputOpaque, bool outputNormals, bool useHDR, DepthBits depthBufferBits)
+        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, bool outputOpaque, bool outputNormals, bool useHDR, Vector2Int bufferSize, DepthBits depthBufferBits)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out SetupPass pass, sampler);
 
-            Vector2Int rtBufferSize = new(camera.pixelWidth, camera.pixelHeight);
-
-            pass.rtBufferSize = rtBufferSize;
+            pass.rtBufferSize = bufferSize;
             pass.camera = camera;
             pass.outputNormals = outputNormals;
             pass.clearFlags = (camera.cameraType == CameraType.Preview || camera.cameraType == CameraType.SceneView) ? CameraClearFlags.SolidColor : camera.clearFlags;
 
-            var colorTextureDesc = new TextureDesc(rtBufferSize.x, rtBufferSize.y)
+            var colorTextureDesc = new TextureDesc(bufferSize.x, bufferSize.y)
             {
                 name = "Render Target (Color)",
                 colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
             };
             pass.rtColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(colorTextureDesc));
 
-            var depthTextureDesc = new TextureDesc(rtBufferSize.x, rtBufferSize.y)
+            var depthTextureDesc = new TextureDesc(bufferSize.x, bufferSize.y)
             {
                 name = "Render Target (Depth)",
                 colorFormat = GraphicsFormat.None,
@@ -95,7 +93,7 @@ namespace AggroBird.GameRenderPipeline
             TextureHandle rtNormalBuffer = default;
             if (outputNormals)
             {
-                var normalTextureDesc = new TextureDesc(rtBufferSize.x, rtBufferSize.y)
+                var normalTextureDesc = new TextureDesc(bufferSize.x, bufferSize.y)
                 {
                     name = "Render Target (Normals)",
                     colorFormat = GraphicsFormat.R16G16_SFloat,
@@ -105,7 +103,7 @@ namespace AggroBird.GameRenderPipeline
 
             builder.AllowPassCulling(false);
             builder.SetRenderFunc<SetupPass>(static (pass, context) => pass.Render(context));
-            return new(pass.rtColorBuffer, pass.rtDepthBuffer, rtNormalBuffer, opaqueColorBuffer, opaqueDepthBuffer);
+            return new(pass.rtColorBuffer, pass.rtDepthBuffer, rtNormalBuffer, opaqueColorBuffer, opaqueDepthBuffer, bufferSize);
         }
     }
 }
