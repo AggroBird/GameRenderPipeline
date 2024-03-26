@@ -11,14 +11,16 @@ namespace AggroBird.GameRenderPipeline
         [Serializable]
         public struct FinalBlendMode
         {
+            public static FinalBlendMode Default => new()
+            {
+                source = BlendMode.One,
+                destination = BlendMode.Zero,
+            };
+
             public BlendMode source, destination;
         }
 
-        public FinalBlendMode finalBlendMode = new()
-        {
-            source = BlendMode.One,
-            destination = BlendMode.Zero,
-        };
+        public virtual FinalBlendMode GetFinalBlendMode() => FinalBlendMode.Default;
 
         [Space]
         [SerializeField] private PostProcessSettingsAsset postProcessSettingsAsset;

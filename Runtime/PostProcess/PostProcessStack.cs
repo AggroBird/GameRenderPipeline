@@ -245,8 +245,9 @@ namespace AggroBird.GameRenderPipeline
 
             if (TryGetPostProcessComponent(camera, out PostProcessComponent postProcessComponent))
             {
-                srcBlendMode = postProcessComponent.finalBlendMode.source;
-                dstBlendMode = postProcessComponent.finalBlendMode.destination;
+                var blendMode = postProcessComponent.GetFinalBlendMode();
+                srcBlendMode = blendMode.source;
+                dstBlendMode = blendMode.destination;
                 settings = postProcessComponent.GetPostProcessSettings();
                 if (settings == null) postProcessEnabled = false;
             }
