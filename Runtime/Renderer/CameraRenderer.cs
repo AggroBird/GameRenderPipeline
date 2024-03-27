@@ -335,19 +335,6 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetGlobalTexture(skyboxGradientTextureId, settings.SkyboxGradientTexture);
             buffer.SetGlobalVector(skyboxGroundColorId, settings.skyboxSettings.groundColor.ColorSpaceAdjusted());
 
-#if UNITY_EDITOR
-            if (environmentModified)
-            {
-                foreach (var reflectionProbe in Object.FindObjectsOfType<ReflectionProbe>())
-                {
-                    if (reflectionProbe.mode == ReflectionProbeMode.Realtime)
-                    {
-                        reflectionProbe.RenderProbe();
-                    }
-                }
-            }
-#endif
-
             buffer.SetGlobalVector(ambientLightColorId, settings.skyboxSettings.ambientColor.ColorSpaceAdjusted());
             ExecuteBuffer();
         }
