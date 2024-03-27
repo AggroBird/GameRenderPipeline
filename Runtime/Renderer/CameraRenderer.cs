@@ -14,30 +14,6 @@ namespace AggroBird.GameRenderPipeline
         All = Fog | Skybox | PostProcess,
     }
 
-    internal enum PostProcessPass
-    {
-        Copy,
-        BlurHorizontal,
-        BlurVertical,
-        BloomPrefilter,
-        BloomAdd,
-        BloomScatter,
-        BloomScatterFinal,
-        SSAO,
-        SSAOCombine,
-        DOFCalculateCOC,
-        DOFCalculateBokeh,
-        DOFPreFilter,
-        DOFPostFilter,
-        DOFCombine,
-        Outline,
-        ColorGradingNone,
-        ColorGradingACES,
-        ColorGradingNeutral,
-        ColorGradingReinhard,
-        Final,
-    }
-
     internal readonly ref struct CameraRendererTextures
     {
         public readonly TextureHandle rtColorBuffer;
@@ -171,7 +147,7 @@ namespace AggroBird.GameRenderPipeline
             bool useHDR = generalSettings.allowHDR && camera.allowHDR;
 
             float renderScale = generalSettings.renderScale;
-            postProcessStack.Setup(camera, useHDR, ShowPostProcess, ref renderScale);
+            postProcessStack.Setup(camera, useHDR, generalSettings.bicubicRescalingMode, ShowPostProcess, ref renderScale);
             bool hasRenderScale = renderScale < 0.999f || renderScale > 1.001f;
 
             Vector2Int bufferSize = default;

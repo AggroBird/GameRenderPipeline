@@ -726,7 +726,7 @@ float4 ColorGradingReinhardPassFragment(BlitVaryings input) : SV_TARGET
 
 
 ////////////////////////////////
-// COLOR GRADING LUT
+// APPLY COLOR GRADING
 ////////////////////////////////
 
 TEXTURE2D(_ColorGradingLUT);
@@ -753,18 +753,39 @@ float3 ApplyVignette(float3 color, float2 texcoord)
 	return color * cos4Angle;
 }
 
-float4 FinalPassFragment(BlitVaryings input) : SV_TARGET
+float4 ApplyColorGradingPassFragment(BlitVaryings input) : SV_TARGET
 {
 	float4 color = SampleInputTex(input.texcoord);
 	if (_ColorGradingEnabled)
 	{
 		color.rgb = ApplyColorGradingLUT(color.rgb);
 	}
-	//if (_VignetteParam.x > 0)
-	//{
-	//	color.rgb = ApplyVignette(color.rgb, input.texcoord);
-	//}
+	if (_VignetteParam.x > 0)
+	{
+		color.rgb = ApplyVignette(color.rgb, input.texcoord);
+	}
 	return color;
 }
 
+
+
+////////////////////////////////
+// FINAL RESCALE
+////////////////////////////////
+
+bool _BicubicRescaleEnabled;
+
+float4 FinalRescalePassFragment(BlitVaryings input) : SV_TARGET
+{
+    if (_BicubicRescaleEnabled)
+    {
+        return SampleInputTexBicubic(input.texcoord);
+    }
+    else
+    {
+        return SampleInputTex(input.texcoord);
+    }
+}
+
 #endif
+

@@ -284,7 +284,6 @@ namespace AggroBird.GameRenderPipeline
             public float falloff;
         }
 
-        [HideInInspector]
         public Vignette vignette = new()
         {
             enabled = false,

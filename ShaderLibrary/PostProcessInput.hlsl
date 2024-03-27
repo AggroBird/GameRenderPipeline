@@ -8,11 +8,11 @@
 TEXTURE2D(_PostProcessInputTex);
 TEXTURE2D(_PostProcessCombineTex);
 float4 _PostProcessInputTex_TexelSize;
-SAMPLER(sampler_linear_clamp);
 
 TEXTURE2D(_PostProcessNormalTex);
 float4 _PostProcessNormalTex_TexelSize;
-SAMPLER(sampler_PostProcessNormalTex);
+
+SAMPLER(sampler_linear_clamp);
 
 TEXTURE2D(_PostProcessDepthTex);
 SAMPLER(sampler_PostProcessDepthTex);

@@ -18,6 +18,13 @@ namespace AggroBird.GameRenderPipeline
     [System.Serializable]
     internal sealed class GeneralSettings
     {
+        public enum BicubicRescalingMode
+        {
+            Off,
+            UpOnly,
+            UpAndDown,
+        }
+
         public const float RenderScaleMin = 0.1f;
         public const float RenderScaleMax = 2;
 
@@ -31,6 +38,7 @@ namespace AggroBird.GameRenderPipeline
 
         [Space, Range(RenderScaleMin, RenderScaleMax)]
         public float renderScale = 1;
+        public BicubicRescalingMode bicubicRescalingMode = BicubicRescalingMode.UpOnly;
 
         [Space]
         public DepthBits depthBufferBits = DepthBits.Depth32;

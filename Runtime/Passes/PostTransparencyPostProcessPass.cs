@@ -12,20 +12,30 @@ namespace AggroBird.GameRenderPipeline
 
         private static readonly int
             colorGradingLUTId = Shader.PropertyToID("_ColorGradingLUT"),
-            colorGradingEnabledId = Shader.PropertyToID("_ColorGradingEnabled");
+            colorGradingEnabledId = Shader.PropertyToID("_ColorGradingEnabled"),
+            vignetteParamId = Shader.PropertyToID("_VignetteParam"),
+            bicubicRescaleEnabledId = Shader.PropertyToID("_BicubicRescaleEnabled");
 
         private static readonly int fxaaInverseScreenSizeId =
             Shader.PropertyToID("_FXAA_InverseScreenSize");
 
         private static readonly GraphicsFormat outputColorFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
+        private enum RescaleMode
+        {
+            None,
+            Linear,
+            Bicubic,
+        }
+
         private bool applyFXAA;
         private PostProcessStack postProcessStack;
         private TextureHandle rtColorBuffer;
         private TextureHandle colorGradingOutput;
+        private TextureHandle rescaleOutput;
         private TextureHandle colorLUT;
         private Vector2Int bufferSize;
-        private Vector2Int cameraPixelSize;
+        private RescaleMode rescaleMode;
 
 
         private void Render(RenderGraphContext context)
@@ -33,29 +43,39 @@ namespace AggroBird.GameRenderPipeline
             var buffer = context.cmd;
             var settings = postProcessStack.settings;
 
+            var srcBuffer = rtColorBuffer;
+            PostProcessPass finalPass = PostProcessPass.FinalRescale;
+
+            buffer.SetGlobalBool(colorGradingEnabledId, postProcessStack.postProcessEnabled);
+            buffer.SetGlobalBool(bicubicRescaleEnabledId, rescaleMode == RescaleMode.Bicubic);
+
             if (postProcessStack.postProcessEnabled)
             {
-                buffer.SetGlobalBool(colorGradingEnabledId, true);
                 buffer.SetGlobalTexture(colorGradingLUTId, colorLUT);
+                buffer.SetGlobalVector(vignetteParamId, new(settings.vignette.enabled ? 1f : 0f, postProcessStack.camera.aspect, settings.vignette.falloff));
 
                 if (applyFXAA)
                 {
-                    postProcessStack.Draw(context, rtColorBuffer, colorGradingOutput, PostProcessPass.Final);
-
-                    // Apply FXAA after color grading
-                    buffer.SetGlobalVector(fxaaInverseScreenSizeId, new Vector4(1.0f / cameraPixelSize.x, 1.0f / cameraPixelSize.y));
-                    postProcessStack.DrawFinal(context, colorGradingOutput, postProcessStack.FXAAMaterial, (int)settings.antiAlias.quality);
+                    // Apply color grading before FXAA
+                    postProcessStack.Draw(context, srcBuffer, colorGradingOutput, PostProcessPass.ApplyColorGrading);
+                    srcBuffer = colorGradingOutput;
+                    buffer.SetGlobalVector(fxaaInverseScreenSizeId, new Vector4(1.0f / bufferSize.x, 1.0f / bufferSize.y));
+                    finalPass = PostProcessPass.FXAALow + (int)settings.antiAlias.quality;
                 }
                 else
                 {
-                    postProcessStack.DrawFinal(context, rtColorBuffer, PostProcessPass.Final);
+                    finalPass = PostProcessPass.ApplyColorGrading;
                 }
+            }
+
+            if (rescaleMode == RescaleMode.None)
+            {
+                postProcessStack.DrawFinal(context, srcBuffer, finalPass);
             }
             else
             {
-                buffer.SetGlobalBool(colorGradingEnabledId, false);
-
-                postProcessStack.DrawFinal(context, rtColorBuffer, PostProcessPass.Final);
+                postProcessStack.Draw(context, srcBuffer, rescaleOutput, finalPass);
+                postProcessStack.DrawFinal(context, rescaleOutput, PostProcessPass.FinalRescale);
             }
 
             context.renderContext.ExecuteCommandBuffer(buffer);
@@ -81,12 +101,20 @@ namespace AggroBird.GameRenderPipeline
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out PostTransparencyPostProcessPass pass, final);
             pass.postProcessStack = postProcessStack;
             pass.bufferSize = cameraTextures.bufferSize;
-            pass.cameraPixelSize = new Vector2Int(postProcessStack.camera.pixelWidth, postProcessStack.camera.pixelHeight);
 
             if (postProcessStack.postProcessEnabled)
             {
                 pass.colorLUT = builder.ReadTexture(colorLUT);
             }
+
+            pass.rtColorBuffer = builder.ReadTexture(rtColorBuffer);
+            var bicubicRescalingMode = postProcessStack.bicubicRescalingMode;
+            pass.rescaleMode = pass.bufferSize.x == postProcessStack.camera.pixelWidth ? RescaleMode.None : postProcessStack.bicubicRescalingMode switch
+            {
+                GeneralSettings.BicubicRescalingMode.UpAndDown => RescaleMode.Bicubic,
+                GeneralSettings.BicubicRescalingMode.UpOnly => pass.bufferSize.x < postProcessStack.camera.pixelWidth ? RescaleMode.Bicubic : RescaleMode.Linear,
+                _ => RescaleMode.Linear,
+            };
 
             var settings = postProcessStack.settings;
             pass.applyFXAA = postProcessStack.postProcessEnabled && settings.antiAlias.enabled && settings.antiAlias.algorithm == PostProcessSettings.AntiAlias.Algorithm.FXAA;
@@ -98,8 +126,14 @@ namespace AggroBird.GameRenderPipeline
                     name = "Color Grading Output",
                 });
             }
-
-            pass.rtColorBuffer = builder.ReadTexture(rtColorBuffer);
+            if (pass.rescaleMode != RescaleMode.None)
+            {
+                pass.rescaleOutput = builder.CreateTransientTexture(new TextureDesc(pass.bufferSize.x, pass.bufferSize.y)
+                {
+                    colorFormat = outputColorFormat,
+                    name = "Scaled Result",
+                });
+            }
 
             builder.SetRenderFunc<PostTransparencyPostProcessPass>(static (pass, context) => pass.Render(context));
         }

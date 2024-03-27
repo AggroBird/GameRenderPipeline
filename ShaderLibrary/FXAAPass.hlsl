@@ -1,5 +1,5 @@
-#ifndef _GRP_SMAA_PASS
-#define _GRP_SMAA_PASS
+#ifndef _GRP_FXAA_PASS
+#define _GRP_FXAA_PASS
 
 #include "BlitPass.hlsl"
 
@@ -9,9 +9,6 @@
 #ifndef FXAA_360_OPT
 #define FXAA_360_OPT 0
 #endif
-
-TEXTURE2D(_PostProcessInputTex);
-SAMPLER(sampler_linear_clamp);
 
 float4 fxaaConsolePosPos;
 float4 fxaaConsoleRcpFrameOpt;

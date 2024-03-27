@@ -5,10 +5,40 @@ using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
 {
+
+    internal enum PostProcessPass
+    {
+        Copy,
+        BlurHorizontal,
+        BlurVertical,
+        BloomPrefilter,
+        BloomAdd,
+        BloomScatter,
+        BloomScatterFinal,
+        SSAO,
+        SSAOCombine,
+        DOFCalculateCOC,
+        DOFCalculateBokeh,
+        DOFPreFilter,
+        DOFPostFilter,
+        DOFCombine,
+        Outline,
+        ColorGradingNone,
+        ColorGradingACES,
+        ColorGradingNeutral,
+        ColorGradingReinhard,
+        ApplyColorGrading,
+        FXAALow,
+        FXAAMedium,
+        FXAAHigh,
+        FinalRescale,
+    }
+
     internal sealed class PostProcessStack
     {
         public Camera camera;
         public bool useHDR = false;
+        public GeneralSettings.BicubicRescalingMode bicubicRescalingMode;
 
         public PostProcessSettings settings = default;
         public BlendMode srcBlendMode, dstBlendMode;
@@ -16,7 +46,6 @@ namespace AggroBird.GameRenderPipeline
         public bool postProcessEnabled;
 
         public Material PostProcessMaterial { get; private set; }
-        public Material FXAAMaterial { get; private set; }
 
         internal interface IEditorGizmoEffect
         {
@@ -36,10 +65,11 @@ namespace AggroBird.GameRenderPipeline
         private static readonly Rect fullViewRect = new(0f, 0f, 1f, 1f);
 
 
-        public void Setup(Camera camera, bool useHDR, bool postProcessEnabled, ref float renderScale)
+        public void Setup(Camera camera, bool useHDR, GeneralSettings.BicubicRescalingMode bicubicRescalingMode, bool postProcessEnabled, ref float renderScale)
         {
             this.camera = camera;
             this.useHDR = useHDR;
+            this.bicubicRescalingMode = bicubicRescalingMode;
 
             if (TryGetPostProcessComponent(camera, out PostProcessComponent postProcessComponent))
             {
@@ -49,14 +79,6 @@ namespace AggroBird.GameRenderPipeline
                 settings = postProcessComponent.GetPostProcessSettings();
                 if (settings == null) postProcessEnabled = false;
                 renderScale = postProcessComponent.GetRenderScale(renderScale);
-
-                if (settings.antiAlias.enabled && settings.antiAlias.algorithm == PostProcessSettings.AntiAlias.Algorithm.FXAA && !FXAAMaterial)
-                {
-                    FXAAMaterial = new(GameRenderPipelineAsset.Instance.Resources.fxaaShader)
-                    {
-                        hideFlags = HideFlags.HideAndDontSave
-                    };
-                }
             }
             else
             {
