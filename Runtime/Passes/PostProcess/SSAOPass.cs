@@ -9,87 +9,76 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(SSAOPass));
 
-        static readonly GraphicsFormat colorFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
+        private static readonly int
+            ssaoParametersId = Shader.PropertyToID("_SSAOParameters");
 
         private static readonly int
-            dofCOCBufferId = Shader.PropertyToID("_DOFCOCBuffer"),
-            dofResultId = Shader.PropertyToID("_DOFResult"),
-            dofFocusDistanceId = Shader.PropertyToID("_DOFFocusDistance"),
-            dofFocusRangeId = Shader.PropertyToID("_DOFFocusRange"),
-            dofBokehRadiusId = Shader.PropertyToID("_DOFBokehRadius");
-
-        private static readonly int
-            postProcessDepthTexId = Shader.PropertyToID("_PostProcessDepthTex");
+            postProcessDepthTexId = Shader.PropertyToID("_PostProcessDepthTex"),
+            postProcessNormalTexId = Shader.PropertyToID("_PostProcessNormalTex"),
+            postProcessCombineTexId = Shader.PropertyToID("_PostProcessCombineTex");
 
         private PostProcessStack postProcessStack;
         private TextureHandle rtColorBuffer;
         private TextureHandle rtDepthBuffer;
+        private TextureHandle rtNormalBuffer;
+        private TextureHandle ssaoBuffer0;
+        private TextureHandle ssaoBuffer1;
         private TextureHandle outputBuffer;
-
-        private TextureHandle dofCOCBuffer;
-        private TextureHandle dofBokeh0;
-        private TextureHandle dofBokeh1;
 
 
         private void Render(RenderGraphContext context)
         {
             var buffer = context.cmd;
-            var settings = postProcessStack.settings;
 
+            // AO
+            PostProcessSettings.AmbientOcclusion ao = postProcessStack.settings.ambientOcclusion;
+            buffer.SetGlobalVector(ssaoParametersId, new(ao.sampleCount, ao.radius, ao.intensity, 0));
+            buffer.SetGlobalTexture(postProcessNormalTexId, rtNormalBuffer);
             buffer.SetGlobalTexture(postProcessDepthTexId, rtDepthBuffer);
+            buffer.SetRenderTarget(ssaoBuffer0, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+            buffer.DrawFullscreenEffect(postProcessStack.PostProcessMaterial, (int)PostProcessPass.SSAO);
 
-            PostProcessSettings.DepthOfField depthOfField = settings.depthOfField;
-            buffer.SetGlobalFloat(dofFocusDistanceId, depthOfField.focusDistance);
-            buffer.SetGlobalFloat(dofFocusRangeId, depthOfField.focusRange);
-            buffer.SetGlobalFloat(dofBokehRadiusId, depthOfField.bokehRadius);
+            // Blur
+            postProcessStack.Draw(context, ssaoBuffer0, ssaoBuffer1, PostProcessPass.BlurHorizontal);
+            postProcessStack.Draw(context, ssaoBuffer1, ssaoBuffer0, PostProcessPass.BlurVertical);
 
-            postProcessStack.Draw(context, rtColorBuffer, dofCOCBuffer, PostProcessPass.DOFCalculateCOC);
-            buffer.SetGlobalTexture(dofCOCBufferId, dofCOCBuffer);
-            postProcessStack.Draw(context, rtColorBuffer, dofBokeh0, PostProcessPass.DOFPreFilter);
-            postProcessStack.Draw(context, dofBokeh0, dofBokeh1, PostProcessPass.DOFCalculateBokeh);
-            postProcessStack.Draw(context, dofBokeh1, dofBokeh0, PostProcessPass.DOFPostFilter);
-            buffer.SetGlobalTexture(dofResultId, dofBokeh0);
-            postProcessStack.Draw(context, rtColorBuffer, outputBuffer, PostProcessPass.DOFCombine);
+            // Combine
+            buffer.SetGlobalTexture(postProcessCombineTexId, ssaoBuffer0);
+            postProcessStack.Draw(context, rtColorBuffer, outputBuffer, PostProcessPass.SSAOCombine);
+            postProcessStack.Draw(context, outputBuffer, rtColorBuffer, PostProcessPass.Copy);
+
+            context.renderContext.ExecuteCommandBuffer(buffer);
+            buffer.Clear();
         }
 
-        public static TextureHandle Record(RenderGraph renderGraph, PostProcessStack postProcessStack, in CameraRendererTextures cameraTextures)
+        public static void Record(RenderGraph renderGraph, PostProcessStack postProcessStack, in CameraRendererTextures cameraTextures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out SSAOPass pass, sampler);
             pass.postProcessStack = postProcessStack;
-
-            pass.rtColorBuffer = builder.ReadTexture(cameraTextures.rtColorBuffer);
+            pass.rtColorBuffer = builder.ReadWriteTexture(cameraTextures.rtColorBuffer);
             pass.rtDepthBuffer = builder.ReadTexture(cameraTextures.rtDepthBuffer);
+            pass.rtNormalBuffer = builder.ReadTexture(cameraTextures.rtNormalBuffer);
 
-            var format = SystemInfo.GetGraphicsFormat(postProcessStack.useHDR ? DefaultFormat.HDR : DefaultFormat.LDR);
-
-            pass.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(cameraTextures.bufferSize.x, cameraTextures.bufferSize.y)
+            pass.ssaoBuffer0 = builder.CreateTransientTexture(new TextureDesc(cameraTextures.bufferSize.x, cameraTextures.bufferSize.y)
             {
-                name = "Depth of Field Output",
-                colorFormat = format,
-            }));
-
-            int width = cameraTextures.bufferSize.x / 2, height = cameraTextures.bufferSize.y / 2;
-            pass.dofCOCBuffer = builder.CreateTransientTexture(new TextureDesc(width, height)
-            {
-                name = "DOF COC Buffer",
+                name = "SSAO Buffer 0",
                 filterMode = FilterMode.Bilinear,
                 colorFormat = GraphicsFormat.R16_SFloat,
             });
-            pass.dofBokeh0 = builder.CreateTransientTexture(new TextureDesc(width, height)
+            pass.ssaoBuffer1 = builder.CreateTransientTexture(new TextureDesc(cameraTextures.bufferSize.x, cameraTextures.bufferSize.y)
             {
-                name = "DOF Bokeh 0",
+                name = "SSAO Buffer 1",
                 filterMode = FilterMode.Bilinear,
-                colorFormat = format,
+                colorFormat = GraphicsFormat.R16_SFloat,
             });
-            pass.dofBokeh1 = builder.CreateTransientTexture(new TextureDesc(width, height)
+            pass.outputBuffer = builder.CreateTransientTexture(new TextureDesc(cameraTextures.bufferSize.x, cameraTextures.bufferSize.y)
             {
-                name = "DOF Bokeh 1",
+                name = "SSAO Output Buffer",
                 filterMode = FilterMode.Bilinear,
-                colorFormat = format,
+                colorFormat = SystemInfo.GetGraphicsFormat(postProcessStack.useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
             });
 
             builder.SetRenderFunc<SSAOPass>(static (pass, context) => pass.Render(context));
-            return pass.outputBuffer;
         }
     }
 }

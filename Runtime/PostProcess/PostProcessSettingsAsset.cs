@@ -177,7 +177,6 @@ namespace AggroBird.GameRenderPipeline
             public float intensity;
         }
 
-        [HideInInspector]
         public AmbientOcclusion ambientOcclusion = new()
         {
             enabled = false,

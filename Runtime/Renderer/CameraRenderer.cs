@@ -194,7 +194,7 @@ namespace AggroBird.GameRenderPipeline
                     SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, cameraTextures);
                 }
 
-                PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, outputNormals, cameraTextures);
+                PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, cameraTextures);
 
                 if (outputOpaque)
                 {
