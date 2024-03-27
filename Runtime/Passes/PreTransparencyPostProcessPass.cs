@@ -9,12 +9,15 @@ namespace AggroBird.GameRenderPipeline
 
         public static void Record(RenderGraph renderGraph, PostProcessStack postProcessStack, in CameraRendererTextures cameraTextures)
         {
-            var settings = postProcessStack.settings;
-            if (settings.ambientOcclusion.enabled)
+            if (postProcessStack.postProcessEnabled)
             {
-                using var _ = new RenderGraphProfilingScope(renderGraph, sampler);
+                var settings = postProcessStack.settings;
+                if (settings.ambientOcclusion.enabled)
+                {
+                    using var _ = new RenderGraphProfilingScope(renderGraph, sampler);
 
-                SSAOPass.Record(renderGraph, postProcessStack, cameraTextures);
+                    SSAOPass.Record(renderGraph, postProcessStack, cameraTextures);
+                }
             }
         }
     }
