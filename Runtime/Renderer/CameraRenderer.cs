@@ -348,11 +348,5 @@ namespace AggroBird.GameRenderPipeline
         {
             ExecuteBuffer(buffer);
         }
-
-
-        private void SetupShowFlags()
-        {
-
-        }
     }
 }
