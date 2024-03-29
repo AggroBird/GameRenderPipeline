@@ -7,7 +7,7 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(CopyOpaqueBuffersPass));
 
-        private bool outputNormals;
+        private GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs;
         private TextureHandle rtColorBuffer;
         private TextureHandle rtDepthBuffer;
         private TextureHandle rtNormalBuffer;
@@ -20,15 +20,32 @@ namespace AggroBird.GameRenderPipeline
 
             var buffer = context.cmd;
 
-            context.cmd.BlitFrameBuffer(rtColorBuffer, rtDepthBuffer, opaqueColorBuffer, opaqueDepthBuffer);
-            context.cmd.SetGlobalTexture(CameraRenderer.OpaqueColorBufferId, opaqueColorBuffer);
-            context.cmd.SetGlobalTexture(CameraRenderer.OpaqueDepthBufferId, opaqueDepthBuffer);
-            if (outputNormals)
+            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.ColorAndDepth))
+            {
+                context.cmd.BlitFrameBuffer(rtColorBuffer, rtDepthBuffer, opaqueColorBuffer, opaqueDepthBuffer);
+                context.cmd.SetGlobalTexture(CameraRenderer.OpaqueColorBufferId, opaqueColorBuffer);
+                context.cmd.SetGlobalTexture(CameraRenderer.OpaqueDepthBufferId, opaqueDepthBuffer);
+            }
+            else
+            {
+                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Color))
+                {
+                    context.cmd.BlitFrameBuffer(rtColorBuffer, opaqueColorBuffer);
+                    context.cmd.SetGlobalTexture(CameraRenderer.OpaqueColorBufferId, opaqueColorBuffer);
+                }
+                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Depth))
+                {
+                    context.cmd.BlitFrameBuffer(rtDepthBuffer, opaqueDepthBuffer);
+                    context.cmd.SetGlobalTexture(CameraRenderer.OpaqueDepthBufferId, opaqueDepthBuffer);
+                }
+            }
+
+            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Normal))
             {
                 context.cmd.SetGlobalTexture(CameraRenderer.OpaqueNormalBufferId, rtNormalBuffer);
             }
 
-            // Transparent does not output normals, use only the default render targets
+            // Transparent does not output normals, switch back to default render targets
             context.cmd.SetKeyword(CameraRenderer.OutputNormalsKeyword, false);
             buffer.SetRenderTarget(
                 rtColorBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
@@ -38,19 +55,28 @@ namespace AggroBird.GameRenderPipeline
             buffer.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, bool outputNormals, in CameraRendererTextures cameraTextures)
+        public static void Record(RenderGraph renderGraph, GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs, in CameraRendererTextures cameraTextures)
         {
-            using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out CopyOpaqueBuffersPass pass, sampler);
-            pass.outputNormals = outputNormals;
-            pass.rtColorBuffer = builder.ReadTexture(cameraTextures.rtColorBuffer);
-            pass.rtDepthBuffer = builder.ReadTexture(cameraTextures.rtDepthBuffer);
-            if (outputNormals)
+            if (opaqueBufferOutputs != GeneralSettings.OpaqueBufferOutputs.None)
             {
-                pass.rtNormalBuffer = builder.ReadTexture(cameraTextures.rtNormalBuffer);
+                using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out CopyOpaqueBuffersPass pass, sampler);
+                pass.opaqueBufferOutputs = opaqueBufferOutputs;
+                pass.rtColorBuffer = builder.ReadTexture(cameraTextures.rtColorBuffer);
+                pass.rtDepthBuffer = builder.ReadTexture(cameraTextures.rtDepthBuffer);
+                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Color))
+                {
+                    pass.opaqueColorBuffer = builder.WriteTexture(cameraTextures.opaqueColorBuffer);
+                }
+                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Depth))
+                {
+                    pass.opaqueDepthBuffer = builder.WriteTexture(cameraTextures.opaqueDepthBuffer);
+                }
+                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Normal))
+                {
+                    pass.rtNormalBuffer = builder.ReadTexture(cameraTextures.rtNormalBuffer);
+                }
+                builder.SetRenderFunc<CopyOpaqueBuffersPass>(static (pass, context) => pass.Render(context));
             }
-            pass.opaqueColorBuffer = builder.WriteTexture(cameraTextures.opaqueColorBuffer);
-            pass.opaqueDepthBuffer = builder.WriteTexture(cameraTextures.opaqueDepthBuffer);
-            builder.SetRenderFunc<CopyOpaqueBuffersPass>(static (pass, context) => pass.Render(context));
         }
     }
 }

@@ -100,9 +100,6 @@ namespace AggroBird.GameRenderPipeline
 
         private Material defaultSkyboxMaterial;
 
-        private bool outputNormals;
-        private bool outputOpaque;
-
         private readonly EnvironmentSettings defaultEnvironmentSettings = new();
 
         private ShowFlags showFlags;
@@ -123,12 +120,7 @@ namespace AggroBird.GameRenderPipeline
             this.camera = camera;
 
             var cameraType = camera.cameraType;
-            showFlags = cameraType switch
-            {
-                CameraType.Game => ShowFlags.All,
-                CameraType.Reflection => ShowFlags.Skybox,
-                _ => ShowFlags.None,
-            };
+            showFlags = cameraType == CameraType.Game ? ShowFlags.All : ShowFlags.None;
 #if UNITY_EDITOR
             if (cameraType == CameraType.SceneView)
             {
@@ -168,8 +160,7 @@ namespace AggroBird.GameRenderPipeline
                 bufferSize.y = camera.pixelHeight;
             }
 
-            outputOpaque = generalSettings.outputOpaqueRenderTargets;
-            outputNormals = outputOpaque && generalSettings.outputOpaqueNormalBuffer;
+            var opaqueBufferOutputs = generalSettings.opaqueBufferOutputs;
 
             buffer = CommandBufferPool.Get();
             buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.LinearColorSpace);
@@ -189,7 +180,7 @@ namespace AggroBird.GameRenderPipeline
 
                 var shadowTextures = LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, showFlags, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo);
 
-                var cameraTextures = SetupPass.Record(renderGraph, camera, outputOpaque, outputNormals, useHDR, bufferSize, generalSettings.depthBufferBits);
+                var cameraTextures = SetupPass.Record(renderGraph, camera, opaqueBufferOutputs, useHDR, bufferSize, generalSettings.depthBufferBits);
 
                 OpaqueGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 
@@ -201,12 +192,9 @@ namespace AggroBird.GameRenderPipeline
 
                 PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, cameraTextures);
 
-                if (outputOpaque)
-                {
-                    CopyOpaqueBuffersPass.Record(renderGraph, outputNormals, cameraTextures);
-                }
+                CopyOpaqueBuffersPass.Record(renderGraph, opaqueBufferOutputs, cameraTextures);
 
-                TransparentGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, outputOpaque, outputNormals, cameraTextures, shadowTextures);
+                TransparentGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, opaqueBufferOutputs, cameraTextures, shadowTextures);
 
                 UnsupportedShadersPass.Record(renderGraph, camera, cullingResults, cameraTextures);
 
@@ -352,6 +340,12 @@ namespace AggroBird.GameRenderPipeline
         public void ExecuteBuffer()
         {
             ExecuteBuffer(buffer);
+        }
+
+
+        private void SetupShowFlags()
+        {
+
         }
     }
 }

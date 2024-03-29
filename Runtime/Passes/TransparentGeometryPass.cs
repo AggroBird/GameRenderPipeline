@@ -21,7 +21,7 @@ namespace AggroBird.GameRenderPipeline
             context.cmd.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, bool useLightsPerObject, bool outputOpaque, bool outputNormals, in CameraRendererTextures cameraTextures, in ShadowTextures shadowTextures)
+        public static void Record(RenderGraph renderGraph, Camera camera, CullingResults cullingResults, bool useLightsPerObject, GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs, in CameraRendererTextures cameraTextures, in ShadowTextures shadowTextures)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out TransparentGeometryPass pass, sampler);
             PerObjectData lightsPerObjectFlags = useLightsPerObject ? (PerObjectData.LightData | PerObjectData.LightIndices) : PerObjectData.None;
@@ -33,14 +33,17 @@ namespace AggroBird.GameRenderPipeline
             }));
             builder.ReadWriteTexture(cameraTextures.rtColorBuffer);
             builder.ReadWriteTexture(cameraTextures.rtDepthBuffer);
-            if (outputOpaque)
+            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Color))
             {
                 builder.ReadTexture(cameraTextures.opaqueColorBuffer);
+            }
+            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Depth))
+            {
                 builder.ReadTexture(cameraTextures.opaqueDepthBuffer);
-                if (outputNormals)
-                {
-                    builder.ReadTexture(cameraTextures.rtNormalBuffer);
-                }
+            }
+            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Normal))
+            {
+                builder.ReadTexture(cameraTextures.rtNormalBuffer);
             }
             builder.ReadTexture(shadowTextures.directionalAtlas);
             builder.ReadTexture(shadowTextures.otherAtlas);
