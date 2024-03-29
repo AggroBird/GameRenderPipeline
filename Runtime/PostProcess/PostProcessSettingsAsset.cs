@@ -102,9 +102,9 @@ namespace AggroBird.GameRenderPipeline
         {
             public enum BlurMode
             {
+                BothNearAndFar,
                 OnlyNear,
                 OnlyFar,
-                BothNearAndFar,
             }
 
             public bool enabled;
