@@ -45,7 +45,7 @@ namespace AggroBird.GameRenderPipeline
             // Combine
             buffer.SetGlobalTexture(postProcessCombineTexId, ssaoBuffer0);
             postProcessStack.Draw(context, rtColorBuffer, outputBuffer, PostProcessPass.SSAOCombine);
-            postProcessStack.Draw(context, outputBuffer, rtColorBuffer, PostProcessPass.Copy);
+            buffer.CopyOrBlitTexture(outputBuffer, rtColorBuffer);
 
             context.renderContext.ExecuteCommandBuffer(buffer);
             buffer.Clear();

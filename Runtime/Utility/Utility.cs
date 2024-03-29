@@ -39,6 +39,8 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
+        private static readonly bool copyTextureSupported = SystemInfo.copyTextureSupport > CopyTextureSupport.None;
+
         private static readonly int
             blitColorTexId = Shader.PropertyToID("_Blit_ColorInput"),
             blitDepthTexId = Shader.PropertyToID("_Blit_DepthInput");
@@ -94,6 +96,18 @@ namespace AggroBird.GameRenderPipeline
             commandBuffer.SetRenderTarget(dstColor, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, dstDepth, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             if (clear) commandBuffer.ClearRenderTarget(true, true, Color.clear);
             commandBuffer.DrawFullscreenEffect(material, pass);
+        }
+
+        public static void CopyOrBlitTexture(this CommandBuffer cmd, RenderTargetIdentifier src, RenderTargetIdentifier dst)
+        {
+            if (copyTextureSupported)
+            {
+                cmd.CopyTexture(src, dst);
+            }
+            else
+            {
+                cmd.BlitFrameBuffer(src, dst);
+            }
         }
 
         public static void DrawFullscreenEffect(this CommandBuffer commandBuffer, Material material, int pass)
