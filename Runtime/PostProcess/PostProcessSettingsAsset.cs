@@ -100,7 +100,16 @@ namespace AggroBird.GameRenderPipeline
         [Serializable]
         public struct DepthOfField
         {
+            public enum BlurMode
+            {
+                OnlyNear,
+                OnlyFar,
+                BothNearAndFar,
+            }
+
             public bool enabled;
+
+            public BlurMode blurMode;
 
             [Min(0)]
             public float focusDistance;
@@ -115,6 +124,7 @@ namespace AggroBird.GameRenderPipeline
         public DepthOfField depthOfField = new()
         {
             enabled = false,
+            blurMode = DepthOfField.BlurMode.BothNearAndFar,
             focusDistance = 3,
             focusRange = 6,
             bokehRadius = 4,

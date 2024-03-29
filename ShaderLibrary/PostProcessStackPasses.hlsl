@@ -377,6 +377,7 @@ float4 SSAOCombinePassFragment(BlitVaryings input) : SV_TARGET
 float _DOFFocusDistance = 5;
 float _DOFFocusRange = 10;
 float _DOFBokehRadius = 4;
+float2 _DOFBlurMode = 0;
 
 TEXTURE2D(_DOFCOCBuffer);
 SAMPLER(sampler_DOFCOCBuffer);
@@ -398,7 +399,7 @@ float DOFCalculateCOCPass(BlitVaryings input) : SV_TARGET
 {
 	float depth = SampleAndGetLinearDepth(input.texcoord);
 	float coc = clamp((depth - _DOFFocusDistance) / _DOFFocusRange, -1, 1) * _DOFBokehRadius;
-	return coc;
+    return min(0, coc) * _DOFBlurMode.x + max(0, coc) * _DOFBlurMode.y;
 }
 
 #if defined(BOKEH_KERNEL_SMALL)

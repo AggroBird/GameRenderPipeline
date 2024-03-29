@@ -16,7 +16,8 @@ namespace AggroBird.GameRenderPipeline
             dofResultId = Shader.PropertyToID("_DOFResult"),
             dofFocusDistanceId = Shader.PropertyToID("_DOFFocusDistance"),
             dofFocusRangeId = Shader.PropertyToID("_DOFFocusRange"),
-            dofBokehRadiusId = Shader.PropertyToID("_DOFBokehRadius");
+            dofBokehRadiusId = Shader.PropertyToID("_DOFBokehRadius"),
+            dofBlurModeId = Shader.PropertyToID("_DOFBlurMode");
 
         private static readonly int
             postProcessDepthTexId = Shader.PropertyToID("_PostProcessDepthTex");
@@ -42,6 +43,11 @@ namespace AggroBird.GameRenderPipeline
             buffer.SetGlobalFloat(dofFocusDistanceId, depthOfField.focusDistance);
             buffer.SetGlobalFloat(dofFocusRangeId, depthOfField.focusRange);
             buffer.SetGlobalFloat(dofBokehRadiusId, depthOfField.bokehRadius);
+            bool blurNear = depthOfField.blurMode == PostProcessSettings.DepthOfField.BlurMode.OnlyNear ||
+                depthOfField.blurMode == PostProcessSettings.DepthOfField.BlurMode.BothNearAndFar;
+            bool blurFar = depthOfField.blurMode == PostProcessSettings.DepthOfField.BlurMode.OnlyFar ||
+                depthOfField.blurMode == PostProcessSettings.DepthOfField.BlurMode.BothNearAndFar;
+            buffer.SetGlobalVector(dofBlurModeId, new Vector4(blurNear ? 1 : 0, blurFar ? 1 : 0));
 
             postProcessStack.Draw(context, rtColorBuffer, dofCOCBuffer, PostProcessPass.DOFCalculateCOC);
             buffer.SetGlobalTexture(dofCOCBufferId, dofCOCBuffer);
