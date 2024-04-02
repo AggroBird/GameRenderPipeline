@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace AggroBird.GameRenderPipeline
@@ -7,6 +8,13 @@ namespace AggroBird.GameRenderPipeline
     public static class CameraUtility
     {
         public static Camera CurrentCamera { get; internal set; }
+    }
+
+    public static class GameRenderPipelineUtility
+    {
+        // Only valid during rendering
+        public static GraphicsFormat ColorFormat { get; internal set; }
+        public static Vector2Int BufferSize { get; internal set; }
     }
 
     internal static class Tags

@@ -29,6 +29,6 @@ namespace AggroBird.GameRenderPipeline.Editor
         internal const string DefaultEffectName = "CustomEditorGizmoEffect";
         public virtual string EffectName => DefaultEffectName;
 
-        public abstract void Execute(CommandBuffer buffer, RenderTargetIdentifier color, RenderTargetIdentifier depth, GraphicsFormat colorFormat, Vector2Int sceneViewSize);
+        public abstract void Execute(CommandBuffer buffer, RenderTargetIdentifier color, RenderTargetIdentifier depth);
     }
 }

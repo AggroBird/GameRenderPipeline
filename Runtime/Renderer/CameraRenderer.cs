@@ -145,6 +145,7 @@ namespace AggroBird.GameRenderPipeline
 
             var generalSettings = pipelineAsset.Settings.general;
             bool useHDR = generalSettings.allowHDR && camera.allowHDR;
+            GraphicsFormat colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR);
 
             float renderScale = generalSettings.renderScale;
             postProcessStack.Setup(camera, useHDR, generalSettings.bicubicRescalingMode, ShowPostProcess, ref renderScale);
@@ -162,6 +163,9 @@ namespace AggroBird.GameRenderPipeline
                 bufferSize.x = camera.pixelWidth;
                 bufferSize.y = camera.pixelHeight;
             }
+
+            GameRenderPipelineUtility.ColorFormat = colorFormat;
+            GameRenderPipelineUtility.BufferSize = bufferSize;
 
             var opaqueBufferOutputs = generalSettings.opaqueBufferOutputs;
 
@@ -183,7 +187,7 @@ namespace AggroBird.GameRenderPipeline
 
                 var shadowTextures = LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, showFlags, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo);
 
-                var cameraTextures = SetupPass.Record(renderGraph, camera, opaqueBufferOutputs, useHDR, bufferSize, generalSettings.depthBufferBits);
+                var cameraTextures = SetupPass.Record(renderGraph, camera, opaqueBufferOutputs, colorFormat, bufferSize, generalSettings.depthBufferBits);
 
                 OpaqueGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 

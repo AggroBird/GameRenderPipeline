@@ -20,7 +20,7 @@ namespace AggroBird.GameRenderPipeline
         private void Render(RenderGraphContext context)
         {
             var buffer = context.cmd;
-            postProcessStack.RenderEditorGizmoEffects(buffer, rtColorBuffer, rtDepthBuffer, colorFormat, sceneViewSize);
+            postProcessStack.RenderEditorGizmoEffects(buffer, rtColorBuffer, rtDepthBuffer);
             context.renderContext.ExecuteCommandBuffer(buffer);
             buffer.Clear();
         }

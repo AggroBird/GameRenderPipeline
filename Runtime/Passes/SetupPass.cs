@@ -69,7 +69,7 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
-        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs, bool useHDR, Vector2Int bufferSize, DepthBits depthBufferBits)
+        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs, GraphicsFormat colorFormat, Vector2Int bufferSize, DepthBits depthBufferBits)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out SetupPass pass, sampler);
 
@@ -78,7 +78,6 @@ namespace AggroBird.GameRenderPipeline
             pass.opaqueBufferOutputs = opaqueBufferOutputs;
             pass.clearFlags = (camera.cameraType == CameraType.Preview || camera.cameraType == CameraType.SceneView) ? CameraClearFlags.SolidColor : camera.clearFlags;
 
-            var colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR);
             var colorTextureDesc = new TextureDesc(bufferSize.x, bufferSize.y)
             {
                 name = "Render Target (Color)",
