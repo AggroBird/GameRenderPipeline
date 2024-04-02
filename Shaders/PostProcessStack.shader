@@ -7,7 +7,7 @@
 	Subshader
 	{
 		HLSLINCLUDE
-		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/PostProcessStackPasses.hlsl"
+		#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/PostProcessPass.hlsl"
 		ENDHLSL
 
 		Cull Off
