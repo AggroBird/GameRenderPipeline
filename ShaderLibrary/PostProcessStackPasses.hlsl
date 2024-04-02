@@ -1,7 +1,7 @@
 #ifndef _GRP_POST_PROCESS_STACK_PASSES
 #define _GRP_POST_PROCESS_STACK_PASSES
 
-#include "PostProcessStackInput.hlsl"
+#include "PostProcessInput.hlsl"
 
 ////////////////////////////////
 // COPY
