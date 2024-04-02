@@ -37,7 +37,7 @@ namespace AggroBird.GameRenderPipeline
             {
                 using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out PreTransparencyPostProcessPass pass, gizmos);
                 pass.postProcessStack = postProcessStack;
-                pass.rtColorBuffer = cameraTextures.rtColorBuffer;
+                pass.rtColorBuffer = builder.ReadWriteTexture(cameraTextures.rtColorBuffer);
                 pass.rtDepthBuffer = cameraTextures.rtDepthBuffer;
                 pass.colorFormat = cameraTextures.colorFormat;
                 builder.SetRenderFunc<PreTransparencyPostProcessPass>(static (pass, context) => pass.Render(context));
