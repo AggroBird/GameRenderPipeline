@@ -54,7 +54,7 @@ namespace AggroBird.GameRenderPipeline
             bool Enabled { get; }
             int Priority { get; }
 
-            void Execute(CommandBuffer buffer, RenderTargetIdentifier color, RenderTargetIdentifier depth, GraphicsFormat colorFormat);
+            void Execute(CommandBuffer buffer, RenderTargetIdentifier color, RenderTargetIdentifier depth, GraphicsFormat colorFormat, Vector2Int sceneViewSize);
         }
         internal static readonly List<IEditorGizmoEffect> editorGizmoEffects = new();
 
@@ -201,7 +201,7 @@ namespace AggroBird.GameRenderPipeline
         }
 
 
-        public void RenderEditorGizmoEffects(CommandBuffer buffer, TextureHandle color, TextureHandle depth, GraphicsFormat colorFormat)
+        public void RenderEditorGizmoEffects(CommandBuffer buffer, TextureHandle color, TextureHandle depth, GraphicsFormat colorFormat, Vector2Int sceneViewSize)
         {
             editorGizmoEffects.Sort((x, y) => x.Priority.CompareTo(y.Priority));
 
@@ -214,7 +214,7 @@ namespace AggroBird.GameRenderPipeline
                 buffer.BeginSample(name);
                 try
                 {
-                    effect.Execute(buffer, color, depth, colorFormat);
+                    effect.Execute(buffer, color, depth, colorFormat, sceneViewSize);
                 }
                 catch (Exception e)
                 {

@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
@@ -13,11 +14,12 @@ namespace AggroBird.GameRenderPipeline
         private TextureHandle rtColorBuffer;
         private TextureHandle rtDepthBuffer;
         private GraphicsFormat colorFormat;
+        private Vector2Int sceneViewSize;
 
 
         private void Render(RenderGraphContext context)
         {
-            postProcessStack.RenderEditorGizmoEffects(context.cmd, rtColorBuffer, rtDepthBuffer, colorFormat);
+            postProcessStack.RenderEditorGizmoEffects(context.cmd, rtColorBuffer, rtDepthBuffer, colorFormat, sceneViewSize);
         }
 
         public static void Record(RenderGraph renderGraph, PostProcessStack postProcessStack, in CameraRendererTextures cameraTextures)
@@ -38,8 +40,9 @@ namespace AggroBird.GameRenderPipeline
                 using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out PreTransparencyPostProcessPass pass, gizmos);
                 pass.postProcessStack = postProcessStack;
                 pass.rtColorBuffer = builder.ReadWriteTexture(cameraTextures.rtColorBuffer);
-                pass.rtDepthBuffer = cameraTextures.rtDepthBuffer;
+                pass.rtDepthBuffer = builder.ReadTexture(cameraTextures.rtDepthBuffer);
                 pass.colorFormat = cameraTextures.colorFormat;
+                pass.sceneViewSize = cameraTextures.bufferSize;
                 builder.SetRenderFunc<PreTransparencyPostProcessPass>(static (pass, context) => pass.Render(context));
             }
         }
