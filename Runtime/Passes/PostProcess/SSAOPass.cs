@@ -48,7 +48,7 @@ namespace AggroBird.GameRenderPipeline
             buffer.CopyOrBlitTexture(outputBuffer, rtColorBuffer);
 
             // Restore render target
-            buffer.SetRenderTarget(rtColorBuffer, rtDepthBuffer);
+            buffer.SetRenderTarget(rtColorBuffer);
             context.renderContext.ExecuteCommandBuffer(buffer);
             buffer.Clear();
         }
