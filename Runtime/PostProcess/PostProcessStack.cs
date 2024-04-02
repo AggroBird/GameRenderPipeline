@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
@@ -52,9 +54,11 @@ namespace AggroBird.GameRenderPipeline
             bool Enabled { get; }
             int Priority { get; }
 
-            void Execute(CommandBuffer buffer, RenderTargetIdentifier srcColor, RenderTargetIdentifier srcDepth, RenderTargetIdentifier dstColor);
+            void Execute(CommandBuffer buffer, RenderTargetIdentifier color, RenderTargetIdentifier depth, GraphicsFormat colorFormat);
         }
         internal static readonly List<IEditorGizmoEffect> editorGizmoEffects = new();
+
+        public bool DrawGizmoEffects => camera.cameraType == CameraType.SceneView && editorGizmoEffects.Count > 0;
 
 
         private static readonly int
@@ -194,6 +198,30 @@ namespace AggroBird.GameRenderPipeline
                 break;
             }
             return postProcessComponent;
+        }
+
+
+        public void RenderEditorGizmoEffects(CommandBuffer buffer, TextureHandle color, TextureHandle depth, GraphicsFormat colorFormat)
+        {
+            editorGizmoEffects.Sort((x, y) => x.Priority.CompareTo(y.Priority));
+
+            foreach (IEditorGizmoEffect effect in editorGizmoEffects)
+            {
+                if (!effect.Enabled) continue;
+
+                string name = effect.GetType().Name;
+
+                buffer.BeginSample(name);
+                try
+                {
+                    effect.Execute(buffer, color, depth, colorFormat);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+                buffer.EndSample(name);
+            }
         }
     }
 

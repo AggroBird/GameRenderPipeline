@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
@@ -16,6 +17,7 @@ namespace AggroBird.GameRenderPipeline
 
     internal readonly ref struct CameraRendererTextures
     {
+        public readonly GraphicsFormat colorFormat;
         public readonly TextureHandle rtColorBuffer;
         public readonly TextureHandle rtDepthBuffer;
         public readonly TextureHandle rtNormalBuffer;
@@ -23,8 +25,9 @@ namespace AggroBird.GameRenderPipeline
         public readonly TextureHandle opaqueDepthBuffer;
         public readonly Vector2Int bufferSize;
 
-        public CameraRendererTextures(TextureHandle rtColorBuffer, TextureHandle rtDepthBuffer, TextureHandle rtNormalBuffer, TextureHandle opaqueColorBuffer, TextureHandle opaqueDepthBuffer, Vector2Int bufferSize)
+        public CameraRendererTextures(GraphicsFormat colorFormat, TextureHandle rtColorBuffer, TextureHandle rtDepthBuffer, TextureHandle rtNormalBuffer, TextureHandle opaqueColorBuffer, TextureHandle opaqueDepthBuffer, Vector2Int bufferSize)
         {
+            this.colorFormat = colorFormat;
             this.rtColorBuffer = rtColorBuffer;
             this.rtDepthBuffer = rtDepthBuffer;
             this.rtNormalBuffer = rtNormalBuffer;

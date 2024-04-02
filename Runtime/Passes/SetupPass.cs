@@ -78,10 +78,11 @@ namespace AggroBird.GameRenderPipeline
             pass.opaqueBufferOutputs = opaqueBufferOutputs;
             pass.clearFlags = (camera.cameraType == CameraType.Preview || camera.cameraType == CameraType.SceneView) ? CameraClearFlags.SolidColor : camera.clearFlags;
 
+            var colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR);
             var colorTextureDesc = new TextureDesc(bufferSize.x, bufferSize.y)
             {
                 name = "Render Target (Color)",
-                colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR),
+                colorFormat = colorFormat,
             };
             pass.rtColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(colorTextureDesc));
 
@@ -120,7 +121,7 @@ namespace AggroBird.GameRenderPipeline
 
             builder.AllowPassCulling(false);
             builder.SetRenderFunc<SetupPass>(static (pass, context) => pass.Render(context));
-            return new(pass.rtColorBuffer, pass.rtDepthBuffer, rtNormalBuffer, opaqueColorBuffer, opaqueDepthBuffer, bufferSize);
+            return new(colorFormat, pass.rtColorBuffer, pass.rtDepthBuffer, rtNormalBuffer, opaqueColorBuffer, opaqueDepthBuffer, bufferSize);
         }
     }
 }
