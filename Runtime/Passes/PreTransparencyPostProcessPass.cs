@@ -19,7 +19,10 @@ namespace AggroBird.GameRenderPipeline
 
         private void Render(RenderGraphContext context)
         {
-            postProcessStack.RenderEditorGizmoEffects(context.cmd, rtColorBuffer, rtDepthBuffer, colorFormat, sceneViewSize);
+            var buffer = context.cmd;
+            postProcessStack.RenderEditorGizmoEffects(buffer, rtColorBuffer, rtDepthBuffer, colorFormat, sceneViewSize);
+            context.renderContext.ExecuteCommandBuffer(buffer);
+            buffer.Clear();
         }
 
         public static void Record(RenderGraph renderGraph, PostProcessStack postProcessStack, in CameraRendererTextures cameraTextures)
