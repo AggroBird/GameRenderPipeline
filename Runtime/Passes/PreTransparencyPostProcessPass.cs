@@ -36,6 +36,10 @@ namespace AggroBird.GameRenderPipeline
                 {
                     SSAOPass.Record(renderGraph, postProcessStack, cameraTextures);
                 }
+                if (settings.outline.enabled)
+                {
+                    OutlinePass.Record(renderGraph, postProcessStack, cameraTextures);
+                }
             }
 
             if (postProcessStack.DrawGizmoEffects)

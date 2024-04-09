@@ -159,7 +159,6 @@ namespace AggroBird.GameRenderPipeline
             public float depthFadeEnd;
         }
 
-        [HideInInspector]
         public Outline outline = new()
         {
             color = new Color(0, 0, 0, 1),
