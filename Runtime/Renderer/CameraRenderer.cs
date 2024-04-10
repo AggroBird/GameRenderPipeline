@@ -123,7 +123,12 @@ namespace AggroBird.GameRenderPipeline
             this.camera = camera;
 
             var cameraType = camera.cameraType;
-            showFlags = cameraType == CameraType.Game ? ShowFlags.All : ShowFlags.None;
+            showFlags = cameraType switch
+            {
+                CameraType.Game => ShowFlags.All,
+                CameraType.Reflection => ShowFlags.Skybox,
+                _ => ShowFlags.None,
+            };
 #if UNITY_EDITOR
             if (cameraType == CameraType.SceneView)
             {
