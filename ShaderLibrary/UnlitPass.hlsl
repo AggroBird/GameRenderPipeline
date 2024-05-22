@@ -12,13 +12,13 @@ struct Attributes
 
 struct Varyings
 {
-#if defined(_INCLUDE_POSITION_OS)
-	float4 positionOS : POSITION;
-#endif
     float4 positionCS : SV_POSITION;
     half3 normalWS : NORMAL;
     float2 texcoord : TEXCOORD0;
     half4 color : COLOR;
+#if defined(_INCLUDE_POSITION_OS)
+	float4 positionOS : TEXCOORD1;
+#endif
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 

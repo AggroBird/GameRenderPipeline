@@ -15,9 +15,6 @@ struct Attributes
 
 struct Varyings
 {
-#if defined(_INCLUDE_POSITION_OS)
-	float4 positionOS : POSITION;
-#endif
 	float4 positionCS : SV_POSITION;
 	float3 positionWS : TEXCOORD0;
     half3 normalWS : NORMAL;
@@ -27,6 +24,9 @@ struct Varyings
 	half4 tangentWS : TANGENT;
 #endif
 	FOG_ATTRIBUTE(2)
+#if defined(_INCLUDE_POSITION_OS)
+	float4 positionOS : TEXCOORD3;
+#endif
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
