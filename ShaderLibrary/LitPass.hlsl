@@ -15,6 +15,9 @@ struct Attributes
 
 struct Varyings
 {
+#if defined(_INCLUDE_POSITION_OS)
+	float4 positionOS : POSITION;
+#endif
 	float4 positionCS : SV_POSITION;
 	float3 positionWS : TEXCOORD0;
     half3 normalWS : NORMAL;
@@ -34,7 +37,10 @@ Varyings LitPassVertex(Attributes input)
 	UNITY_SETUP_INSTANCE_ID(input);
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 	
-	VertexPositions vertexPositions = GetVertexPositions(input.positionOS);
+    VertexPositions vertexPositions = GetVertexPositions(input.positionOS);
+#if defined(_INCLUDE_POSITION_OS)
+	output.positionOS = input.positionOS;
+#endif
 	output.positionWS = vertexPositions.positionWS;
 	output.positionCS = vertexPositions.positionCS;
 
