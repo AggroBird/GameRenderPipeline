@@ -33,8 +33,11 @@ namespace AggroBird.GameRenderPipeline
             }));
             builder.ReadWriteTexture(cameraTextures.rtColorBuffer);
             builder.ReadWriteTexture(cameraTextures.rtDepthBuffer);
-            builder.ReadTexture(shadowTextures.directionalAtlas);
-            builder.ReadTexture(shadowTextures.otherAtlas);
+            if (shadowTextures)
+            {
+                builder.ReadTexture(shadowTextures.directionalAtlas);
+                builder.ReadTexture(shadowTextures.otherAtlas);
+            }
             builder.SetRenderFunc<OpaqueGeometryPass>(static (pass, context) => pass.Render(context));
         }
     }

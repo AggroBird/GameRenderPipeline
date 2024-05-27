@@ -45,8 +45,11 @@ namespace AggroBird.GameRenderPipeline
             {
                 builder.ReadTexture(cameraTextures.rtNormalBuffer);
             }
-            builder.ReadTexture(shadowTextures.directionalAtlas);
-            builder.ReadTexture(shadowTextures.otherAtlas);
+            if (shadowTextures)
+            {
+                builder.ReadTexture(shadowTextures.directionalAtlas);
+                builder.ReadTexture(shadowTextures.otherAtlas);
+            }
             builder.SetRenderFunc<TransparentGeometryPass>(static (pass, context) => pass.Render(context));
         }
     }

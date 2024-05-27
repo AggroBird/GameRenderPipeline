@@ -41,11 +41,15 @@ namespace AggroBird.GameRenderPipeline
     {
         public readonly TextureHandle directionalAtlas;
         public readonly TextureHandle otherAtlas;
+        public readonly bool isValid;
+
+        public static implicit operator bool(ShadowTextures shadowTextures) => shadowTextures.isValid;
 
         public ShadowTextures(TextureHandle directionalAtlas, TextureHandle otherAtlas)
         {
             this.directionalAtlas = directionalAtlas;
             this.otherAtlas = otherAtlas;
+            isValid = true;
         }
     }
 
@@ -190,7 +194,14 @@ namespace AggroBird.GameRenderPipeline
             {
                 using var _ = new RenderGraphProfilingScope(renderGraph, cameraSampler);
 
-                var shadowTextures = LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, showFlags, out PrimaryDirectionalLightInfo primaryDirectionalLightInfo);
+                bool renderShadows = !camera.TryGetComponent(out CameraSettingsComponent cameraSettingsComponent) || cameraSettingsComponent.RenderShadowAtlas;
+
+                ShadowTextures shadowTextures = default;
+                PrimaryDirectionalLightInfo primaryDirectionalLightInfo = new(Vector3.forward, Color.white);
+                if (renderShadows)
+                {
+                    LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, showFlags, out primaryDirectionalLightInfo);
+                }
 
                 var cameraTextures = SetupPass.Record(renderGraph, camera, opaqueBufferOutputs, colorFormat, bufferSize, generalSettings.depthBufferBits);
 
