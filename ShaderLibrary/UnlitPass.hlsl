@@ -19,6 +19,9 @@ struct Varyings
 #if defined(_INCLUDE_POSITION_OS)
 	float4 positionOS : TEXCOORD1;
 #endif
+#if defined(_INCLUDE_POSITION_WS)
+	float3 positionWS : TEXCOORD2;
+#endif
 	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
@@ -32,6 +35,9 @@ Varyings UnlitPassVertex(Attributes input)
     VertexPositions vertexPositions = GetVertexPositions(input.positionOS);
 #if defined(_INCLUDE_POSITION_OS)
 	output.positionOS = input.positionOS;
+#endif
+#if defined(_INCLUDE_POSITION_OS)
+	output.positionWS = vertexPositions.positionWS;
 #endif
 	output.positionCS = vertexPositions.positionCS;
 	
