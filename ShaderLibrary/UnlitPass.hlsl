@@ -36,7 +36,7 @@ Varyings UnlitPassVertex(Attributes input)
 #if defined(_INCLUDE_POSITION_OS)
 	output.positionOS = input.positionOS;
 #endif
-#if defined(_INCLUDE_POSITION_OS)
+#if defined(_INCLUDE_POSITION_WS)
 	output.positionWS = vertexPositions.positionWS;
 #endif
 	output.positionCS = vertexPositions.positionCS;
