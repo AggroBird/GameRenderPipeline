@@ -156,8 +156,10 @@ namespace AggroBird.GameRenderPipeline
             bool useHDR = generalSettings.allowHDR && camera.allowHDR;
             GraphicsFormat colorFormat = SystemInfo.GetGraphicsFormat(useHDR ? DefaultFormat.HDR : DefaultFormat.LDR);
 
-            float renderScale = generalSettings.renderScale;
-            postProcessStack.Setup(camera, useHDR, generalSettings.bicubicRescalingMode, ShowPostProcess, ref renderScale);
+            CameraSettings cameraSettings = GetCameraSettings(generalSettings);
+
+            float renderScale = cameraSettings.renderScale;
+            postProcessStack.Setup(camera, useHDR, cameraSettings.bicubicRescalingMode, ShowPostProcess && cameraSettings.renderPostProcess, ref renderScale);
             bool hasRenderScale = renderScale < 0.999f || renderScale > 1.001f;
 
             Vector2Int bufferSize = default;
@@ -176,7 +178,7 @@ namespace AggroBird.GameRenderPipeline
             GameRenderPipelineUtility.ColorFormat = colorFormat;
             GameRenderPipelineUtility.BufferSize = bufferSize;
 
-            var opaqueBufferOutputs = generalSettings.opaqueBufferOutputs;
+            var opaqueBufferOutputs = cameraSettings.opaqueBufferOutputs;
 
             buffer = CommandBufferPool.Get();
             buffer.SetKeyword(colorSpaceLinearKeyword, GameRenderPipeline.LinearColorSpace);
@@ -194,23 +196,24 @@ namespace AggroBird.GameRenderPipeline
             {
                 using var _ = new RenderGraphProfilingScope(renderGraph, cameraSampler);
 
-                bool renderShadows = !camera.TryGetComponent(out CameraSettingsComponent cameraSettingsComponent) || cameraSettingsComponent.RenderShadowAtlas;
-
                 ShadowTextures shadowTextures = default;
                 PrimaryDirectionalLightInfo primaryDirectionalLightInfo = new(Vector3.forward, Color.white);
-                if (renderShadows)
+                if (cameraSettings.renderShadowAtlas)
                 {
                     LightingPass.Record(renderGraph, camera, cullingResults, pipelineAsset.Settings, showFlags, out primaryDirectionalLightInfo);
                 }
 
-                var cameraTextures = SetupPass.Record(renderGraph, camera, opaqueBufferOutputs, colorFormat, bufferSize, generalSettings.depthBufferBits);
+                var cameraTextures = SetupPass.Record(renderGraph, camera, opaqueBufferOutputs, colorFormat, bufferSize, cameraSettings.depthBufferBits);
 
                 OpaqueGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 
-                GetEnvironmentSettings(out EnvironmentSettings environmentSettings, primaryDirectionalLightInfo);
-                if (camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
+                if (cameraSettings.renderEnvironment)
                 {
-                    SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, cameraTextures);
+                    GetEnvironmentSettings(out EnvironmentSettings environmentSettings, primaryDirectionalLightInfo);
+                    if (camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
+                    {
+                        SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, cameraTextures);
+                    }
                 }
 
                 PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, cameraTextures);
@@ -232,6 +235,24 @@ namespace AggroBird.GameRenderPipeline
             context.Submit();
 
             CommandBufferPool.Release(buffer);
+        }
+        private CameraSettings GetCameraSettings(GeneralSettings generalSettings)
+        {
+            if (camera.TryGetComponent(out CameraSettingsComponent cameraSettingsComponent))
+            {
+                return cameraSettingsComponent.settings;
+            }
+
+            return new CameraSettings()
+            {
+                renderShadowAtlas = true,
+                renderEnvironment = true,
+                renderPostProcess = true,
+                renderScale = generalSettings.renderScale,
+                bicubicRescalingMode = generalSettings.bicubicRescalingMode,
+                depthBufferBits = generalSettings.depthBufferBits,
+                opaqueBufferOutputs = generalSettings.opaqueBufferOutputs,
+            };
         }
 
 

@@ -40,7 +40,7 @@ namespace AggroBird.GameRenderPipeline
     {
         public Camera camera;
         public bool useHDR = false;
-        public GeneralSettings.BicubicRescalingMode bicubicRescalingMode;
+        public BicubicRescalingMode bicubicRescalingMode;
 
         public PostProcessSettings settings = default;
         public BlendMode srcBlendMode, dstBlendMode;
@@ -69,7 +69,7 @@ namespace AggroBird.GameRenderPipeline
         private static readonly Rect fullViewRect = new(0f, 0f, 1f, 1f);
 
 
-        public void Setup(Camera camera, bool useHDR, GeneralSettings.BicubicRescalingMode bicubicRescalingMode, bool postProcessEnabled, ref float renderScale)
+        public void Setup(Camera camera, bool useHDR, BicubicRescalingMode bicubicRescalingMode, bool postProcessEnabled, ref float renderScale)
         {
             this.camera = camera;
             this.useHDR = useHDR;

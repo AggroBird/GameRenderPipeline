@@ -7,7 +7,7 @@ namespace AggroBird.GameRenderPipeline
     {
         private static readonly ProfilingSampler sampler = new(nameof(CopyOpaqueBuffersPass));
 
-        private GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs;
+        private OpaqueBufferOutputs opaqueBufferOutputs;
         private TextureHandle rtColorBuffer;
         private TextureHandle rtDepthBuffer;
         private TextureHandle rtNormalBuffer;
@@ -20,7 +20,7 @@ namespace AggroBird.GameRenderPipeline
 
             var buffer = context.cmd;
 
-            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.ColorAndDepth))
+            if (opaqueBufferOutputs.And(OpaqueBufferOutputs.ColorAndDepth))
             {
                 // TODO: Use buffer.CopyTexture?
                 context.cmd.BlitFrameBuffer(rtColorBuffer, rtDepthBuffer, opaqueColorBuffer, opaqueDepthBuffer);
@@ -29,19 +29,19 @@ namespace AggroBird.GameRenderPipeline
             }
             else
             {
-                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Color))
+                if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Color))
                 {
                     context.cmd.CopyOrBlitTexture(rtColorBuffer, opaqueColorBuffer);
                     context.cmd.SetGlobalTexture(CameraRenderer.OpaqueColorBufferId, opaqueColorBuffer);
                 }
-                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Depth))
+                if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Depth))
                 {
                     context.cmd.CopyOrBlitTexture(rtDepthBuffer, opaqueDepthBuffer);
                     context.cmd.SetGlobalTexture(CameraRenderer.OpaqueDepthBufferId, opaqueDepthBuffer);
                 }
             }
 
-            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Normal))
+            if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Normal))
             {
                 context.cmd.SetGlobalTexture(CameraRenderer.OpaqueNormalBufferId, rtNormalBuffer);
             }
@@ -56,23 +56,23 @@ namespace AggroBird.GameRenderPipeline
             buffer.Clear();
         }
 
-        public static void Record(RenderGraph renderGraph, GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs, in CameraRendererTextures cameraTextures)
+        public static void Record(RenderGraph renderGraph, OpaqueBufferOutputs opaqueBufferOutputs, in CameraRendererTextures cameraTextures)
         {
-            if (opaqueBufferOutputs != GeneralSettings.OpaqueBufferOutputs.None)
+            if (opaqueBufferOutputs != OpaqueBufferOutputs.None)
             {
                 using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out CopyOpaqueBuffersPass pass, sampler);
                 pass.opaqueBufferOutputs = opaqueBufferOutputs;
                 pass.rtColorBuffer = builder.ReadTexture(cameraTextures.rtColorBuffer);
                 pass.rtDepthBuffer = builder.ReadTexture(cameraTextures.rtDepthBuffer);
-                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Color))
+                if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Color))
                 {
                     pass.opaqueColorBuffer = builder.WriteTexture(cameraTextures.opaqueColorBuffer);
                 }
-                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Depth))
+                if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Depth))
                 {
                     pass.opaqueDepthBuffer = builder.WriteTexture(cameraTextures.opaqueDepthBuffer);
                 }
-                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Normal))
+                if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Normal))
                 {
                     pass.rtNormalBuffer = builder.ReadTexture(cameraTextures.rtNormalBuffer);
                 }

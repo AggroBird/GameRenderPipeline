@@ -111,8 +111,8 @@ namespace AggroBird.GameRenderPipeline
             var bicubicRescalingMode = postProcessStack.bicubicRescalingMode;
             pass.rescaleMode = pass.bufferSize.x == postProcessStack.camera.pixelWidth ? RescaleMode.None : postProcessStack.bicubicRescalingMode switch
             {
-                GeneralSettings.BicubicRescalingMode.UpAndDown => RescaleMode.Bicubic,
-                GeneralSettings.BicubicRescalingMode.UpOnly => pass.bufferSize.x < postProcessStack.camera.pixelWidth ? RescaleMode.Bicubic : RescaleMode.Linear,
+                BicubicRescalingMode.UpAndDown => RescaleMode.Bicubic,
+                BicubicRescalingMode.UpOnly => pass.bufferSize.x < postProcessStack.camera.pixelWidth ? RescaleMode.Bicubic : RescaleMode.Linear,
                 _ => RescaleMode.Linear,
             };
 

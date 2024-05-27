@@ -11,7 +11,7 @@ namespace AggroBird.GameRenderPipeline
 
         private static readonly RenderTargetIdentifier[] rtArray = new RenderTargetIdentifier[2];
 
-        private GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs;
+        private OpaqueBufferOutputs opaqueBufferOutputs;
         private TextureHandle rtColorBuffer;
         private TextureHandle rtDepthBuffer;
         private TextureHandle rtNormalBuffer;
@@ -28,7 +28,7 @@ namespace AggroBird.GameRenderPipeline
             bool clearColor = clearFlags == CameraClearFlags.Color;
             Color backgroundColor = clearFlags == CameraClearFlags.Color ? camera.backgroundColor.ColorSpaceAdjusted() : Color.clear;
 
-            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.ColorAndDepth))
+            if (opaqueBufferOutputs.And(OpaqueBufferOutputs.ColorAndDepth))
             {
                 buffer.SetRenderTarget(
                     opaqueColorBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
@@ -37,12 +37,12 @@ namespace AggroBird.GameRenderPipeline
             }
             else
             {
-                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Color))
+                if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Color))
                 {
                     buffer.SetRenderTarget(opaqueColorBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                     buffer.ClearRenderTarget(true, true, Color.clear);
                 }
-                if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Depth))
+                if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Depth))
                 {
                     buffer.SetRenderTarget(opaqueDepthBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                     buffer.ClearRenderTarget(true, true, Color.clear);
@@ -56,7 +56,7 @@ namespace AggroBird.GameRenderPipeline
                 rtDepthBuffer, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             buffer.ClearRenderTarget(clearDepth, clearColor, backgroundColor);
 
-            bool outputNormals = opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Normal);
+            bool outputNormals = opaqueBufferOutputs.And(OpaqueBufferOutputs.Normal);
             context.cmd.SetKeyword(CameraRenderer.OutputNormalsKeyword, outputNormals);
             if (outputNormals)
             {
@@ -69,7 +69,7 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
-        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, GeneralSettings.OpaqueBufferOutputs opaqueBufferOutputs, GraphicsFormat colorFormat, Vector2Int bufferSize, DepthBits depthBufferBits)
+        public static CameraRendererTextures Record(RenderGraph renderGraph, Camera camera, OpaqueBufferOutputs opaqueBufferOutputs, GraphicsFormat colorFormat, Vector2Int bufferSize, DepthBits depthBufferBits)
         {
             using RenderGraphBuilder builder = renderGraph.AddRenderPass(sampler.name, out SetupPass pass, sampler);
 
@@ -94,21 +94,21 @@ namespace AggroBird.GameRenderPipeline
             pass.rtDepthBuffer = builder.WriteTexture(renderGraph.CreateTexture(depthTextureDesc));
 
             TextureHandle opaqueColorBuffer = default;
-            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Color))
+            if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Color))
             {
                 colorTextureDesc.name = "Opaque Output Buffer (Color)";
                 pass.opaqueColorBuffer = opaqueColorBuffer = builder.WriteTexture(renderGraph.CreateTexture(colorTextureDesc));
             }
 
             TextureHandle opaqueDepthBuffer = default;
-            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Depth))
+            if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Depth))
             {
                 depthTextureDesc.name = "Opaque Output Buffer (Depth)";
                 pass.opaqueDepthBuffer = opaqueDepthBuffer = builder.WriteTexture(renderGraph.CreateTexture(depthTextureDesc));
             }
 
             TextureHandle rtNormalBuffer = default;
-            if (opaqueBufferOutputs.And(GeneralSettings.OpaqueBufferOutputs.Normal))
+            if (opaqueBufferOutputs.And(OpaqueBufferOutputs.Normal))
             {
                 var normalTextureDesc = new TextureDesc(bufferSize.x, bufferSize.y)
                 {

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
-using static AggroBird.GameRenderPipeline.GeneralSettings;
 
 namespace AggroBird.GameRenderPipeline
 {
@@ -24,27 +23,27 @@ namespace AggroBird.GameRenderPipeline
         }
     }
 
+    public enum BicubicRescalingMode
+    {
+        Off,
+        UpOnly,
+        UpAndDown,
+    }
+
+    [System.Flags]
+    public enum OpaqueBufferOutputs
+    {
+        None = 0,
+        Color = 1,
+        Depth = 2,
+        Normal = 4,
+        ColorAndDepth = Color | Depth,
+        All = Color | Depth | Normal,
+    }
+
     [System.Serializable]
     internal sealed class GeneralSettings
     {
-        public enum BicubicRescalingMode
-        {
-            Off,
-            UpOnly,
-            UpAndDown,
-        }
-
-        [System.Flags]
-        public enum OpaqueBufferOutputs
-        {
-            None = 0,
-            Color = 1,
-            Depth = 2,
-            Normal = 4,
-            ColorAndDepth = Color | Depth,
-            All = Color | Depth | Normal,
-        }
-
         public const float RenderScaleMin = 0.1f;
         public const float RenderScaleMax = 2;
 
