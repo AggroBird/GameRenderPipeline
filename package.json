@@ -8,7 +8,7 @@
 	"description": "Custom render pipeline for unity games",
 	"dependencies":
 	{
-		"com.unity.render-pipelines.core": "14.0.10"
+		"com.unity.render-pipelines.core": "14.0.9"
 	},
 	"author":
 	{
