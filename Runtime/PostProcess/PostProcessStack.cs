@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 
@@ -136,20 +135,20 @@ namespace AggroBird.GameRenderPipeline
 
         private bool TryGetPostProcessComponent(Camera camera, out PostProcessComponent postProcessComponent)
         {
-            if (camera.TryGetComponent(out PostProcessCameraComponent postProcessCameraComponent) && postProcessCameraComponent.enabled)
+            if (camera.TryGetComponent(out PostProcessCameraComponent cameraComponent) && cameraComponent.enabled && cameraComponent.gameObject.activeInHierarchy)
             {
-                postProcessComponent = postProcessCameraComponent;
+                postProcessComponent = cameraComponent;
                 return true;
             }
+#if UNITY_EDITOR
             else if (camera.cameraType == CameraType.SceneView)
             {
-#if UNITY_EDITOR
                 // Try to get current main camera component for editor scene view
                 var activeCameraComponents = PostProcessCameraComponent.activeCameraComponents;
                 for (int i = 0; i < activeCameraComponents.Count;)
                 {
-                    postProcessCameraComponent = activeCameraComponents[i];
-                    if (!postProcessCameraComponent)
+                    cameraComponent = activeCameraComponents[i];
+                    if (!cameraComponent)
                     {
                         int last = activeCameraComponents.Count - 1;
                         if (i == last)
@@ -158,30 +157,31 @@ namespace AggroBird.GameRenderPipeline
                         }
                         else
                         {
-                            postProcessCameraComponent = activeCameraComponents[last];
                             activeCameraComponents.RemoveAt(last);
                         }
                         continue;
                     }
 
-                    if (postProcessCameraComponent.TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                    if (cameraComponent.enabled && cameraComponent.gameObject.activeInHierarchy)
                     {
-                        postProcessComponent = postProcessCameraComponent;
-                        return true;
+                        if (cameraComponent.TryGetComponent(out camera) && camera.CompareTag(Tags.MainCameraTag))
+                        {
+                            postProcessComponent = cameraComponent;
+                            return true;
+                        }
                     }
 
                     i++;
                 }
-#endif
             }
+#endif
 
             // Find active post process
-            postProcessComponent = default;
             var activePostProcessComponents = PostProcessComponent.activePostProcessComponents;
             for (int i = 0; i < activePostProcessComponents.Count;)
             {
-                postProcessComponent = activePostProcessComponents[i];
-                if (!postProcessComponent)
+                var component = activePostProcessComponents[i];
+                if (!component)
                 {
                     int last = activePostProcessComponents.Count - 1;
                     if (i == last)
@@ -190,14 +190,22 @@ namespace AggroBird.GameRenderPipeline
                     }
                     else
                     {
-                        postProcessComponent = activePostProcessComponents[last];
                         activePostProcessComponents.RemoveAt(last);
                     }
                     continue;
                 }
+
+                if (component.enabled && component.gameObject.activeInHierarchy)
+                {
+                    postProcessComponent = component;
+                    return true;
+                }
+
                 break;
             }
-            return postProcessComponent;
+
+            postProcessComponent = default;
+            return false;
         }
 
 

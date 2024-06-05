@@ -281,7 +281,6 @@ namespace AggroBird.GameRenderPipeline
                             }
                             else
                             {
-                                component = activeCameraComponents[last];
                                 activeCameraComponents.RemoveAt(last);
                             }
                             continue;
@@ -289,7 +288,7 @@ namespace AggroBird.GameRenderPipeline
 
                         if (component.enabled && component.gameObject.activeInHierarchy)
                         {
-                            if (component.TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                            if (component.TryGetComponent(out camera) && camera.CompareTag(Tags.MainCameraTag))
                             {
                                 environmentComponent = component;
                                 return true;
@@ -316,19 +315,15 @@ namespace AggroBird.GameRenderPipeline
                     }
                     else
                     {
-                        component = activeSceneComponents[last];
                         activeSceneComponents.RemoveAt(last);
                     }
                     continue;
                 }
 
-                if (component.enabled && component.gameObject.activeInHierarchy)
+                if (component.enabled && component.gameObject.activeInHierarchy && component.priority > highestPriority)
                 {
-                    if (component.priority > highestPriority)
-                    {
-                        environmentComponent = component;
-                        highestPriority = component.priority;
-                    }
+                    environmentComponent = component;
+                    highestPriority = component.priority;
                 }
 
                 i++;
