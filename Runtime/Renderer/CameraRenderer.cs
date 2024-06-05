@@ -330,6 +330,8 @@ namespace AggroBird.GameRenderPipeline
                         highestPriority = component.priority;
                     }
                 }
+
+                i++;
             }
             return environmentComponent && environmentComponent.enabled;
         }
