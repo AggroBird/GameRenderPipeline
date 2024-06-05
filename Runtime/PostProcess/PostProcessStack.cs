@@ -135,9 +135,8 @@ namespace AggroBird.GameRenderPipeline
 
         private bool TryGetPostProcessComponent(Camera camera, out PostProcessComponent postProcessComponent)
         {
-            if (camera.TryGetComponent(out PostProcessCameraComponent cameraComponent) && cameraComponent.enabled && cameraComponent.gameObject.activeInHierarchy)
+            if (camera.TryGetComponent(out postProcessComponent) && postProcessComponent.enabled && postProcessComponent.gameObject.activeInHierarchy)
             {
-                postProcessComponent = cameraComponent;
                 return true;
             }
 #if UNITY_EDITOR
@@ -147,8 +146,8 @@ namespace AggroBird.GameRenderPipeline
                 var activeCameraComponents = PostProcessCameraComponent.activeCameraComponents;
                 for (int i = 0; i < activeCameraComponents.Count;)
                 {
-                    cameraComponent = activeCameraComponents[i];
-                    if (!cameraComponent)
+                    var component = activeCameraComponents[i];
+                    if (!component)
                     {
                         int last = activeCameraComponents.Count - 1;
                         if (i == last)
@@ -162,11 +161,11 @@ namespace AggroBird.GameRenderPipeline
                         continue;
                     }
 
-                    if (cameraComponent.enabled && cameraComponent.gameObject.activeInHierarchy)
+                    if (component.enabled && component.gameObject.activeInHierarchy)
                     {
-                        if (cameraComponent.TryGetComponent(out camera) && camera.CompareTag(Tags.MainCameraTag))
+                        if (component.TryGetComponent(out camera) && camera.CompareTag(Tags.MainCameraTag))
                         {
-                            postProcessComponent = cameraComponent;
+                            postProcessComponent = component;
                             return true;
                         }
                     }
@@ -177,35 +176,35 @@ namespace AggroBird.GameRenderPipeline
 #endif
 
             // Find active post process
-            var activePostProcessComponents = PostProcessComponent.activePostProcessComponents;
-            for (int i = 0; i < activePostProcessComponents.Count;)
+            var activePostProcessSceneComponents = PostProcessSceneComponent.activeSceneComponents;
+            int highestPriority = int.MinValue;
+            for (int i = 0; i < activePostProcessSceneComponents.Count;)
             {
-                var component = activePostProcessComponents[i];
+                var component = activePostProcessSceneComponents[i];
                 if (!component)
                 {
-                    int last = activePostProcessComponents.Count - 1;
+                    int last = activePostProcessSceneComponents.Count - 1;
                     if (i == last)
                     {
-                        activePostProcessComponents.RemoveAt(i);
+                        activePostProcessSceneComponents.RemoveAt(i);
                     }
                     else
                     {
-                        activePostProcessComponents.RemoveAt(last);
+                        activePostProcessSceneComponents.RemoveAt(last);
                     }
                     continue;
                 }
 
-                if (component.enabled && component.gameObject.activeInHierarchy)
+                if (component.enabled && component.gameObject.activeInHierarchy && component.priority > highestPriority)
                 {
                     postProcessComponent = component;
-                    return true;
+                    highestPriority = component.priority;
                 }
 
-                break;
+                i++;
             }
 
-            postProcessComponent = default;
-            return false;
+            return postProcessComponent;
         }
 
 

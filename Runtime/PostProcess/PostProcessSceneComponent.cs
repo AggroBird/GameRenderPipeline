@@ -6,13 +6,17 @@ namespace AggroBird.GameRenderPipeline
     [ExecuteAlways]
     public class PostProcessSceneComponent : PostProcessComponent
     {
+        public int priority = 0;
+
+        internal static readonly List<PostProcessSceneComponent> activeSceneComponents = new();
+
         protected override void OnEnable()
         {
-            activePostProcessComponents.Add(this);
+            activeSceneComponents.Add(this);
         }
         protected override void OnDisable()
         {
-            activePostProcessComponents.Remove(this);
+            activeSceneComponents.Remove(this);
         }
     }
 }

@@ -262,44 +262,41 @@ namespace AggroBird.GameRenderPipeline
             {
                 return true;
             }
-            else
-            {
-                if (camera.cameraType == CameraType.SceneView)
-                {
 #if UNITY_EDITOR
-                    // Try to get current main camera component
-                    var activeCameraComponents = EnvironmentCameraComponent.activeCameraComponents;
-                    for (int i = 0; i < activeCameraComponents.Count;)
+            else if (camera.cameraType == CameraType.SceneView)
+            {
+                // Try to get current main camera component
+                var activeCameraComponents = EnvironmentCameraComponent.activeCameraComponents;
+                for (int i = 0; i < activeCameraComponents.Count;)
+                {
+                    var component = activeCameraComponents[i];
+                    if (!component)
                     {
-                        var component = activeCameraComponents[i];
-                        if (!component)
+                        int last = activeCameraComponents.Count - 1;
+                        if (i == last)
                         {
-                            int last = activeCameraComponents.Count - 1;
-                            if (i == last)
-                            {
-                                activeCameraComponents.RemoveAt(i);
-                            }
-                            else
-                            {
-                                activeCameraComponents.RemoveAt(last);
-                            }
-                            continue;
+                            activeCameraComponents.RemoveAt(i);
                         }
-
-                        if (component.enabled && component.gameObject.activeInHierarchy)
+                        else
                         {
-                            if (component.TryGetComponent(out camera) && camera.CompareTag(Tags.MainCameraTag))
-                            {
-                                environmentComponent = component;
-                                return true;
-                            }
+                            activeCameraComponents.RemoveAt(last);
                         }
-
-                        i++;
+                        continue;
                     }
-#endif
+
+                    if (component.enabled && component.gameObject.activeInHierarchy)
+                    {
+                        if (component.TryGetComponent(out camera) && camera.CompareTag(Tags.MainCameraTag))
+                        {
+                            environmentComponent = component;
+                            return true;
+                        }
+                    }
+
+                    i++;
                 }
             }
+#endif
 
             var activeSceneComponents = EnvironmentSceneComponent.activeSceneComponents;
             int highestPriority = int.MinValue;
@@ -328,7 +325,8 @@ namespace AggroBird.GameRenderPipeline
 
                 i++;
             }
-            return environmentComponent && environmentComponent.enabled;
+
+            return environmentComponent;
         }
         private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {

@@ -36,8 +36,6 @@ namespace AggroBird.GameRenderPipeline
         }
 
 
-        internal static readonly List<PostProcessComponent> activePostProcessComponents = new();
-
         protected virtual void OnEnable()
         {
 
