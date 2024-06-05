@@ -7,8 +7,6 @@ namespace AggroBird.GameRenderPipeline
     {
         public abstract EnvironmentSettings GetEnvironmentSettings();
 
-        public static EnvironmentComponent activeSceneEnvironment;
-
         internal bool modified = false;
 
 

@@ -271,7 +271,8 @@ namespace AggroBird.GameRenderPipeline
                     var activeCameraComponents = EnvironmentCameraComponent.activeCameraComponents;
                     for (int i = 0; i < activeCameraComponents.Count;)
                     {
-                        if (!activeCameraComponents[i])
+                        var component = activeCameraComponents[i];
+                        if (!component)
                         {
                             int last = activeCameraComponents.Count - 1;
                             if (i == last)
@@ -280,16 +281,19 @@ namespace AggroBird.GameRenderPipeline
                             }
                             else
                             {
-                                activeCameraComponents[i] = activeCameraComponents[last];
+                                component = activeCameraComponents[last];
                                 activeCameraComponents.RemoveAt(last);
                             }
                             continue;
                         }
 
-                        if (activeCameraComponents[i].enabled && activeCameraComponents[i].TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                        if (component.enabled && component.gameObject.activeInHierarchy)
                         {
-                            environmentComponent = activeCameraComponents[i];
-                            return true;
+                            if (component.TryGetComponent(out Camera cameraComponent) && cameraComponent.CompareTag(Tags.MainCameraTag))
+                            {
+                                environmentComponent = component;
+                                return true;
+                            }
                         }
 
                         i++;
@@ -298,7 +302,35 @@ namespace AggroBird.GameRenderPipeline
                 }
             }
 
-            environmentComponent = EnvironmentComponent.activeSceneEnvironment;
+            var activeSceneComponents = EnvironmentSceneComponent.activeSceneComponents;
+            int highestPriority = int.MinValue;
+            for (int i = 0; i < activeSceneComponents.Count;)
+            {
+                var component = activeSceneComponents[i];
+                if (!component)
+                {
+                    int last = activeSceneComponents.Count - 1;
+                    if (i == last)
+                    {
+                        activeSceneComponents.RemoveAt(i);
+                    }
+                    else
+                    {
+                        component = activeSceneComponents[last];
+                        activeSceneComponents.RemoveAt(last);
+                    }
+                    continue;
+                }
+
+                if (component.enabled && component.gameObject.activeInHierarchy)
+                {
+                    if (component.priority > highestPriority)
+                    {
+                        environmentComponent = component;
+                        highestPriority = component.priority;
+                    }
+                }
+            }
             return environmentComponent && environmentComponent.enabled;
         }
         private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)

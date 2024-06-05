@@ -90,9 +90,9 @@
 			{
 				"LightMode" = "DepthOnly"
 			}
-
-			ZWrite On
-			ColorMask 0
+			
+            ZWrite On
+            ColorMask R
 
 			HLSLPROGRAM
 			#pragma target 3.5
@@ -119,7 +119,8 @@
 			#include "Packages/com.aggrobird.gamerenderpipeline/ShaderLibrary/TerrainLitPass.hlsl"
             ENDHLSL
         }
-		UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
+
+        UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
 	}
 	Dependency "AddPassShader" = "Hidden/GRP/Terrain/LitAdd"
     Dependency "BaseMapShader" = "Hidden/GRP/Terrain/LitBase"
