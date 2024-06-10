@@ -234,6 +234,8 @@ namespace AggroBird.GameRenderPipeline
             context.ExecuteCommandBuffer(buffer);
             context.Submit();
 
+            buffer.SetKeywords(fogModeKeywords, -1);
+
             CommandBufferPool.Release(buffer);
         }
         private CameraSettings GetCameraSettings(GeneralSettings generalSettings)
