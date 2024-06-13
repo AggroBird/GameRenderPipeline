@@ -16,11 +16,11 @@ namespace AggroBird.GameRenderPipeline
         public static GraphicsFormat ColorFormat { get; internal set; }
         public static Vector2Int BufferSize { get; internal set; }
 
-        public static void DisableFog()
+        public static void DisableFog(CommandBuffer commandBuffer)
         {
             foreach (var kw in CameraRenderer.fogModeKeywords)
             {
-                Shader.DisableKeyword(kw);
+                commandBuffer.DisableKeyword(kw);
             }
         }
     }
