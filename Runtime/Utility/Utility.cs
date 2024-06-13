@@ -15,6 +15,14 @@ namespace AggroBird.GameRenderPipeline
         // Only valid during rendering
         public static GraphicsFormat ColorFormat { get; internal set; }
         public static Vector2Int BufferSize { get; internal set; }
+
+        public static void DisableFog()
+        {
+            foreach (var kw in CameraRenderer.fogModeKeywords)
+            {
+                Shader.DisableKeyword(kw);
+            }
+        }
     }
 
     internal static class Tags
