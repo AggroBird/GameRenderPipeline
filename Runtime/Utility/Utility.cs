@@ -16,6 +16,7 @@ namespace AggroBird.GameRenderPipeline
         public static GraphicsFormat ColorFormat { get; internal set; }
         public static Vector2Int BufferSize { get; internal set; }
 
+        // Disable fog keywords
         public static void DisableFog(CommandBuffer commandBuffer)
         {
             foreach (var kw in CameraRenderer.fogModeKeywords)
@@ -24,23 +25,12 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
+        // Override lighting
         private static readonly GlobalKeyword sceneLightOverrideKeyword = GlobalKeyword.Create("_SCENE_LIGHT_OVERRIDE");
         private static readonly int
             overrideLightColorId = Shader.PropertyToID("_OverrideLightColor"),
             overrideLightDirectionId = Shader.PropertyToID("_OverrideLightDirection"),
             overrideLightAmbientId = Shader.PropertyToID("_OverrideLightAmbient");
-
-        public static void EnableSceneLightOverride(Color color, Vector3 direction, Color ambient)
-        {
-            Shader.EnableKeyword(sceneLightOverrideKeyword);
-            Shader.SetGlobalVector(overrideLightColorId, color);
-            Shader.SetGlobalVector(overrideLightDirectionId, -direction.normalized);
-            Shader.SetGlobalVector(overrideLightAmbientId, ambient);
-        }
-        public static void DisableSceneLightOverride()
-        {
-            Shader.DisableKeyword(sceneLightOverrideKeyword);
-        }
 
         public static void EnableSceneLightOverride(CommandBuffer commandBuffer, Color color, Vector3 direction, Color ambient)
         {
