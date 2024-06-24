@@ -16,6 +16,12 @@ CBUFFER_START(_CustomLight)
 	float4 _OtherLightDirections[MAX_OTHER_LIGHT_COUNT];
 	float4 _OtherLightSpotAngles[MAX_OTHER_LIGHT_COUNT];
 	float4 _OtherLightShadowData[MAX_OTHER_LIGHT_COUNT];
+
+#if defined(_SCENE_LIGHT_OVERRIDE)
+	float4 _OverrideLightColor;
+	float4 _OverrideLightDirection;
+	float4 _OverrideLightAmbient;
+#endif
 CBUFFER_END
 
 struct Light
@@ -27,11 +33,19 @@ struct Light
 
 int GetDirectionalLightCount()
 {
+#if defined(_SCENE_LIGHT_OVERRIDE)
+	return 1;
+#endif
+	
 	return _DirectionalLightCount;
 }
 
 int GetOtherLightCount()
 {
+#if defined(_SCENE_LIGHT_OVERRIDE)
+	return 0;
+#endif
+	
 	return _OtherLightCount;
 }
 
@@ -46,7 +60,14 @@ DirectionalShadowData GetDirectionalShadowData(int lightIndex, ShadowData shadow
 
 Light GetDirectionalLight(int lightIndex, Surface surface, ShadowData shadowData)
 {
-	Light light;
+    Light light;
+#if defined(_SCENE_LIGHT_OVERRIDE)
+	light.color = _OverrideLightColor.rgb;
+	light.direction = _OverrideLightDirection.rgb;
+	light.attenuation = 1;
+	return light;
+#endif
+	
 	light.color = _DirectionalLightColors[lightIndex].rgb;
 	light.direction = _DirectionalLightDirections[lightIndex].xyz;
 

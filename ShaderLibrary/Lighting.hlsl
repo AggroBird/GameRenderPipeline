@@ -47,6 +47,7 @@ float3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination globa
 		result += DirectBRDF(surface, brdf, light) * GRP_LIGHT_ATTENUATION_FUNC(surface, light);
 	}
 
+#if !defined(_SCENE_LIGHT_OVERRIDE)
 	// Other lights
 #if defined(_LIGHTS_PER_OBJECT)
 	for (int j = 0; j < min(unity_LightData.y, 8); j++)
@@ -64,7 +65,10 @@ float3 DefaultGetLightTotal(Surface surface, BRDF brdf, GlobalIllumination globa
 #endif
 
 	// Ambient
-	result += brdf.diffuse * globalIllumination.ambient;
+    result += brdf.diffuse * globalIllumination.ambient;
+#else
+	result += brdf.diffuse * _OverrideLightAmbient.rgb;
+#endif
 
 	return result;
 }
