@@ -24,7 +24,7 @@ namespace AggroBird.GameRenderPipeline
             }
         }
 
-        private static readonly GlobalKeyword sceneLightOverrideKeyword = new("_SCENE_LIGHT_OVERRIDE");
+        private static readonly GlobalKeyword sceneLightOverrideKeyword = GlobalKeyword.Create("_SCENE_LIGHT_OVERRIDE");
         private static readonly int
             overrideLightColorId = Shader.PropertyToID("_OverrideLightColor"),
             overrideLightDirectionId = Shader.PropertyToID("_OverrideLightDirection"),
@@ -40,6 +40,18 @@ namespace AggroBird.GameRenderPipeline
         public static void DisableSceneLightOverride()
         {
             Shader.DisableKeyword(sceneLightOverrideKeyword);
+        }
+
+        public static void EnableSceneLightOverride(CommandBuffer commandBuffer, Color color, Vector3 direction, Color ambient)
+        {
+            commandBuffer.EnableKeyword(sceneLightOverrideKeyword);
+            commandBuffer.SetGlobalVector(overrideLightColorId, color);
+            commandBuffer.SetGlobalVector(overrideLightDirectionId, -direction.normalized);
+            commandBuffer.SetGlobalVector(overrideLightAmbientId, ambient);
+        }
+        public static void DisableSceneLightOverride(CommandBuffer commandBuffer)
+        {
+            commandBuffer.DisableKeyword(sceneLightOverrideKeyword);
         }
     }
 
