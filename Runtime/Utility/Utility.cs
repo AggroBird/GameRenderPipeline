@@ -43,6 +43,18 @@ namespace AggroBird.GameRenderPipeline
         {
             commandBuffer.DisableKeyword(sceneLightOverrideKeyword);
         }
+
+        public static void EnableSceneLightOverride(Color color, Vector3 direction, Color ambient)
+        {
+            Shader.EnableKeyword(sceneLightOverrideKeyword);
+            Shader.SetGlobalVector(overrideLightColorId, color);
+            Shader.SetGlobalVector(overrideLightDirectionId, -direction.normalized);
+            Shader.SetGlobalVector(overrideLightAmbientId, ambient);
+        }
+        public static void DisableSceneLightOverride()
+        {
+            Shader.DisableKeyword(sceneLightOverrideKeyword);
+        }
     }
 
     internal static class Tags
