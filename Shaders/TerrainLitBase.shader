@@ -31,7 +31,6 @@
 			HLSLPROGRAM
 			#pragma target 2.0
 			#pragma shader_feature _RECEIVE_SHADOWS
-			#pragma shader_feature _SCENE_LIGHT_OVERRIDE
 			#pragma multi_compile _ _FOG_LINEAR _FOG_EXP _FOG_EXP2
 			#pragma multi_compile _ _OUTPUT_NORMALS_ENABLED
 			#pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
@@ -39,6 +38,7 @@
 			#pragma multi_compile _ _CASCADE_BLEND_SOFT _CASCADE_BLEND_DITHER
 			#pragma multi_compile _ _LIGHTS_PER_OBJECT
 			#pragma multi_compile _ _CELL_SHADING_ENABLED
+			#pragma multi_compile _ _SCENE_LIGHT_OVERRIDE
             #pragma shader_feature_local _NORMALMAP
 			#pragma vertex TerrainLitPassVertex
 			#pragma fragment TerrainLitPassFragment

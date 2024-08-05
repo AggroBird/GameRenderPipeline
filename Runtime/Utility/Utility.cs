@@ -34,26 +34,26 @@ namespace AggroBird.GameRenderPipeline
 
         public static void EnableSceneLightOverride(CommandBuffer commandBuffer, Color color, Vector3 direction, Color ambient)
         {
-            commandBuffer.EnableKeyword(sceneLightOverrideKeyword);
+            commandBuffer.SetKeyword(sceneLightOverrideKeyword, true);
             commandBuffer.SetGlobalVector(overrideLightColorId, color);
             commandBuffer.SetGlobalVector(overrideLightDirectionId, -direction.normalized);
             commandBuffer.SetGlobalVector(overrideLightAmbientId, ambient);
         }
         public static void DisableSceneLightOverride(CommandBuffer commandBuffer)
         {
-            commandBuffer.DisableKeyword(sceneLightOverrideKeyword);
+            commandBuffer.SetKeyword(sceneLightOverrideKeyword, false);
         }
 
         public static void EnableSceneLightOverride(Color color, Vector3 direction, Color ambient)
         {
-            Shader.EnableKeyword(sceneLightOverrideKeyword);
+            Shader.SetKeyword(sceneLightOverrideKeyword, true);
             Shader.SetGlobalVector(overrideLightColorId, color);
             Shader.SetGlobalVector(overrideLightDirectionId, -direction.normalized);
             Shader.SetGlobalVector(overrideLightAmbientId, ambient);
         }
         public static void DisableSceneLightOverride()
         {
-            Shader.DisableKeyword(sceneLightOverrideKeyword);
+            Shader.SetKeyword(sceneLightOverrideKeyword, false);
         }
     }
 
