@@ -103,6 +103,8 @@ namespace AggroBird.GameRenderPipeline
         {
             CommandBuffer buffer = context.cmd;
 
+            GameRenderPipelineUtility.DisableSceneLightOverride(buffer);
+
             buffer.SetKeyword(lightsPerObjectKeyword, useLightsPerObject);
 
             buffer.SetGlobalInt(directionalLightCountId, directionalLightCount);
