@@ -103,14 +103,17 @@ namespace AggroBird.GameRenderPipeline
         {
             CommandBuffer buffer = context.cmd;
 
+            buffer.SetKeyword(lightsPerObjectKeyword, useLightsPerObject);
+
             buffer.SetGlobalInt(directionalLightCountId, directionalLightCount);
-            buffer.SetGlobalInt(otherLightCountId, otherLightCount);
             if (directionalLightCount > 0)
             {
                 buffer.SetGlobalVectorArray(directionalLightColorsId, directionalLightColors);
                 buffer.SetGlobalVectorArray(directionalLightDirectionsId, directionalLightDirections);
                 buffer.SetGlobalVectorArray(directionalLightShadowDataId, directionalLightShadowData);
             }
+
+            buffer.SetGlobalInt(otherLightCountId, otherLightCount);
             if (otherLightCount > 0)
             {
                 buffer.SetGlobalVectorArray(otherLightColorsId, otherLightColors);
