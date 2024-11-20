@@ -167,4 +167,15 @@ float FractalNoise3D(float3 v, bool Tiling, float RepeatSize, int Octaves = 8, f
     return sum;
 }
 
+// Most commonly used simple random func for 2D and 3D coordinates
+// Returns a random number between 0.0 inclusive and 1.0 exclusive
+float SimpleRandom2D(float2 coord)
+{
+    return frac(sin(dot(coord, float2(12.9898, 78.233))) * 43758.5453);
+}
+float SimpleRandom3D(float3 coord)
+{
+    return frac(sin(dot(coord, float3(12.9898, 78.233, 45.5432))) * 43758.5453);
+}
+
 #endif
