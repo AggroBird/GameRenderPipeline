@@ -5,7 +5,7 @@
 		_MainTex("Texture", 2D) = "white" {}
 		_Color("Color", Color) = (1, 1, 1, 1)
 		[Space]
-		_EmissionTex("Emission Texture", 2D) = "black" {}
+		[TextureToggle(_HAS_EMISSION_TEXTURE)] _EmissionTex("Emission Texture", 2D) = "black" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0, 0, 0, 0)
 		[Space]
 		[Toggle(_ALPHATEST_ON)] _Clipping("Alpha Clipping", Float) = 0

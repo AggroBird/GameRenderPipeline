@@ -5,13 +5,13 @@
 		_MainTex("Diffuse Texture", 2D) = "white" {}
 		_Color("Diffuse Color", Color) = (1, 1, 1, 1)
 		[Space]
-		_EmissionTex("Emission Texture", 2D) = "black" {}
+		[TextureToggle(_HAS_EMISSION_TEXTURE)] _EmissionTex("Emission Texture", 2D) = "black" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0, 0, 0, 0)
 		[Space]
-		_NormalTex("Normal Texture", 2D) = "normal" {}
+		[TextureToggle(_HAS_NORMAL_TEXTURE)] _NormalTex("Normal Texture", 2D) = "normal" {}
 		_NormalScale("Normal Scale", Range(0, 1)) = 1
 		[Space]
-		_SurfaceTex("Surface Texture", 2D) = "black" {}
+		[TextureToggle(_HAS_SURFACE_TEXTURE)] _SurfaceTex("Surface Texture", 2D) = "black" {}
 		_Metallic("Metallic", Range(0, 1)) = 0
 		_Smoothness("Smoothness", Range(0, 1)) = 0.2
 		_Fresnel("Fresnel", Range(0, 1)) = 1
