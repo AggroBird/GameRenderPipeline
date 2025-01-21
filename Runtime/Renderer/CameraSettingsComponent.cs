@@ -9,6 +9,7 @@ namespace AggroBird.GameRenderPipeline
         public bool renderShadowAtlas;
         public bool renderEnvironment;
         public bool renderPostProcess;
+        public bool renderFog;
 
         [Space, Range(GeneralSettings.RenderScaleMin, GeneralSettings.RenderScaleMax)]
         public float renderScale;
@@ -28,6 +29,7 @@ namespace AggroBird.GameRenderPipeline
             renderShadowAtlas = true,
             renderEnvironment = true,
             renderPostProcess = true,
+            renderFog = true,
             renderScale = 1,
             bicubicRescalingMode = BicubicRescalingMode.UpOnly,
             depthBufferBits = DepthBits.Depth32,

@@ -209,7 +209,7 @@ namespace AggroBird.GameRenderPipeline
 
                 if (cameraSettings.renderEnvironment)
                 {
-                    GetEnvironmentSettings(out EnvironmentSettings environmentSettings, primaryDirectionalLightInfo);
+                    GetEnvironmentSettings(out EnvironmentSettings environmentSettings, cameraSettings.renderFog, primaryDirectionalLightInfo);
                     if (camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
                     {
                         SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, cameraTextures);
@@ -330,7 +330,7 @@ namespace AggroBird.GameRenderPipeline
 
             return environmentComponent;
         }
-        private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
+        private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, bool renderFog, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             if (TryGetEnvironmentComponent(camera, out EnvironmentComponent environmentComponent))
             {
@@ -338,17 +338,17 @@ namespace AggroBird.GameRenderPipeline
                 if (settings != null)
                 {
                     environmentSettings = settings;
-                    SetupEnvironment(environmentSettings, environmentComponent.modified, primaryDirectionalLightInfo);
+                    SetupEnvironment(environmentSettings, renderFog, primaryDirectionalLightInfo);
                     environmentComponent.modified = false;
                     return;
                 }
             }
 
             environmentSettings = defaultEnvironmentSettings;
-            SetupEnvironment(environmentSettings, false, primaryDirectionalLightInfo);
+            SetupEnvironment(environmentSettings, renderFog, primaryDirectionalLightInfo);
         }
 
-        private void SetupEnvironment(EnvironmentSettings settings, bool environmentModified, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
+        private void SetupEnvironment(EnvironmentSettings settings, bool renderFog, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             settings.UpdateEnvironment();
 
@@ -357,7 +357,7 @@ namespace AggroBird.GameRenderPipeline
 
             // Fog
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
-            bool fogEnabled = fogSettings.enabled && ShowFog;
+            bool fogEnabled = renderFog && fogSettings.enabled && ShowFog;
             int setFogKeyword = fogEnabled ? (int)fogSettings.fogMode : 0;
             buffer.SetKeywords(fogModeKeywords, setFogKeyword - 1);
             if (fogEnabled)
