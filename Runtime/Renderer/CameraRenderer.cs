@@ -250,6 +250,7 @@ namespace AggroBird.GameRenderPipeline
                 renderShadowAtlas = true,
                 renderEnvironment = true,
                 renderPostProcess = true,
+                renderFog = true,
                 renderScale = generalSettings.renderScale,
                 bicubicRescalingMode = generalSettings.bicubicRescalingMode,
                 depthBufferBits = generalSettings.depthBufferBits,
