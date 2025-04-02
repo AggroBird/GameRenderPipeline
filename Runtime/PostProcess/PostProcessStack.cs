@@ -60,7 +60,7 @@ namespace AggroBird.GameRenderPipeline
         public bool DrawGizmoEffects => camera.cameraType == CameraType.SceneView && editorGizmoEffects.Count > 0;
 
 
-        private static readonly int
+        internal static readonly int
             postProcessInputTexId = Shader.PropertyToID("_PostProcessInputTex"),
             finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
             finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
