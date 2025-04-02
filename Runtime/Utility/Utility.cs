@@ -17,7 +17,7 @@ namespace AggroBird.GameRenderPipeline
         public static Vector2Int BufferSize { get; internal set; }
 
         // Disable fog keywords
-        public static void DisableFog(CommandBuffer commandBuffer)
+        public static void DisableFog(this CommandBuffer commandBuffer)
         {
             foreach (var kw in CameraRenderer.fogModeKeywords)
             {
@@ -32,14 +32,14 @@ namespace AggroBird.GameRenderPipeline
             overrideLightDirectionId = Shader.PropertyToID("_OverrideLightDirection"),
             overrideLightAmbientId = Shader.PropertyToID("_OverrideLightAmbient");
 
-        public static void EnableSceneLightOverride(CommandBuffer commandBuffer, Color color, Vector3 direction, Color ambient)
+        public static void EnableSceneLightOverride(this CommandBuffer commandBuffer, Color color, Vector3 direction, Color ambient)
         {
             commandBuffer.SetKeyword(sceneLightOverrideKeyword, true);
             commandBuffer.SetGlobalVector(overrideLightColorId, color);
             commandBuffer.SetGlobalVector(overrideLightDirectionId, -direction.normalized);
             commandBuffer.SetGlobalVector(overrideLightAmbientId, ambient);
         }
-        public static void DisableSceneLightOverride(CommandBuffer commandBuffer)
+        public static void DisableSceneLightOverride(this CommandBuffer commandBuffer)
         {
             commandBuffer.SetKeyword(sceneLightOverrideKeyword, false);
         }
@@ -54,6 +54,15 @@ namespace AggroBird.GameRenderPipeline
         public static void DisableSceneLightOverride()
         {
             Shader.SetKeyword(sceneLightOverrideKeyword, false);
+        }
+
+        public static void SetPostProcessInputTexture(Texture texture)
+        {
+            Shader.SetGlobalTexture(PostProcessStack.postProcessInputTexId, texture);
+        }
+        public static void SetPostProcessInputTexture(this CommandBuffer commandBuffer, Texture texture)
+        {
+            commandBuffer.SetGlobalTexture(PostProcessStack.postProcessInputTexId, texture);
         }
 
         // Copy render textures
