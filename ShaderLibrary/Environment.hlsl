@@ -115,10 +115,22 @@ float _SkyboxAnimTime;
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 
+
+#if !defined(_SCENE_LIGHT_OVERRIDE)
+
 float3 SampleSkyboxCubemap(float3 dir, float mip = 0)
 {
     float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, dir, mip);
     return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
+
+#else
+
+float3 SampleSkyboxCubemap(float3 dir, float mip = 0)
+{
+    return float3(0, 0, 0);
+}
+
+#endif
 
 #endif
