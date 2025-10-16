@@ -31,8 +31,11 @@ namespace AggroBird.GameRenderPipeline
             public bool enabled;
 
             [Space]
-            [Range(0, 1)] public float blend;
+            [Range(0, 1)]
+            public float blend;
+            [ColorUsage(showAlpha: false)]
             public Color ambientColor;
+            [ColorUsage(showAlpha: false)]
             public Color inscatteringColor;
             public FogMode fogMode;
             [ConditionalProperty(nameof(fogMode), FogMode.Linear), Min(0)]
