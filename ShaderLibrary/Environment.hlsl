@@ -46,13 +46,18 @@ float ComputeFogIntensity(float fogAttribute)
     return fogIntensity * _FogAmbientColor.a;
 }
 
+
+float3 CalculateInscatteringFogColor(float3 viewDir)
+{
+    float inscatteringBlend = pow(max(dot(viewDir, _FogLightDirection) - saturate(-viewDir.y), 0), 8);
+    return lerp(_FogAmbientColor.rgb, _FogInscatteringColor, saturate(inscatteringBlend));
+}
+
 void ApplyFog(inout float3 rgb, FOG_ATTRIBUTE_TYPE fogAttribute)
 {
     float fogFactor = ComputeFogFactor(fogAttribute.x);
     float3 viewDir = normalize(fogAttribute.yzw - _WorldSpaceCameraPos);
-    float inscatteringBlend = pow(max(dot(viewDir, _FogLightDirection) - saturate(-viewDir.y), 0), 8);
-    float3 fogColor = lerp(_FogAmbientColor.rgb, _FogInscatteringColor, saturate(inscatteringBlend));
-    rgb = lerp(rgb, fogColor, ComputeFogIntensity(fogFactor));
+    rgb = lerp(rgb, CalculateInscatteringFogColor(viewDir), ComputeFogIntensity(fogFactor));
 }
 
 void BlendFog(inout float3 rgb, FOG_ATTRIBUTE_TYPE fogAttribute)
