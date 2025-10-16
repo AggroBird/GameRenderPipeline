@@ -50,7 +50,7 @@ float ComputeFogIntensity(float fogAttribute)
 float3 CalculateInscatteringFogColor(float3 viewDir)
 {
     float inscatteringBlend = pow(max(dot(viewDir, _FogLightDirection) - saturate(-viewDir.y), 0), 8);
-    return lerp(_FogAmbientColor.rgb, _FogInscatteringColor, saturate(inscatteringBlend) * _FogInscatteringColor.a);
+    return lerp(_FogAmbientColor.rgb, _FogInscatteringColor.rgb, saturate(inscatteringBlend) * _FogInscatteringColor.a);
 }
 
 void ApplyFog(inout float3 rgb, FOG_ATTRIBUTE_TYPE fogAttribute)
