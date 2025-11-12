@@ -207,13 +207,10 @@ namespace AggroBird.GameRenderPipeline
 
                 OpaqueGeometryPass.Record(renderGraph, this.camera, cullingResults, generalSettings.useLightsPerObject, cameraTextures, shadowTextures);
 
-                if (cameraSettings.renderEnvironment)
+                GetEnvironmentSettings(out EnvironmentSettings environmentSettings, cameraSettings.renderEnvironment, cameraSettings.renderFog, primaryDirectionalLightInfo);
+                if (cameraSettings.renderEnvironment && camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
                 {
-                    GetEnvironmentSettings(out EnvironmentSettings environmentSettings, cameraSettings.renderFog, primaryDirectionalLightInfo);
-                    if (camera.clearFlags == CameraClearFlags.Skybox && ShowSkybox)
-                    {
-                        SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, cameraTextures);
-                    }
+                    SkyboxPass.Record(renderGraph, defaultSkyboxMaterial, environmentSettings, cameraTextures);
                 }
 
                 PreTransparencyPostProcessPass.Record(renderGraph, postProcessStack, cameraTextures);
@@ -331,7 +328,7 @@ namespace AggroBird.GameRenderPipeline
 
             return environmentComponent;
         }
-        private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, bool renderFog, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
+        private void GetEnvironmentSettings(out EnvironmentSettings environmentSettings, bool renderEnvironment, bool renderFog, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             if (TryGetEnvironmentComponent(camera, out EnvironmentComponent environmentComponent))
             {
@@ -339,17 +336,17 @@ namespace AggroBird.GameRenderPipeline
                 if (settings != null)
                 {
                     environmentSettings = settings;
-                    SetupEnvironment(environmentSettings, renderFog, primaryDirectionalLightInfo);
+                    SetupEnvironment(environmentSettings, renderEnvironment, renderFog, primaryDirectionalLightInfo);
                     environmentComponent.modified = false;
                     return;
                 }
             }
 
             environmentSettings = defaultEnvironmentSettings;
-            SetupEnvironment(environmentSettings, renderFog, primaryDirectionalLightInfo);
+            SetupEnvironment(environmentSettings, renderEnvironment, renderFog, primaryDirectionalLightInfo);
         }
 
-        private void SetupEnvironment(EnvironmentSettings settings, bool renderFog, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
+        private void SetupEnvironment(EnvironmentSettings settings, bool renderEnvironment, bool renderFog, in PrimaryDirectionalLightInfo primaryDirectionalLightInfo)
         {
             settings.UpdateEnvironment();
 
@@ -358,7 +355,7 @@ namespace AggroBird.GameRenderPipeline
 
             // Fog
             EnvironmentSettings.FogSettings fogSettings = settings.fogSettings;
-            bool fogEnabled = renderFog && fogSettings.enabled && ShowFog;
+            bool fogEnabled = renderEnvironment && renderFog && fogSettings.enabled && ShowFog;
             int setFogKeyword = fogEnabled ? (int)fogSettings.fogMode : 0;
             buffer.SetKeywords(fogModeKeywords, setFogKeyword - 1);
             if (fogEnabled)
