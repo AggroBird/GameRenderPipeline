@@ -4,4 +4,4 @@
 
 Custom scriptable render pipeline for Unity projects.
 
-Used for internal development. This plugin is continuously under development and is not optimized for production. Use at your own risk.
+Based on the [Custom SRP tutorial from Catlike Coding](https://catlikecoding.com/unity/tutorials/custom-srp/). This is no longer maintained and exists only for archive purposes. Use at your own risk.
